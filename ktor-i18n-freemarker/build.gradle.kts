@@ -1,6 +1,8 @@
 plugins {
     kotlin("multiplatform")
-    `maven-publish`
+    id("convention.publication")
+    id("org.jetbrains.kotlinx.kover")
+    id("com.google.devtools.ksp")
 }
 
 repositories {
