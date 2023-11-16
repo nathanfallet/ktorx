@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import me.nathanfallet.ktorx.controllers.base.IChildModelController
+import me.nathanfallet.ktorx.models.api.APIMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
@@ -18,6 +19,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     updatePayloadClass: KClass<UpdatePayload>,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
+    val mapping: APIMapping = APIMapping(),
     route: String? = null,
     id: String? = null,
     prefix: String? = null
@@ -40,16 +42,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         createAPIDeleteIdRoute(root)
     }
 
-    private suspend fun handleExceptionAPI(exception: ControllerException, call: ApplicationCall) {
+    open suspend fun handleExceptionAPI(exception: ControllerException, call: ApplicationCall) {
         call.response.status(exception.code)
-        call.respond(
-            mapOf(
-                "error" to /*translateUseCase(call.locale, */exception.key//)
-            )
-        )
+        call.respond(mapOf("error" to exception.key))
     }
 
-    fun createAPIGetRoute(root: Route) {
+    open fun createAPIGetRoute(root: Route) {
+        if (!mapping.listEnabled) return
         root.get(fullRoute) {
             try {
                 call.respond(getAll(call), listTypeInfo)
@@ -59,7 +58,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
-    fun createAPIGetIdRoute(root: Route) {
+    open fun createAPIGetIdRoute(root: Route) {
+        if (!mapping.getEnabled) return
         root.get("$fullRoute/{$id}") {
             try {
                 call.respond(get(call), modelTypeInfo)
@@ -69,7 +69,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
-    fun createAPIPostRoute(root: Route) {
+    open fun createAPIPostRoute(root: Route) {
+        if (!mapping.createEnabled) return
         root.post(fullRoute) {
             try {
                 val response = create(call, call.receive(createPayloadTypeInfo))
@@ -87,7 +88,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
-    fun createAPIPutIdRoute(root: Route) {
+    open fun createAPIPutIdRoute(root: Route) {
+        if (!mapping.updateEnabled) return
         root.put("$fullRoute/{$id}") {
             try {
                 call.respond(
@@ -106,7 +108,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
-    fun createAPIDeleteIdRoute(root: Route) {
+    open fun createAPIDeleteIdRoute(root: Route) {
+        if (!mapping.deleteEnabled) return
         root.delete("$fullRoute/{$id}") {
             try {
                 delete(call)
