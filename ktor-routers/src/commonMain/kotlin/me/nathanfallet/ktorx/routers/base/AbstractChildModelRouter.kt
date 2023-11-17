@@ -1,19 +1,16 @@
 package me.nathanfallet.ktorx.routers.base
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.reflect.*
 import me.nathanfallet.ktorx.controllers.base.IChildModelController
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.UnitModel
-import me.nathanfallet.usecases.models.annotations.ModelKey
-import me.nathanfallet.usecases.models.annotations.ModelProperty
-import me.nathanfallet.usecases.models.annotations.PayloadKey
-import me.nathanfallet.usecases.models.annotations.PayloadProperty
-import kotlin.reflect.*
+import me.nathanfallet.usecases.models.annotations.ModelAnnotations
+import kotlin.reflect.KClass
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
 
 abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
@@ -56,74 +53,16 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         )
     )
 
-    val modelKeys = getAnnotatedMembersSorted<ModelProperty>(modelClass).map { (member, annotation) ->
-        ModelKey(member.name, annotation.type, annotation.style)
-    }
-    val updatePayloadKeys = getAnnotatedMembersSorted<ModelProperty>(modelClass).mapNotNull { (member, a) ->
-        val annotation = a.takeIf { it.visibleOnUpdate } ?: return@mapNotNull null
-        PayloadKey(member.name, annotation.type, annotation.style, false)
-    } + getAnnotatedMembersSorted<PayloadProperty>(updatePayloadClass).map { (member, annotation) ->
-        PayloadKey(member.name, annotation.type, annotation.style, true)
-    }
-    val createPayloadKeys = getAnnotatedMembersSorted<PayloadProperty>(createPayloadClass).map { (member, annotation) ->
-        PayloadKey(member.name, annotation.type, annotation.style, true)
-    }
-
-    private inline fun <reified O : Annotation> getAnnotatedMembersSorted(kClass: KClass<*>): List<Pair<KCallable<*>, O>> {
-        return kClass.members.mapNotNull { member ->
-            val annotation = member.annotations.firstNotNullOfOrNull {
-                it as? O
-            } ?: return@mapNotNull null
-            Pair(member, annotation)
-        }.sortedBy { (member, _) ->
-            kClass.constructors.firstOrNull {
-                it.parameters.any { parameter ->
-                    parameter.name == member.name
-                }
-            }?.parameters?.indexOfFirst { it.name == member.name }
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun constructId(id: String): Id {
-        val idType = modelClass.members.first { it.name == "id" }.returnType
-        return when (idType) {
-            typeOf<Int>() -> id.toInt() as Id
-            typeOf<Long>() -> id.toLong() as Id
-            typeOf<String>() -> id as Id
-            else -> throw IllegalArgumentException("Unsupported id type: $idType")
-        }
-    }
-
-    fun <O : Any> constructPayload(type: KClass<O>, parameters: Parameters): O? {
-        val constructor = type.constructors.firstOrNull {
-            it.parameters.all { parameter ->
-                parameter.name in parameters.names()
-                        || parameter.isOptional
-                        || parameter.type.isSubtypeOf(typeOf<Boolean>())
-            }
-        } ?: return null
-        val params = constructor.parameters.associateWith {
-            it.name?.let { name ->
-                when (it.type) {
-                    typeOf<Boolean>() -> parameters[name] != null
-                    typeOf<Int>() -> parameters[name]?.toInt()
-                    typeOf<Long>() -> parameters[name]?.toLong()
-                    typeOf<Float>() -> parameters[name]?.toFloat()
-                    typeOf<Double>() -> parameters[name]?.toDouble()
-                    else -> parameters[name]
-                }
-            }
-        }
-        return constructor.callBy(params)
-    }
+    val modelKeys = ModelAnnotations.modelKeys(modelClass)
+    val updatePayloadKeys = ModelAnnotations.updatePayloadKeys(modelClass, updatePayloadClass)
+    val createPayloadKeys = ModelAnnotations.createPayloadKeys(modelClass, createPayloadClass)
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun get(call: ApplicationCall): Model {
         return controller.get(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel,
-            constructId(call.parameters[id]!!)
+            ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!)
         )
     }
 
@@ -149,7 +88,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         return controller.update(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel,
-            constructId(call.parameters[id]!!),
+            ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!),
             payload
         )
     }
@@ -159,7 +98,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         return controller.delete(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel,
-            constructId(call.parameters[id]!!)
+            ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!)
         )
     }
 

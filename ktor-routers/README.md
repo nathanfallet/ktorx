@@ -7,14 +7,15 @@ Generic routers for Ktor projects.
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers:1.3.0'
+compile 'me.nathanfallet.ktorx:ktor-routers:1.4.0'
 ```
 
 ```xml
+
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-jvm</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
