@@ -14,7 +14,7 @@ class TemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, 
     updatePayloadClass: KClass<UpdatePayload>,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
     mapping: TemplateMapping,
-    respondTemplate: ApplicationCall.(String, Any?) -> Unit,
+    respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     route: String? = null,
     id: String? = null,
     prefix: String? = null

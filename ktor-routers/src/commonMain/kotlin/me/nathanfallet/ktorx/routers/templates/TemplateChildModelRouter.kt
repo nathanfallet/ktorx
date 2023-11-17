@@ -22,7 +22,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     val mapping: TemplateMapping,
-    val respondTemplate: ApplicationCall.(String, Any?) -> Unit,
+    val respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     route: String? = null,
     id: String? = null,
     prefix: String? = null
@@ -57,6 +57,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         call.respondTemplate(
             mapping.errorTemplate,
             mapOf(
+                "route" to route,
                 "code" to exception.code.value,
                 "error" to exception.key
             )
@@ -122,7 +123,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     mapOf(
                         "route" to route,
                         "item" to get(call),
-                        "keys" to updatePayloadKeys
+                        "keys" to modelKeys
                     )
                 )
             } catch (exception: ControllerException) {
@@ -173,7 +174,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     mapOf(
                         "route" to route,
                         "item" to get(call),
-                        "keys" to updatePayloadKeys
+                        "keys" to modelKeys
                     )
                 )
             } catch (exception: ControllerException) {
@@ -184,7 +185,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
 
     open fun createTemplatePostIdDeleteRoute(root: Route) {
         mapping.deleteTemplate ?: return
-        root.get("$fullRoute/{$id}/delete") {
+        root.post("$fullRoute/{$id}/delete") {
             try {
                 delete(call)
                 call.respondRedirect("../../$route")
