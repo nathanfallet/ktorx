@@ -41,8 +41,9 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-freemarker:$ktorVersion")
-                implementation("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                implementation("com.github.aymanizz:ktor-i18n:2.0.0")
+
+                api("me.nathanfallet.usecases:usecases:$usecasesVersion")
+                api("com.github.aymanizz:ktor-i18n:2.0.0")
             }
         }
         val commonTest by getting {

@@ -39,7 +39,8 @@ kotlin {
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.sentry:sentry:$sentryVersion")
                 implementation("io.sentry:sentry-kotlin-extensions:$sentryVersion")
-                implementation("me.nathanfallet.usecases:usecases:$usecasesVersion")
+
+                api("me.nathanfallet.usecases:usecases:$usecasesVersion")
             }
         }
         val commonTest by getting {

@@ -30,7 +30,6 @@ kotlin {
 
     val coroutinesVersion = "1.7.3"
     val ktorVersion = "2.3.6"
-    val sentryVersion = "6.32.0"
     val usecasesVersion = "1.2.3"
 
     sourceSets {
@@ -40,9 +39,8 @@ kotlin {
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-                implementation("io.sentry:sentry:$sentryVersion")
-                implementation("io.sentry:sentry-kotlin-extensions:$sentryVersion")
-                implementation("me.nathanfallet.usecases:usecases:$usecasesVersion")
+
+                api("me.nathanfallet.usecases:usecases:$usecasesVersion")
             }
         }
         val commonTest by getting {

@@ -9,7 +9,6 @@ Add dependency to your `build.gradle` or `pom.xml`:
 ```groovy
 compile 'me.nathanfallet.ktorx:ktor-i18n-freemarker:1.4.0'
 compile 'io.ktor:ktor-server-freemarker:2.3.6'
-compile 'com.github.aymanizz:ktor-i18n:2.0.0'
 ```
 
 ```xml
@@ -24,11 +23,6 @@ compile 'com.github.aymanizz:ktor-i18n:2.0.0'
         <groupId>io.ktor</groupId>
         <artifactId>ktor-server-freemarker-jvm</artifactId>
         <version>2.3.6</version>
-    </dependency>
-    <dependency>
-        <groupId>com.github.aymanizz</groupId>
-        <artifactId>ktor-i18n</artifactId>
-        <version>2.0.0</version>
     </dependency>
 </dependencies>
 ```
@@ -54,13 +48,11 @@ install(FreeMarker) {
 Give the locale to the template, so that it can resolve automatically.
 
 ```kotlin
-call.respond(
-    FreeMarkerContent(
-        "template.ftl",
-        mapOf(
-            "locale" to call.locale,
-            // ...
-        )
+call.respondTemplate(
+    "template.ftl",
+    mapOf(
+        "locale" to call.locale,
+        // ...
     )
 )
 ```
