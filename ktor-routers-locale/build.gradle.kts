@@ -41,6 +41,7 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
+                api("me.nathanfallet.i18n:i18n:1.0.0")
                 api(project(":ktor-i18n"))
                 api(project(":ktor-routers"))
             }
