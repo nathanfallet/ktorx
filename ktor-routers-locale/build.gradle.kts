@@ -9,8 +9,8 @@ plugins {
 publishing {
     publications.withType<MavenPublication> {
         pom {
-            name.set("ktor-routers")
-            description.set("Generic routers for Ktor projects.")
+            name.set("ktor-routers-locale")
+            description.set("locale extensions for ktor-routers.")
         }
     }
 }
@@ -41,16 +41,14 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
+                api(project(":ktor-i18n"))
+                api(project(":ktor-routers"))
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("io.ktor:ktor-server-test-host:$ktorVersion")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.mockative:mockative:2.0.1")
-                implementation("io.mockk:mockk:1.13.8")
             }
         }
     }
