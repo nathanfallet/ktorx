@@ -11,6 +11,8 @@ plugins {
 
 rootProject.name = "ktorx"
 includeBuild("convention-plugins")
+include(":ktor-i18n")
 include(":ktor-i18n-freemarker")
 include(":ktor-routers")
+include(":ktor-routers-locale")
 include(":ktor-sentry")

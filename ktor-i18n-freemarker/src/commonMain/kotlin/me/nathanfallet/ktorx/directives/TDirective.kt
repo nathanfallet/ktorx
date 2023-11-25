@@ -1,13 +1,12 @@
 package me.nathanfallet.ktorx.directives
 
-import com.github.aymanizz.ktori18n.MessageResolver
-import com.github.aymanizz.ktori18n.R
 import freemarker.core.Environment
 import freemarker.template.*
+import me.nathanfallet.usecases.localization.ITranslateUseCase
 import java.util.*
 
 class TDirective(
-    private val i18n: MessageResolver
+    private val translateUseCase: ITranslateUseCase
 ) : TemplateDirectiveModel {
 
     override fun execute(
@@ -16,8 +15,8 @@ class TDirective(
         loopVars: Array<out TemplateModel>?,
         body: TemplateDirectiveBody?
     ) {
-        val locale = env?.getVariable("locale") as? TemplateScalarModel
-            ?: params?.get("locale") as? TemplateScalarModel
+        val locale = params?.get("locale") as? TemplateScalarModel
+            ?: env?.getVariable("locale") as? TemplateScalarModel
             ?: throw TemplateModelException("Missing locale parameter")
         val key = params?.get("key") as? TemplateScalarModel
             ?: throw TemplateModelException("Missing key parameter")
@@ -26,10 +25,10 @@ class TDirective(
         } ?: emptyList()
 
         env?.out?.write(
-            i18n.t(
+            translateUseCase(
                 Locale.forLanguageTag(locale.asString),
-                R(key.asString),
-                *args.toTypedArray()
+                key.asString,
+                args
             )
         )
     }
