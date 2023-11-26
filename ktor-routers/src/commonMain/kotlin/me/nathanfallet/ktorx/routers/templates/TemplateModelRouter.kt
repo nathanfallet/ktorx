@@ -8,7 +8,7 @@ import me.nathanfallet.usecases.models.IModel
 import me.nathanfallet.usecases.models.UnitModel
 import kotlin.reflect.KClass
 
-class TemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
+open class TemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelClass: KClass<Model>,
     createPayloadClass: KClass<CreatePayload>,
     updatePayloadClass: KClass<UpdatePayload>,

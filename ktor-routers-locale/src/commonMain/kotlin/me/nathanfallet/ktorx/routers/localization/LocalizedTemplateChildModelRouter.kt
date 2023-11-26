@@ -39,10 +39,14 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
 ) {
 
     override fun createRoutes(root: Route) {
-        super.createRoutes(root)
+        createLocalizedRoutes(root)
         root.route("/{locale}") {
-            super.createRoutes(this)
+            createLocalizedRoutes(this)
         }
+    }
+
+    open fun createLocalizedRoutes(root: Route) {
+        super.createRoutes(root)
     }
 
 }
