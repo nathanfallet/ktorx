@@ -24,16 +24,14 @@ class GetLocaleForCallUseCase : IGetLocaleForCallUseCase {
                 return input.request.cookies[i18n.localeCookieName]
             }
 
-            if (i18n.useOfRedirection) {
-                val uri = input.request.origin.uri.trimStart('/').trimEnd('/').split('/')
-                val languagePrefix = uri.first()
-                if (languagePrefix.matches(i18n.supportedPathPrefixes)) {
-                    val locale = java.util.Locale.forLanguageTag(languagePrefix)
-                    if (i18n.useOfCookie && languagePrefix != readCookie()) {
-                        writeCookie(locale)
-                    }
-                    return@locale locale
+            val uri = input.request.origin.uri.trimStart('/').trimEnd('/').split('/')
+            val languagePrefix = uri.first()
+            if (languagePrefix.matches(i18n.supportedPathPrefixes)) {
+                val locale = java.util.Locale.forLanguageTag(languagePrefix)
+                if (i18n.useOfCookie && languagePrefix != readCookie()) {
+                    writeCookie(locale)
                 }
+                return@locale locale
             }
 
             if (i18n.useOfCookie) {
