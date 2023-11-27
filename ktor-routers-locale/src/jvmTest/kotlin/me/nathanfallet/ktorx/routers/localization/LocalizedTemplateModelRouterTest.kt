@@ -29,6 +29,7 @@ class LocalizedTemplateModelRouterTest {
     private fun installApp(application: ApplicationTestBuilder): HttpClient {
         application.install(I18n) {
             supportedLocales = listOf("en").map(Locale::forLanguageTag)
+            useOfUri = true
         }
         application.application {
             install(io.ktor.server.plugins.contentnegotiation.ContentNegotiation) {

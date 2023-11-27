@@ -17,10 +17,15 @@ import kotlin.test.assertEquals
 
 class GetLocaleForCallUseCaseTest {
 
-    private fun installApp(application: ApplicationTestBuilder, useOfCookie: Boolean = false): HttpClient {
+    private fun installApp(
+        application: ApplicationTestBuilder,
+        useOfCookie: Boolean = false,
+        useOfUri: Boolean = false
+    ): HttpClient {
         application.install(I18n) {
             this.supportedLocales = listOf("en", "fr").map(Locale::forLanguageTag)
             this.useOfCookie = useOfCookie
+            this.useOfUri = useOfUri
         }
         return application.createClient {
             followRedirects = false
@@ -45,6 +50,21 @@ class GetLocaleForCallUseCaseTest {
     }
 
     @Test
+    fun testLocaleDefaultBecauseDisabled() = testApplication {
+        val client = installApp(this)
+        routing {
+            get("/{locale}/home") {
+                call.respond(GetLocaleForCallUseCase()(call).language)
+            }
+        }
+        val response = client.get("/fr/home") {
+            cookie("locale", "fr")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("en", response.body())
+    }
+
+    @Test
     fun testLocaleAcceptHeader() = testApplication {
         val client = installApp(this)
         routing {
@@ -55,6 +75,19 @@ class GetLocaleForCallUseCaseTest {
         val response = client.get("/") {
             header(HttpHeaders.AcceptLanguage, "fr")
         }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("fr", response.body())
+    }
+
+    @Test
+    fun testLocaleUri() = testApplication {
+        val client = installApp(this, useOfUri = true)
+        routing {
+            get("/{locale}/home") {
+                call.respond(GetLocaleForCallUseCase()(call).language)
+            }
+        }
+        val response = client.get("/fr/home")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("fr", response.body())
     }
@@ -102,7 +135,24 @@ class GetLocaleForCallUseCaseTest {
         }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("fr", response.body())
-        val cookie = client.cookies("localhost").first()
+        val cookie = client.cookies("http://localhost").first()
+        assertEquals("locale", cookie.name)
+        assertEquals("fr", cookie.value)
+    }
+
+
+    @Test
+    fun testLocaleUriCookieWritten() = testApplication {
+        val client = installApp(this, useOfCookie = true, useOfUri = true)
+        routing {
+            get("/{locale}/home") {
+                call.respond(GetLocaleForCallUseCase()(call).language)
+            }
+        }
+        val response = client.get("/fr/home")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("fr", response.body())
+        val cookie = client.cookies("http://localhost/fr/home").first()
         assertEquals("locale", cookie.name)
         assertEquals("fr", cookie.value)
     }

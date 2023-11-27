@@ -28,6 +28,7 @@ class I18nConfiguration {
     var translateUseCase: ITranslateUseCase = TranslateUseCase()
     var getLocaleForCallUseCase: IGetLocaleForCallUseCase = GetLocaleForCallUseCase()
     var useOfCookie: Boolean = false
+    var useOfUri: Boolean = false
     var cookieName: String = "locale"
 
 }

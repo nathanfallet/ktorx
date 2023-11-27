@@ -18,6 +18,7 @@ class I18n private constructor(configuration: I18nConfiguration) : ITranslateUse
     val defaultLocale = configuration.defaultLocale ?: supportedLocales.first()
     val getLocaleForCallUseCase = configuration.getLocaleForCallUseCase
     val useOfCookie = configuration.useOfCookie
+    val useOfUri = configuration.useOfUri
     val localeCookieName = configuration.cookieName
     val supportedPathPrefixes = "(${supportedLocales.joinToString("|", transform = { it.language })})".toRegex()
 
