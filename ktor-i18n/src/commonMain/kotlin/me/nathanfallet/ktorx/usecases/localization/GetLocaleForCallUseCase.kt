@@ -24,11 +24,11 @@ class GetLocaleForCallUseCase : IGetLocaleForCallUseCase {
                 return input.request.cookies[i18n.localeCookieName]
             }
 
-            if (i18n.useOfRedirection) {
+            if (i18n.useOfUri) {
                 val uri = input.request.origin.uri.trimStart('/').trimEnd('/').split('/')
                 val languagePrefix = uri.first()
                 if (languagePrefix.matches(i18n.supportedPathPrefixes)) {
-                    val locale = java.util.Locale.forLanguageTag(languagePrefix)
+                    val locale = Locale.forLanguageTag(languagePrefix)
                     if (i18n.useOfCookie && languagePrefix != readCookie()) {
                         writeCookie(locale)
                     }
@@ -39,14 +39,14 @@ class GetLocaleForCallUseCase : IGetLocaleForCallUseCase {
             if (i18n.useOfCookie) {
                 val cookieLocale = readCookie()
                 if (cookieLocale != null) {
-                    return@locale java.util.Locale.forLanguageTag(cookieLocale)
+                    return@locale Locale.forLanguageTag(cookieLocale)
                 }
             }
 
             val acceptLocales = input.request.acceptLanguage()
             val ranges = if (acceptLocales != null) java.util.Locale.LanguageRange.parse(acceptLocales) else listOf()
-            val locale = java.util.Locale.filter(ranges, i18n.supportedLocales).firstOrNull()
-                ?: java.util.Locale.lookup(ranges, i18n.supportedLocales)
+            val locale = Locale.filter(ranges, i18n.supportedLocales).firstOrNull()
+                ?: Locale.lookup(ranges, i18n.supportedLocales)
                 ?: i18n.defaultLocale
 
             if (i18n.useOfCookie) {

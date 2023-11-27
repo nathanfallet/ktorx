@@ -4,6 +4,8 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import me.nathanfallet.ktorx.controllers.base.IChildModelController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
+import me.nathanfallet.ktorx.plugins.LocalizedRouteInterceptor
+import me.nathanfallet.ktorx.plugins.LocalizedRouteSelector
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.templates.TemplateChildModelRouter
 import me.nathanfallet.ktorx.usecases.localization.GetLocaleForCallUseCase
@@ -19,7 +21,7 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    getLocaleForCallUseCase: IGetLocaleForCallUseCase = GetLocaleForCallUseCase(),
+    val getLocaleForCallUseCase: IGetLocaleForCallUseCase = GetLocaleForCallUseCase(),
     route: String? = null,
     id: String? = null,
     prefix: String? = null
@@ -39,10 +41,17 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
 ) {
 
     override fun createRoutes(root: Route) {
-        super.createRoutes(root)
-        root.route("/{locale}") {
-            super.createRoutes(this)
+        val localizedRoutes = root.createChild(LocalizedRouteSelector())
+        localizedRoutes.install(LocalizedRouteInterceptor)
+
+        createLocalizedRoutes(localizedRoutes)
+        localizedRoutes.route("/{locale}") {
+            createLocalizedRoutes(this)
         }
+    }
+
+    open fun createLocalizedRoutes(root: Route) {
+        super.createRoutes(root)
     }
 
 }
