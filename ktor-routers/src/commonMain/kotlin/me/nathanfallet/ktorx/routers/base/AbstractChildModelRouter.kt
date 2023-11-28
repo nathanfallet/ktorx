@@ -68,7 +68,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
 
     @Suppress("UNCHECKED_CAST")
     open suspend fun getAll(call: ApplicationCall): List<Model> {
-        return controller.getAll(
+        return controller.list(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel
         )

@@ -54,7 +54,7 @@ class APIModelRouterTest {
         val client = installApp(this)
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
         val router = createRouter(controller)
-        coEvery { controller.getAll(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
         routing {
             router.createRoutes(this)
         }
@@ -68,7 +68,7 @@ class APIModelRouterTest {
         val client = installApp(this)
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
         val router = createRouter(controller)
-        coEvery { controller.getAll(any(), UnitModel) } throws ControllerException(
+        coEvery { controller.list(any(), UnitModel) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )

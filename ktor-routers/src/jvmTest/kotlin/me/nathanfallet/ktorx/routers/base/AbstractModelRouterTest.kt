@@ -40,7 +40,7 @@ class AbstractModelRouterTest {
         prefix: String?
     ): AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-            override suspend fun getAll(call: ApplicationCall): List<TestModel> {
+            override suspend fun list(call: ApplicationCall): List<TestModel> {
                 return emptyList()
             }
 

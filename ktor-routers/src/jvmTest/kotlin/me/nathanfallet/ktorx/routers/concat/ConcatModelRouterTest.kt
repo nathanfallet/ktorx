@@ -69,7 +69,7 @@ class ConcatModelRouterTest {
                 )
             )
         )
-        coEvery { controller.getAll(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
         routing {
             router.createRoutes(this)
         }

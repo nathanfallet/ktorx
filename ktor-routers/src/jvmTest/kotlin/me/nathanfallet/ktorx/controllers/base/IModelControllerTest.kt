@@ -15,7 +15,7 @@ class IModelControllerTest {
     @Test
     fun testGetAll() = runBlocking {
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-            override suspend fun getAll(call: ApplicationCall): List<TestModel> {
+            override suspend fun list(call: ApplicationCall): List<TestModel> {
                 return emptyList()
             }
 
@@ -35,13 +35,13 @@ class IModelControllerTest {
                 throw NotImplementedError()
             }
         }
-        assertEquals(emptyList(), controller.getAll(mockk(), UnitModel))
+        assertEquals(emptyList(), controller.list(mockk(), UnitModel))
     }
 
     @Test
     fun testGet() = runBlocking {
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-            override suspend fun getAll(call: ApplicationCall): List<TestModel> {
+            override suspend fun list(call: ApplicationCall): List<TestModel> {
                 throw NotImplementedError()
             }
 
@@ -67,7 +67,7 @@ class IModelControllerTest {
     @Test
     fun testCreate() = runBlocking {
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-            override suspend fun getAll(call: ApplicationCall): List<TestModel> {
+            override suspend fun list(call: ApplicationCall): List<TestModel> {
                 throw NotImplementedError()
             }
 
@@ -93,7 +93,7 @@ class IModelControllerTest {
     @Test
     fun testUpdate() = runBlocking {
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-            override suspend fun getAll(call: ApplicationCall): List<TestModel> {
+            override suspend fun list(call: ApplicationCall): List<TestModel> {
                 throw NotImplementedError()
             }
 
@@ -120,7 +120,7 @@ class IModelControllerTest {
     fun testDelete() = runBlocking {
         var called = false
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-            override suspend fun getAll(call: ApplicationCall): List<TestModel> {
+            override suspend fun list(call: ApplicationCall): List<TestModel> {
                 throw NotImplementedError()
             }
 

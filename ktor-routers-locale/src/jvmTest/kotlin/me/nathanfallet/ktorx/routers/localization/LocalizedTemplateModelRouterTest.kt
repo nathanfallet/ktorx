@@ -100,7 +100,7 @@ class LocalizedTemplateModelRouterTest {
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.getAll(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)

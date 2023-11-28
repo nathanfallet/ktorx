@@ -80,7 +80,7 @@ class APIChildModelRouterTest {
             mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
         val router = createChildRouter(childController, createRouter(controller))
         coEvery { controller.get(any(), UnitModel, 1) } returns mock
-        coEvery { childController.getAll(any(), mock) } returns listOf(childMock)
+        coEvery { childController.list(any(), mock) } returns listOf(childMock)
         routing {
             router.createRoutes(this)
         }
@@ -97,7 +97,7 @@ class APIChildModelRouterTest {
             mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
         val router = createChildRouter(childController, createRouter(controller), route = "childs")
         coEvery { controller.get(any(), UnitModel, 1) } returns mock
-        coEvery { childController.getAll(any(), mock) } returns listOf(childMock)
+        coEvery { childController.list(any(), mock) } returns listOf(childMock)
         routing {
             router.createRoutes(this)
         }
@@ -114,7 +114,7 @@ class APIChildModelRouterTest {
             mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
         val router = createChildRouter(childController, createRouter(controller), route = "childs", prefix = "/api/v1")
         coEvery { controller.get(any(), UnitModel, 1) } returns mock
-        coEvery { childController.getAll(any(), mock) } returns listOf(childMock)
+        coEvery { childController.list(any(), mock) } returns listOf(childMock)
         routing {
             router.createRoutes(this)
         }

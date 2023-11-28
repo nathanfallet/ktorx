@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "me.nathanfallet.ktorx"
-    version = "1.5.1"
+    version = "1.5.2"
 
     repositories {
         mavenCentral()

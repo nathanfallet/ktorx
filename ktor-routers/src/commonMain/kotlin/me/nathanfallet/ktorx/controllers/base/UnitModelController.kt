@@ -5,7 +5,7 @@ import me.nathanfallet.usecases.models.UnitModel
 
 object UnitModelController : IModelController<UnitModel, Unit, Unit, Unit> {
 
-    override suspend fun getAll(call: ApplicationCall): List<UnitModel> {
+    override suspend fun list(call: ApplicationCall): List<UnitModel> {
         return listOf(UnitModel)
     }
 
