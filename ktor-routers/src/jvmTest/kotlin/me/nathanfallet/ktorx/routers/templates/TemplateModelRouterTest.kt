@@ -12,7 +12,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.base.IModelController
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.templates.TemplateMapping

@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.routers.localization
+package me.nathanfallet.ktorx.routers.templates
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -11,7 +11,7 @@ import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import me.nathanfallet.ktorx.controllers.base.IModelController
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.*
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.plugins.I18n
@@ -22,7 +22,7 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class LocalizedTemplateModelRouterTest {
+class LocalizedTemplateChildModelRouterTest {
 
     private val mock = TestModel(1, "string")
 
@@ -48,12 +48,13 @@ class LocalizedTemplateModelRouterTest {
     private inline fun <reified Keys> createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
         getLocaleForCallUseCase: IGetLocaleForCallUseCase
-    ): LocalizedTemplateModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-        return LocalizedTemplateModelRouter(
+    ): LocalizedTemplateChildModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload, UnitModel, Unit> {
+        return LocalizedTemplateChildModelRouter(
             TestModel::class,
             TestCreatePayload::class,
             TestUpdatePayload::class,
             controller,
+            null,
             TemplateMapping(
                 errorTemplate = "error",
                 listTemplate = "list",

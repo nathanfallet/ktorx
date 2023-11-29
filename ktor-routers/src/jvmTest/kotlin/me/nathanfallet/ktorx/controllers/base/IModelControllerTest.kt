@@ -3,6 +3,7 @@ package me.nathanfallet.ktorx.controllers.base
 import io.ktor.server.application.*
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload

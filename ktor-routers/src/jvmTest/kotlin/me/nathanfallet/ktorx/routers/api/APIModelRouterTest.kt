@@ -10,7 +10,7 @@ import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.base.IModelController
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
