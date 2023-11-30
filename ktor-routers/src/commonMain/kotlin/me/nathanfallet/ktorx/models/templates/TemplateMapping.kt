@@ -1,7 +1,7 @@
 package me.nathanfallet.ktorx.models.templates
 
 data class TemplateMapping(
-    val errorTemplate: String,
+    val errorTemplate: String? = null,
     val listTemplate: String? = null,
     val getTemplate: String? = null,
     val createTemplate: String? = null,

@@ -48,14 +48,18 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         createTemplatePostIdDeleteRoute(root)
     }
 
-    open suspend fun handleExceptionTemplate(exception: ControllerException, call: ApplicationCall) {
+    open suspend fun handleExceptionTemplate(
+        exception: ControllerException,
+        call: ApplicationCall,
+        fromTemplate: String
+    ) {
         mapping.redirectUnauthorizedToUrl?.takeIf { exception.code == HttpStatusCode.Unauthorized }?.let { url ->
             call.respondRedirect(url.replace("{path}", call.request.path()))
             return
         }
         call.response.status(exception.code)
         call.respondTemplate(
-            mapping.errorTemplate,
+            mapping.errorTemplate ?: fromTemplate,
             mapOf(
                 "route" to route,
                 "code" to exception.code.value,
@@ -77,7 +81,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     )
                 )
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.listTemplate)
             }
         }
     }
@@ -94,7 +98,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     )
                 )
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.createTemplate)
             }
         }
     }
@@ -109,7 +113,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 create(call, payload)
                 call.respondRedirect("../$route")
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.createTemplate)
             }
         }
     }
@@ -127,7 +131,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     )
                 )
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.getTemplate)
             }
         }
     }
@@ -145,7 +149,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     )
                 )
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.updateTemplate)
             }
         }
     }
@@ -160,7 +164,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 update(call, payload)
                 call.respondRedirect("../../$route")
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.updateTemplate)
             }
         }
     }
@@ -178,7 +182,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     )
                 )
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.deleteTemplate)
             }
         }
     }
@@ -190,7 +194,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 delete(call)
                 call.respondRedirect("../../$route")
             } catch (exception: ControllerException) {
-                handleExceptionTemplate(exception, call)
+                handleExceptionTemplate(exception, call, mapping.deleteTemplate)
             }
         }
     }

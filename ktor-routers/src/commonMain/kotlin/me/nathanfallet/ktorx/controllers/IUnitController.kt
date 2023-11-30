@@ -1,10 +1,9 @@
-package me.nathanfallet.ktorx.controllers.base
+package me.nathanfallet.ktorx.controllers
 
 import io.ktor.server.application.*
-import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.usecases.models.UnitModel
 
-object UnitModelController : IModelController<UnitModel, Unit, Unit, Unit> {
+interface IUnitController : IModelController<UnitModel, Unit, Unit, Unit> {
 
     override suspend fun list(call: ApplicationCall): List<UnitModel> {
         return listOf(UnitModel)
