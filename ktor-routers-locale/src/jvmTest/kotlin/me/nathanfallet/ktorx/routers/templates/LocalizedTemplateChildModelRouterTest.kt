@@ -12,8 +12,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import me.nathanfallet.ktorx.controllers.IModelController
-import me.nathanfallet.ktorx.models.*
+import me.nathanfallet.ktorx.models.TestCreatePayload
+import me.nathanfallet.ktorx.models.TestModel
+import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
+import me.nathanfallet.ktorx.models.templates.TemplateResponse
+import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.UnitModel

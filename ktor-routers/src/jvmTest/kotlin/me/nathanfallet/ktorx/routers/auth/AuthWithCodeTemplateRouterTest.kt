@@ -94,6 +94,30 @@ class AuthWithCodeTemplateRouterTest {
     }
 
     @Test
+    fun testPostRegisterRouteInvalidBody() = testApplication {
+        val client = installApp(this)
+        val router = createRouter(mockk())
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/auth/register") {
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf(
+                    "other" to "code"
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(
+            AuthTemplateResponse(
+                "register",
+                error = "error_body_invalid"
+            ), response.body()
+        )
+    }
+
+    @Test
     fun testGetRegisterCodeRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>>()
