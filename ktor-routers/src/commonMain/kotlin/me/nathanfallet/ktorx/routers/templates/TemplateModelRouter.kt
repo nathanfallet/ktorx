@@ -1,7 +1,7 @@
 package me.nathanfallet.ktorx.routers.templates
 
 import io.ktor.server.application.*
-import me.nathanfallet.ktorx.controllers.base.IModelController
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.IModelRouter
 import me.nathanfallet.usecases.models.IModel

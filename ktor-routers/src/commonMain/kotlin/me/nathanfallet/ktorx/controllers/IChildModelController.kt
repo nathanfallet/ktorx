@@ -1,7 +1,6 @@
-package me.nathanfallet.ktorx.controllers.base
+package me.nathanfallet.ktorx.controllers
 
 import io.ktor.server.application.*
-import me.nathanfallet.ktorx.controllers.IController
 import me.nathanfallet.usecases.models.IChildModel
 
 interface IChildModelController<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload, UpdatePayload, ParentModel : IChildModel<ParentId, *, *, *>, ParentId> :

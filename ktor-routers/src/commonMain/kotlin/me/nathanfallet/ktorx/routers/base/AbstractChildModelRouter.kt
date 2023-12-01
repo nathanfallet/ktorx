@@ -2,7 +2,7 @@ package me.nathanfallet.ktorx.routers.base
 
 import io.ktor.server.application.*
 import io.ktor.util.reflect.*
-import me.nathanfallet.ktorx.controllers.base.IChildModelController
+import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.UnitModel
@@ -17,7 +17,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     final override val modelClass: KClass<Model>,
     final override val createPayloadClass: KClass<CreatePayload>,
     final override val updatePayloadClass: KClass<UpdatePayload>,
-    final override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
+    open override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     final override val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     route: String? = null,
     id: String? = null,

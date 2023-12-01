@@ -12,10 +12,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.base.IModelController
-import me.nathanfallet.ktorx.models.*
+import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.TestCreatePayload
+import me.nathanfallet.ktorx.models.TestModel
+import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
+import me.nathanfallet.ktorx.models.templates.TemplateResponse
+import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelKey
 import me.nathanfallet.usecases.models.annotations.PayloadKey
@@ -45,37 +49,35 @@ class TemplateModelRouterTest {
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified Keys> createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>
-    ): TemplateModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-        return TemplateModelRouter(
-            TestModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
-            controller,
-            TemplateMapping(
-                errorTemplate = "error",
-                listTemplate = "list",
-                getTemplate = "get",
-                createTemplate = "create",
-                updateTemplate = "update",
-                deleteTemplate = "delete",
-                redirectUnauthorizedToUrl = "redirect={path}"
-            ),
-            { template, model ->
-                respond(
-                    TemplateResponse(
-                        template, TemplateResponseData(
-                            model["route"] as String,
-                            model["keys"] as? List<Keys>,
-                            model["item"] as? TestModel,
-                            model["items"] as? List<TestModel>,
-                            model["code"] as? Int,
-                            model["error"] as? String
-                        )
+    ) = TemplateModelRouter(
+        TestModel::class,
+        TestCreatePayload::class,
+        TestUpdatePayload::class,
+        controller,
+        TemplateMapping(
+            errorTemplate = "error",
+            listTemplate = "list",
+            getTemplate = "get",
+            createTemplate = "create",
+            updateTemplate = "update",
+            deleteTemplate = "delete",
+            redirectUnauthorizedToUrl = "redirect={path}"
+        ),
+        { template, model ->
+            respond(
+                TemplateResponse(
+                    template, TemplateResponseData(
+                        model["route"] as String,
+                        model["keys"] as? List<Keys>,
+                        model["item"] as? TestModel,
+                        model["items"] as? List<TestModel>,
+                        model["code"] as? Int,
+                        model["error"] as? String
                     )
                 )
-            },
-        )
-    }
+            )
+        },
+    )
 
     @Test
     fun testTemplateGetRoute() = testApplication {

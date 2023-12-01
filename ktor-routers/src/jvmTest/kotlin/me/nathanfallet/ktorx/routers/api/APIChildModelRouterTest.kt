@@ -10,8 +10,8 @@ import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.base.IChildModelController
-import me.nathanfallet.ktorx.controllers.base.IModelController
+import me.nathanfallet.ktorx.controllers.IChildModelController
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.TestChildModel
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
@@ -47,19 +47,17 @@ class APIChildModelRouterTest {
         mapping: APIMapping = APIMapping(),
         route: String? = null,
         prefix: String? = null
-    ): APIChildModelRouter<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long> {
-        return APIChildModelRouter(
-            TestChildModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
-            controller,
-            parentRouter,
-            mapping,
-            route,
-            null,
-            prefix
-        )
-    }
+    ) = APIChildModelRouter(
+        TestChildModel::class,
+        TestCreatePayload::class,
+        TestUpdatePayload::class,
+        controller,
+        parentRouter,
+        mapping,
+        route,
+        null,
+        prefix
+    )
 
     private fun createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>

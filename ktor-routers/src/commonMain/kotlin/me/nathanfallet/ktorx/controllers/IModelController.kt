@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.controllers.base
+package me.nathanfallet.ktorx.controllers
 
 import io.ktor.server.application.*
 import me.nathanfallet.usecases.models.IModel

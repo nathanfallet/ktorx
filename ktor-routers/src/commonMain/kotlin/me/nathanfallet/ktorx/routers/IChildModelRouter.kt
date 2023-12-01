@@ -1,7 +1,7 @@
 package me.nathanfallet.ktorx.routers
 
 import io.ktor.server.application.*
-import me.nathanfallet.ktorx.controllers.base.IChildModelController
+import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.usecases.models.IChildModel
 import kotlin.reflect.KClass
 

@@ -10,7 +10,7 @@ import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.base.IModelController
+import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
@@ -40,14 +40,12 @@ class APIModelRouterTest {
 
     private fun createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>
-    ): APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-        return APIModelRouter(
-            TestModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
-            controller
-        )
-    }
+    ) = APIModelRouter(
+        TestModel::class,
+        TestCreatePayload::class,
+        TestUpdatePayload::class,
+        controller
+    )
 
     @Test
     fun testAPIGetRoute() = testApplication {

@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.routers.localization
+package me.nathanfallet.ktorx.routers.templates
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -11,9 +11,13 @@ import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import me.nathanfallet.ktorx.controllers.base.IModelController
-import me.nathanfallet.ktorx.models.*
+import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.TestCreatePayload
+import me.nathanfallet.ktorx.models.TestModel
+import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
+import me.nathanfallet.ktorx.models.templates.TemplateResponse
+import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.UnitModel
@@ -85,8 +89,7 @@ class LocalizedTemplateModelRouterTest {
     @Test
     fun testRedirect() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
-        val router = createRouter<ModelKey>(controller, mockk())
+        val router = createRouter<ModelKey>(mockk(), mockk())
         routing {
             router.createRoutes(this)
         }

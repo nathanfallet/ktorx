@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import me.nathanfallet.ktorx.controllers.base.IChildModelController
+import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.api.APIMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter

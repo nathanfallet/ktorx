@@ -1,14 +1,10 @@
-package me.nathanfallet.ktorx.routers.localization
+package me.nathanfallet.ktorx.routers.templates
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
-import me.nathanfallet.ktorx.controllers.base.IChildModelController
+import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
-import me.nathanfallet.ktorx.plugins.LocalizedRouteInterceptor
-import me.nathanfallet.ktorx.plugins.LocalizedRouteSelector
 import me.nathanfallet.ktorx.routers.IChildModelRouter
-import me.nathanfallet.ktorx.routers.templates.TemplateChildModelRouter
-import me.nathanfallet.ktorx.usecases.localization.GetLocaleForCallUseCase
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.IChildModel
 import kotlin.reflect.KClass
@@ -21,7 +17,7 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    val getLocaleForCallUseCase: IGetLocaleForCallUseCase = GetLocaleForCallUseCase(),
+    getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = null,
     id: String? = null,
     prefix: String? = null
@@ -32,25 +28,15 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     controller,
     parentRouter,
     mapping,
-    { template, model ->
-        respondTemplate(template, model + mapOf("locale" to getLocaleForCallUseCase(this)))
-    },
+    ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     route,
     id,
     prefix
-) {
+), ILocalizedTemplateRouter {
 
-    override fun createRoutes(root: Route) {
-        val localizedRoutes = root.createChild(LocalizedRouteSelector())
-        localizedRoutes.install(LocalizedRouteInterceptor)
+    final override fun createRoutes(root: Route) = localizeRoutes(root)
 
-        createLocalizedRoutes(localizedRoutes)
-        localizedRoutes.route("/{locale}") {
-            createLocalizedRoutes(this)
-        }
-    }
-
-    open fun createLocalizedRoutes(root: Route) {
+    override fun createLocalizedRoutes(root: Route) {
         super.createRoutes(root)
     }
 

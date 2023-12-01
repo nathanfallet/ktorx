@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.models
+package me.nathanfallet.ktorx.models.templates
 
 import kotlinx.serialization.Serializable
 
