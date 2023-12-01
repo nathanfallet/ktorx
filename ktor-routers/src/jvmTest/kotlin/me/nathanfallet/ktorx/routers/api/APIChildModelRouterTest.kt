@@ -47,19 +47,17 @@ class APIChildModelRouterTest {
         mapping: APIMapping = APIMapping(),
         route: String? = null,
         prefix: String? = null
-    ): APIChildModelRouter<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long> {
-        return APIChildModelRouter(
-            TestChildModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
-            controller,
-            parentRouter,
-            mapping,
-            route,
-            null,
-            prefix
-        )
-    }
+    ) = APIChildModelRouter(
+        TestChildModel::class,
+        TestCreatePayload::class,
+        TestUpdatePayload::class,
+        controller,
+        parentRouter,
+        mapping,
+        route,
+        null,
+        prefix
+    )
 
     private fun createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>

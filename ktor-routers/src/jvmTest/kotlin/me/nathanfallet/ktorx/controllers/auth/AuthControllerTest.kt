@@ -4,9 +4,9 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import me.nathanfallet.ktorx.models.auth.ILoginPayload
-import me.nathanfallet.ktorx.models.auth.IRegisterPayload
 import me.nathanfallet.ktorx.models.auth.ISessionPayload
+import me.nathanfallet.ktorx.models.auth.TestLoginPayload
+import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.ICreateSessionForUserUseCase
 import me.nathanfallet.ktorx.usecases.auth.ILoginUseCase
@@ -21,14 +21,14 @@ class AuthControllerTest {
 
     @Test
     fun testLogin() = runBlocking {
-        val loginUseCase = mockk<ILoginUseCase>()
+        val loginUseCase = mockk<ILoginUseCase<TestLoginPayload>>()
         val createSessionForUserUseCase = mockk<ICreateSessionForUserUseCase>()
         val setSessionForCallUseCase = mockk<ISetSessionForCallUseCase>()
         val call = mockk<ApplicationCall>()
-        val loginPayload = mockk<ILoginPayload>()
+        val loginPayload = TestLoginPayload("email", "password")
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
-        val controller = AuthController(
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
             loginUseCase, mockk(), createSessionForUserUseCase, setSessionForCallUseCase
         )
         coEvery { loginUseCase(loginPayload) } returns user
@@ -40,10 +40,10 @@ class AuthControllerTest {
 
     @Test
     fun testLoginInvalidCredentials() = runBlocking {
-        val loginUseCase = mockk<ILoginUseCase>()
+        val loginUseCase = mockk<ILoginUseCase<TestLoginPayload>>()
         val call = mockk<ApplicationCall>()
-        val loginPayload = mockk<ILoginPayload>()
-        val controller = AuthController(
+        val loginPayload = TestLoginPayload("email", "password")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
             loginUseCase, mockk(), mockk(), mockk()
         )
         coEvery { loginUseCase(loginPayload) } returns null
@@ -56,14 +56,14 @@ class AuthControllerTest {
 
     @Test
     fun testRegisterPayload() = runBlocking {
-        val registerUseCase = mockk<IRegisterUseCase>()
+        val registerUseCase = mockk<IRegisterUseCase<TestRegisterPayload>>()
         val createSessionForUserUseCase = mockk<ICreateSessionForUserUseCase>()
         val setSessionForCallUseCase = mockk<ISetSessionForCallUseCase>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
+        val registerPayload = TestRegisterPayload("email", "password")
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
-        val controller = AuthController(
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
             mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase
         )
         every { createSessionForUserUseCase(user) } returns sessionPayload
@@ -78,10 +78,10 @@ class AuthControllerTest {
 
     @Test
     fun testRegisterPayloadError() = runBlocking {
-        val registerUseCase = mockk<IRegisterUseCase>()
+        val registerUseCase = mockk<IRegisterUseCase<TestRegisterPayload>>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
-        val controller = AuthController(
+        val registerPayload = TestRegisterPayload("email", "password")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
             mockk(), registerUseCase, mockk(), mockk(),
         )
         coEvery { registerUseCase(call, registerPayload) } returns null

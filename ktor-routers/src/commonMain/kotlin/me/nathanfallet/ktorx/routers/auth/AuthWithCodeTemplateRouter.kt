@@ -8,19 +8,17 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
-import me.nathanfallet.ktorx.models.auth.ILoginPayload
-import me.nathanfallet.ktorx.models.auth.IRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
 
-open class AuthWithCodeTemplateRouter<LoginPayload : ILoginPayload, RegisterPayload : IRegisterPayload, RegisterCodePayload : IRegisterPayload>(
+open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any, RegisterCodePayload : Any>(
     loginPayloadClass: KClass<LoginPayload>,
     registerPayloadClass: KClass<RegisterPayload>,
     val registerCodePayloadClass: KClass<RegisterCodePayload>,
     authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    override val controller: IAuthWithCodeController,
+    override val controller: IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>,
     route: String? = "auth",
     prefix: String? = null
 ) : AuthTemplateRouter<LoginPayload, RegisterPayload>(
@@ -41,7 +39,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : ILoginPayload, RegisterPayl
 
     override fun createTemplatePostRegisterRoute(root: Route) {
         authMapping.registerTemplate ?: return
-        root.post(fullRoute) {
+        root.post("$fullRoute/register") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     registerPayloadClass, call.receiveParameters().toMap()
@@ -59,7 +57,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : ILoginPayload, RegisterPayl
 
     open fun createTemplateGetRegisterCodeRoute(root: Route) {
         authMapping.registerTemplate ?: return
-        root.get("$fullRoute/{code}") {
+        root.get("$fullRoute/register/{code}") {
             try {
                 val code = call.parameters["code"]!!
                 val codePayload = controller.register(call, code)
@@ -75,7 +73,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : ILoginPayload, RegisterPayl
 
     open fun createTemplatePostRegisterCodeRoute(root: Route) {
         authMapping.registerTemplate ?: return
-        root.post("$fullRoute/{code}") {
+        root.post("$fullRoute/register/{code}") {
             try {
                 val code = call.parameters["code"]!!
                 controller.register(call, code)

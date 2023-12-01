@@ -8,20 +8,18 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
-import me.nathanfallet.ktorx.models.auth.ILoginPayload
-import me.nathanfallet.ktorx.models.auth.IRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.templates.TemplateUnitRouter
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
 
-open class AuthTemplateRouter<LoginPayload : ILoginPayload, RegisterPayload : IRegisterPayload>(
+open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     val loginPayloadClass: KClass<LoginPayload>,
     val registerPayloadClass: KClass<RegisterPayload>,
     val authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    override val controller: IAuthController,
+    override val controller: IAuthController<LoginPayload, RegisterPayload>,
     route: String? = "auth",
     prefix: String? = null
 ) : TemplateUnitRouter(
@@ -41,7 +39,7 @@ open class AuthTemplateRouter<LoginPayload : ILoginPayload, RegisterPayload : IR
 
     open fun createTemplateGetLoginRoute(root: Route) {
         authMapping.loginTemplate ?: return
-        root.get(fullRoute) {
+        root.get("$fullRoute/login") {
             call.respondTemplate(
                 authMapping.loginTemplate,
                 mapOf()
@@ -51,7 +49,7 @@ open class AuthTemplateRouter<LoginPayload : ILoginPayload, RegisterPayload : IR
 
     open fun createTemplatePostLoginRoute(root: Route) {
         authMapping.loginTemplate ?: return
-        root.post(fullRoute) {
+        root.post("$fullRoute/login") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     loginPayloadClass, call.receiveParameters().toMap()
@@ -66,7 +64,7 @@ open class AuthTemplateRouter<LoginPayload : ILoginPayload, RegisterPayload : IR
 
     open fun createTemplateGetRegisterRoute(root: Route) {
         authMapping.registerTemplate ?: return
-        root.get(fullRoute) {
+        root.get("$fullRoute/register") {
             call.respondTemplate(
                 authMapping.registerTemplate,
                 mapOf()
@@ -76,7 +74,7 @@ open class AuthTemplateRouter<LoginPayload : ILoginPayload, RegisterPayload : IR
 
     open fun createTemplatePostRegisterRoute(root: Route) {
         authMapping.registerTemplate ?: return
-        root.post(fullRoute) {
+        root.post("$fullRoute/register") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     registerPayloadClass, call.receiveParameters().toMap()

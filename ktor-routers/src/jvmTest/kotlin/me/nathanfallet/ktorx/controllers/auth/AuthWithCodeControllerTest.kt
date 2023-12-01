@@ -4,8 +4,10 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import me.nathanfallet.ktorx.models.auth.IRegisterPayload
 import me.nathanfallet.ktorx.models.auth.ISessionPayload
+import me.nathanfallet.ktorx.models.auth.TestCodePayload
+import me.nathanfallet.ktorx.models.auth.TestLoginPayload
+import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.usecases.users.IUser
@@ -17,10 +19,10 @@ class AuthWithCodeControllerTest {
 
     @Test
     fun testRegister() = runBlocking {
-        val createCodeRegisterUseCase = mockk<ICreateCodeRegisterUseCase>()
+        val createCodeRegisterUseCase = mockk<ICreateCodeRegisterUseCase<TestCodePayload>>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
-        val controller = AuthWithCodeController(
+        val registerPayload = TestCodePayload("code")
+        val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), createCodeRegisterUseCase, mockk(), mockk()
         )
         coEvery { createCodeRegisterUseCase(call, registerPayload) } returns "code"
@@ -32,10 +34,10 @@ class AuthWithCodeControllerTest {
 
     @Test
     fun testRegisterEmailTaken() = runBlocking {
-        val createCodeRegisterUseCase = mockk<ICreateCodeRegisterUseCase>()
+        val createCodeRegisterUseCase = mockk<ICreateCodeRegisterUseCase<TestCodePayload>>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
-        val controller = AuthWithCodeController(
+        val registerPayload = TestCodePayload("code")
+        val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), createCodeRegisterUseCase, mockk(), mockk()
         )
         coEvery { createCodeRegisterUseCase(call, registerPayload) } returns null
@@ -48,10 +50,10 @@ class AuthWithCodeControllerTest {
 
     @Test
     fun testRegisterCode() = runBlocking {
-        val getCodeRegisterUseCase = mockk<IGetCodeRegisterUseCase>()
+        val getCodeRegisterUseCase = mockk<IGetCodeRegisterUseCase<TestCodePayload>>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
-        val controller = AuthWithCodeController(
+        val registerPayload = TestCodePayload("code")
+        val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), mockk(), getCodeRegisterUseCase, mockk()
         )
         coEvery { getCodeRegisterUseCase(call, "code") } returns registerPayload
@@ -60,9 +62,9 @@ class AuthWithCodeControllerTest {
 
     @Test
     fun testRegisterCodeInvalid() = runBlocking {
-        val getCodeRegisterUseCase = mockk<IGetCodeRegisterUseCase>()
+        val getCodeRegisterUseCase = mockk<IGetCodeRegisterUseCase<TestCodePayload>>()
         val call = mockk<ApplicationCall>()
-        val controller = AuthWithCodeController(
+        val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), mockk(), getCodeRegisterUseCase, mockk()
         )
         coEvery { getCodeRegisterUseCase(call, "code") } returns null
@@ -75,15 +77,15 @@ class AuthWithCodeControllerTest {
 
     @Test
     fun testRegisterCodePayload() = runBlocking {
-        val registerUseCase = mockk<IRegisterUseCase>()
+        val registerUseCase = mockk<IRegisterUseCase<TestRegisterPayload>>()
         val deleteCodeRegisterUseCase = mockk<IDeleteCodeRegisterUseCase>()
         val createSessionForUserUseCase = mockk<ICreateSessionForUserUseCase>()
         val setSessionForCallUseCase = mockk<ISetSessionForCallUseCase>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
+        val registerPayload = TestRegisterPayload("email", "password")
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
-        val controller = AuthWithCodeController(
+        val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase,
             mockk(), mockk(), deleteCodeRegisterUseCase
         )
@@ -101,10 +103,10 @@ class AuthWithCodeControllerTest {
 
     @Test
     fun testRegisterCodePayloadError() = runBlocking {
-        val registerUseCase = mockk<IRegisterUseCase>()
+        val registerUseCase = mockk<IRegisterUseCase<TestRegisterPayload>>()
         val call = mockk<ApplicationCall>()
-        val registerPayload = mockk<IRegisterPayload>()
-        val controller = AuthWithCodeController(
+        val registerPayload = TestRegisterPayload("email", "password")
+        val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), registerUseCase, mockk(), mockk(),
             mockk(), mockk(), mockk()
         )

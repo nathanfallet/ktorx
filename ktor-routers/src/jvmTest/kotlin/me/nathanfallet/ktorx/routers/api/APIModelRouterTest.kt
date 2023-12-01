@@ -40,14 +40,12 @@ class APIModelRouterTest {
 
     private fun createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>
-    ): APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-        return APIModelRouter(
-            TestModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
-            controller
-        )
-    }
+    ) = APIModelRouter(
+        TestModel::class,
+        TestCreatePayload::class,
+        TestUpdatePayload::class,
+        controller
+    )
 
     @Test
     fun testAPIGetRoute() = testApplication {
