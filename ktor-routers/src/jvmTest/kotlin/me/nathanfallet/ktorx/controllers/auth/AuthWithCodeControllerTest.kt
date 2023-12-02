@@ -4,12 +4,12 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import me.nathanfallet.ktorx.models.auth.ISessionPayload
 import me.nathanfallet.ktorx.models.auth.TestCodePayload
 import me.nathanfallet.ktorx.models.auth.TestLoginPayload
 import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
+import me.nathanfallet.usecases.users.ISessionPayload
 import me.nathanfallet.usecases.users.IUser
 import kotlin.test.Test
 import kotlin.test.assertEquals

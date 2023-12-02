@@ -4,7 +4,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import me.nathanfallet.ktorx.models.auth.ISessionPayload
 import me.nathanfallet.ktorx.models.auth.TestLoginPayload
 import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
@@ -12,6 +11,7 @@ import me.nathanfallet.ktorx.usecases.auth.ICreateSessionForUserUseCase
 import me.nathanfallet.ktorx.usecases.auth.ILoginUseCase
 import me.nathanfallet.ktorx.usecases.auth.IRegisterUseCase
 import me.nathanfallet.ktorx.usecases.auth.ISetSessionForCallUseCase
+import me.nathanfallet.usecases.users.ISessionPayload
 import me.nathanfallet.usecases.users.IUser
 import kotlin.test.Test
 import kotlin.test.assertEquals
