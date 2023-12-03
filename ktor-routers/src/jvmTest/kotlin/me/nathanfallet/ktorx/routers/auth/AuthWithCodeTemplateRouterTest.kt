@@ -48,7 +48,7 @@ class AuthWithCodeTemplateRouterTest {
                 AuthTemplateResponse(
                     template,
                     model["error"] as? String,
-                    model["code"] as? TestCodePayload
+                    model["codePayload"] as? TestCodePayload
                 )
             )
         },

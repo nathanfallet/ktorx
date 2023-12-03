@@ -43,7 +43,7 @@ kotlin {
                 implementation("io.ktor:ktor-server-freemarker:$ktorVersion")
 
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                api("me.nathanfallet.i18n:i18n:1.0.2")
+                api("me.nathanfallet.i18n:i18n:1.0.3")
                 api(project(":ktor-i18n"))
             }
         }
