@@ -63,7 +63,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 val codePayload = controller.register(call, code)
                 call.respondTemplate(
                     authMapping.registerTemplate,
-                    mapOf("code" to codePayload)
+                    mapOf("codePayload" to codePayload)
                 )
             } catch (exception: ControllerException) {
                 handleExceptionTemplate(exception, call, authMapping.registerTemplate)

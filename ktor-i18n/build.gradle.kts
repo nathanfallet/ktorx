@@ -41,7 +41,7 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                api("me.nathanfallet.i18n:i18n:1.0.2")
+                api("me.nathanfallet.i18n:i18n:1.0.3")
             }
         }
         val commonTest by getting {
