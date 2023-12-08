@@ -48,7 +48,7 @@ class TemplateModelRouterTest {
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified Keys> createRouter(
-        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>
+        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
     ) = TemplateModelRouter(
         TestModel::class,
         TestCreatePayload::class,
@@ -174,7 +174,7 @@ class TemplateModelRouterTest {
         val client = installApp(this)
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
         val router = createRouter<PayloadKey>(controller)
-        coEvery { controller.create(any(), UnitModel, TestCreatePayload("string")) } returns mock
+        coEvery { controller.create(any(), UnitModel, createMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -187,7 +187,35 @@ class TemplateModelRouterTest {
             )
         }
         assertEquals(HttpStatusCode.Found, response.status)
-        coVerify { controller.create(any(), UnitModel, TestCreatePayload("string")) }
+        coVerify { controller.create(any(), UnitModel, createMock) }
+    }
+
+    @Test
+    fun testTemplatePostCreateRouteBadValidator() = testApplication {
+        val client = installApp(this)
+        val router = createRouter<PayloadKey>(mockk())
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/testmodels/create") {
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf(
+                    "string" to "123"
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(
+            TemplateResponse(
+                "error",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    code = HttpStatusCode.BadRequest.value,
+                    error = "testmodels_string_regex",
+                )
+            ), response.body()
+        )
     }
 
     @Test
@@ -326,7 +354,7 @@ class TemplateModelRouterTest {
         val client = installApp(this)
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
         val router = createRouter<PayloadKey>(controller)
-        coEvery { controller.update(any(), UnitModel, 1, TestUpdatePayload("string")) } returns mock
+        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -339,7 +367,7 @@ class TemplateModelRouterTest {
             )
         }
         assertEquals(HttpStatusCode.Found, response.status)
-        coVerify { controller.update(any(), UnitModel, 1, TestUpdatePayload("string")) }
+        coVerify { controller.update(any(), UnitModel, 1, updateMock) }
     }
 
     @Test

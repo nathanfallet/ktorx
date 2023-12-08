@@ -13,6 +13,7 @@ import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
+import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
 open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
@@ -25,7 +26,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     val respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     route: String? = null,
     id: String? = null,
-    prefix: String? = null
+    prefix: String? = null,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
     modelClass,
     createPayloadClass,
@@ -49,23 +50,38 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     }
 
     open suspend fun handleExceptionTemplate(
-        exception: ControllerException,
+        exception: Exception,
         call: ApplicationCall,
-        fromTemplate: String
+        fromTemplate: String,
     ) {
-        mapping.redirectUnauthorizedToUrl?.takeIf { exception.code == HttpStatusCode.Unauthorized }?.let { url ->
-            call.respondRedirect(url.replace("{path}", call.request.path()))
-            return
+        when (exception) {
+            is ControllerException -> {
+                mapping.redirectUnauthorizedToUrl?.takeIf { exception.code == HttpStatusCode.Unauthorized }
+                    ?.let { url ->
+                        call.respondRedirect(url.replace("{path}", call.request.path()))
+                        return
+                    }
+                call.response.status(exception.code)
+                call.respondTemplate(
+                    mapping.errorTemplate ?: fromTemplate,
+                    mapOf(
+                        "route" to route,
+                        "code" to exception.code.value,
+                        "error" to exception.key
+                    )
+                )
+            }
+
+            is PropertyValidatorException -> {
+                handleExceptionTemplate(
+                    ControllerException(
+                        HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"
+                    ), call, fromTemplate
+                )
+            }
+
+            else -> throw exception
         }
-        call.response.status(exception.code)
-        call.respondTemplate(
-            mapping.errorTemplate ?: fromTemplate,
-            mapOf(
-                "route" to route,
-                "code" to exception.code.value,
-                "error" to exception.key
-            )
-        )
     }
 
     open fun createTemplateGetRoute(root: Route) {
@@ -80,7 +96,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         "keys" to modelKeys
                     )
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.listTemplate)
             }
         }
@@ -97,7 +113,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         "keys" to createPayloadKeys
                     )
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.createTemplate)
             }
         }
@@ -110,9 +126,10 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     createPayloadClass, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                ModelAnnotations.validatePayload(payload, createPayloadClass)
                 create(call, payload)
                 call.respondRedirect("../$route")
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.createTemplate)
             }
         }
@@ -130,7 +147,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         "keys" to modelKeys
                     )
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.getTemplate)
             }
         }
@@ -148,7 +165,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         "keys" to updatePayloadKeys
                     )
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.updateTemplate)
             }
         }
@@ -161,9 +178,10 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     updatePayloadClass, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                ModelAnnotations.validatePayload(payload, updatePayloadClass)
                 update(call, payload)
                 call.respondRedirect("../../$route")
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.updateTemplate)
             }
         }
@@ -181,7 +199,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         "keys" to modelKeys
                     )
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.deleteTemplate)
             }
         }
@@ -193,7 +211,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             try {
                 delete(call)
                 call.respondRedirect("../../$route")
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, mapping.deleteTemplate)
             }
         }

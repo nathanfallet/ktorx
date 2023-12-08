@@ -21,7 +21,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     override val controller: IAuthController<LoginPayload, RegisterPayload>,
     route: String? = "auth",
-    prefix: String? = null
+    prefix: String? = null,
 ) : TemplateUnitRouter(
     TemplateMapping(authMapping.errorTemplate),
     respondTemplate,
@@ -54,9 +54,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     loginPayloadClass, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                ModelAnnotations.validatePayload(payload, loginPayloadClass)
                 controller.login(call, payload)
                 call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.loginTemplate)
             }
         }
@@ -79,9 +80,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     registerPayloadClass, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                ModelAnnotations.validatePayload(payload, registerPayloadClass)
                 controller.register(call, payload)
                 call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.registerTemplate)
             }
         }

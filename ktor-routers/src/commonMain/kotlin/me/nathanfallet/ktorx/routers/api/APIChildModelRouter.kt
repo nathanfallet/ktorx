@@ -11,6 +11,8 @@ import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
+import me.nathanfallet.usecases.models.annotations.ModelAnnotations
+import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
 open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
@@ -22,7 +24,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     val mapping: APIMapping = APIMapping(),
     route: String? = null,
     id: String? = null,
-    prefix: String? = null
+    prefix: String? = null,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
     modelClass,
     createPayloadClass,
@@ -42,9 +44,31 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         createAPIDeleteIdRoute(root)
     }
 
-    open suspend fun handleExceptionAPI(exception: ControllerException, call: ApplicationCall) {
-        call.response.status(exception.code)
-        call.respond(mapOf("error" to exception.key))
+    open suspend fun handleExceptionAPI(exception: Exception, call: ApplicationCall) {
+        when (exception) {
+            is ControllerException -> {
+                call.response.status(exception.code)
+                call.respond(mapOf("error" to exception.key))
+            }
+
+            is PropertyValidatorException -> {
+                handleExceptionAPI(
+                    ControllerException(
+                        HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"
+                    ), call
+                )
+            }
+
+            is ContentTransformationException -> {
+                handleExceptionAPI(
+                    ControllerException(
+                        HttpStatusCode.BadRequest, "error_body_invalid"
+                    ), call
+                )
+            }
+
+            else -> throw exception
+        }
     }
 
     open fun createAPIGetRoute(root: Route) {
@@ -52,7 +76,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         root.get(fullRoute) {
             try {
                 call.respond(getAll(call), listTypeInfo)
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionAPI(exception, call)
             }
         }
@@ -63,7 +87,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         root.get("$fullRoute/{$id}") {
             try {
                 call.respond(get(call), modelTypeInfo)
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionAPI(exception, call)
             }
         }
@@ -73,17 +97,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         if (!mapping.createEnabled) return
         root.post(fullRoute) {
             try {
-                val response = create(call, call.receive(createPayloadTypeInfo))
+                val payload: CreatePayload = call.receive(createPayloadTypeInfo)
+                ModelAnnotations.validatePayload(payload, createPayloadClass)
+                val response = create(call, payload)
                 call.response.status(HttpStatusCode.Created)
                 call.respond(response, modelTypeInfo)
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionAPI(exception, call)
-            } catch (exception: ContentTransformationException) {
-                handleExceptionAPI(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "error_body_invalid"
-                    ), call
-                )
             }
         }
     }
@@ -92,18 +112,14 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         if (!mapping.updateEnabled) return
         root.put("$fullRoute/{$id}") {
             try {
+                val payload: UpdatePayload = call.receive(updatePayloadTypeInfo)
+                ModelAnnotations.validatePayload(payload, updatePayloadClass)
                 call.respond(
-                    update(call, call.receive(updatePayloadTypeInfo)),
+                    update(call, payload),
                     modelTypeInfo
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionAPI(exception, call)
-            } catch (exception: ContentTransformationException) {
-                handleExceptionAPI(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "error_body_invalid"
-                    ), call
-                )
             }
         }
     }
@@ -114,7 +130,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             try {
                 delete(call)
                 call.respond(HttpStatusCode.NoContent)
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionAPI(exception, call)
             }
         }

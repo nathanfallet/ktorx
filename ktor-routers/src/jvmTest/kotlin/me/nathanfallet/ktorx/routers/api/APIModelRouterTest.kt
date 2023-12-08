@@ -24,6 +24,7 @@ class APIModelRouterTest {
     private val mock = TestModel(1, "string")
     private val createMock = TestCreatePayload("string")
     private val updateMock = TestUpdatePayload("string")
+    private val createMockInvalid = TestCreatePayload("123")
 
     private fun installApp(application: ApplicationTestBuilder): HttpClient {
         application.application {
@@ -39,7 +40,7 @@ class APIModelRouterTest {
     }
 
     private fun createRouter(
-        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>
+        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
     ) = APIModelRouter(
         TestModel::class,
         TestCreatePayload::class,
@@ -144,6 +145,21 @@ class APIModelRouterTest {
         }
         assertEquals(HttpStatusCode.NotFound, response.status)
         assertEquals(mapOf("error" to "error_mock"), response.body())
+    }
+
+    @Test
+    fun testAPIPostRouteValidatorException() = testApplication {
+        val client = installApp(this)
+        val router = createRouter(mockk())
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/api/testmodels") {
+            contentType(ContentType.Application.Json)
+            setBody(createMockInvalid)
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(mapOf("error" to "testmodels_string_regex"), response.body())
     }
 
     @Test

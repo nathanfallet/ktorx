@@ -20,7 +20,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     override val controller: IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>,
     route: String? = "auth",
-    prefix: String? = null
+    prefix: String? = null,
 ) : AuthTemplateRouter<LoginPayload, RegisterPayload>(
     loginPayloadClass,
     registerPayloadClass,
@@ -44,12 +44,13 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     registerPayloadClass, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                ModelAnnotations.validatePayload(payload, registerPayloadClass)
                 controller.register(call, payload)
                 call.respondTemplate(
                     authMapping.registerTemplate,
                     mapOf("success" to "auth_register_code_created")
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.registerTemplate)
             }
         }
@@ -65,7 +66,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                     authMapping.registerTemplate,
                     mapOf("codePayload" to codePayload)
                 )
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.registerTemplate)
             }
         }
@@ -80,13 +81,14 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
                     registerCodePayloadClass, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                ModelAnnotations.validatePayload(payload, registerCodePayloadClass)
                 controller.register(
                     call,
                     code,
                     payload
                 )
                 call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
-            } catch (exception: ControllerException) {
+            } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.registerTemplate)
             }
         }
