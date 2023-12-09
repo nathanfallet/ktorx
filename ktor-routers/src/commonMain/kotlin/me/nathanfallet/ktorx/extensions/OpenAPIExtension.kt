@@ -3,6 +3,7 @@ package me.nathanfallet.ktorx.extensions
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
+import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
@@ -18,6 +19,10 @@ import kotlin.reflect.KType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.typeOf
+
+fun OpenAPI.info(build: Info.() -> Unit): OpenAPI = info(
+    (info ?: Info()).apply(build)
+)
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
