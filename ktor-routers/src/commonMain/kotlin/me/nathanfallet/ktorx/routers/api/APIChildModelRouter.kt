@@ -149,10 +149,16 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                     schema(createPayloadClass)
                 }
             }
-            response("200") {
+            response("201") {
                 description("A ${modelClass.simpleName}")
                 mediaType("application/json") {
                     schema(modelClass)
+                }
+            }
+            response("400") {
+                description("Invalid body")
+                mediaType("application/json") {
+                    errorSchema("error_body_invalid")
                 }
             }
         }
@@ -186,6 +192,12 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 description("A ${modelClass.simpleName}")
                 mediaType("application/json") {
                     schema(modelClass)
+                }
+            }
+            response("400") {
+                description("Invalid body")
+                mediaType("application/json") {
+                    errorSchema("error_body_invalid")
                 }
             }
         }

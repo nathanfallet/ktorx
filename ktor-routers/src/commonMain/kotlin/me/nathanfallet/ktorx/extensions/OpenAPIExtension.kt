@@ -95,3 +95,11 @@ fun <Model : Any> MediaType.arraySchema(modelClass: KClass<Model>): MediaType = 
     Schema<List<Model>>().type("array")
         .items(Schema<Model>().`$ref`("#/components/schemas/${modelClass.qualifiedName}"))
 )
+
+fun MediaType.errorSchema(key: String): MediaType = schema(
+    Schema<Map<String, String>>().type("object").properties(
+        mapOf(
+            "error" to Schema<String>().type("string").example(key)
+        )
+    )
+)
