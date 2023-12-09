@@ -2,6 +2,8 @@ package me.nathanfallet.ktorx.routers.base
 
 import io.ktor.server.application.*
 import io.ktor.util.reflect.*
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.parameters.Parameter
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
@@ -11,17 +13,18 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
 
 abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     final override val modelClass: KClass<Model>,
     final override val createPayloadClass: KClass<CreatePayload>,
     final override val updatePayloadClass: KClass<UpdatePayload>,
-    open override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
+    override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     final override val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     route: String? = null,
     id: String? = null,
-    prefix: String? = null
+    prefix: String? = null,
 ) : IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId> {
 
     final override val route = route ?: (modelClass.simpleName!!.lowercase() + "s")
@@ -100,6 +103,17 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
             parentRouter?.get(call) ?: UnitModel as ParentModel,
             ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!)
         )
+    }
+
+    override fun getOpenAPIParameters(self: Boolean): List<Parameter> {
+        return parentRouter?.getOpenAPIParameters().orEmpty() + if (self) listOf(
+            Parameter()
+                .name(id)
+                .schema(Schema<Id>().type(modelClass.memberProperties.first { it.name == "id" }.returnType.toString()))
+                .`in`("path")
+                .description("Id of the ${modelClass.simpleName}")
+                .required(true)
+        ) else emptyList()
     }
 
 }

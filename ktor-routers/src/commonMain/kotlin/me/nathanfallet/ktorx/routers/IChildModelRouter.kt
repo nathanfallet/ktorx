@@ -1,6 +1,7 @@
 package me.nathanfallet.ktorx.routers
 
 import io.ktor.server.application.*
+import io.swagger.v3.oas.models.parameters.Parameter
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.usecases.models.IChildModel
 import kotlin.reflect.KClass
@@ -20,5 +21,7 @@ interface IChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload
     val prefix: String
 
     suspend fun get(call: ApplicationCall): Model
+
+    fun getOpenAPIParameters(self: Boolean = true): List<Parameter>
 
 }

@@ -2,6 +2,7 @@ package me.nathanfallet.ktorx.routers.auth
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.routers.templates.ILocalizedTemplateRouter
@@ -16,7 +17,7 @@ open class LocalizedAuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any
     controller: IAuthController<LoginPayload, RegisterPayload>,
     getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = "auth",
-    prefix: String? = null
+    prefix: String? = null,
 ) : AuthTemplateRouter<LoginPayload, RegisterPayload>(
     loginPayloadClass,
     registerPayloadClass,
@@ -27,10 +28,10 @@ open class LocalizedAuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any
     prefix
 ), ILocalizedTemplateRouter {
 
-    final override fun createRoutes(root: Route) = localizeRoutes(root)
+    final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
 
-    override fun createLocalizedRoutes(root: Route) {
-        super.createRoutes(root)
+    override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
+        super.createRoutes(root, openAPI)
     }
 
 }

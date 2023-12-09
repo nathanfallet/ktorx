@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
@@ -30,7 +31,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     prefix
 ) {
 
-    override fun createRoutes(root: Route) {
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
         createTemplateGetLoginRoute(root)
         createTemplatePostLoginRoute(root)
         createTemplateGetRegisterRoute(root)

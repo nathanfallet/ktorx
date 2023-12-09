@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import kotlin.test.Test
@@ -35,7 +36,7 @@ class TemplateUnitRouterTest {
         val router = object : TemplateUnitRouter(TemplateMapping(""), { template, _ ->
             respond(template)
         }) {
-            override fun createRoutes(root: Route) {
+            override fun createRoutes(root: Route, openAPI: OpenAPI?) {
                 root.get("/test") {
                     call.respondTemplate("test", mapOf())
                 }

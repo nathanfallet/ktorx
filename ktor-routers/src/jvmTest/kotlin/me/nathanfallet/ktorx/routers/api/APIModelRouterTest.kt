@@ -9,6 +9,8 @@ import io.ktor.server.application.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.media.Schema
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
@@ -25,6 +27,7 @@ class APIModelRouterTest {
     private val createMock = TestCreatePayload("string")
     private val updateMock = TestUpdatePayload("string")
     private val createMockInvalid = TestCreatePayload("123")
+    private val updateMockInvalid = TestUpdatePayload("123")
 
     private fun installApp(application: ApplicationTestBuilder): HttpClient {
         application.application {
@@ -80,6 +83,29 @@ class APIModelRouterTest {
     }
 
     @Test
+    fun testAPIGetRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val router = createRouter(controller)
+        val openAPI = OpenAPI()
+        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.get("/api/testmodels")
+        val get = openAPI.paths["/api/testmodels"]?.get
+        assertEquals("listTestModel", get?.operationId)
+        assertEquals(listOf("TestModel"), get?.tags)
+        assertEquals("Get all TestModel", get?.description)
+        assertEquals(0, get?.parameters?.size)
+        assertEquals(1, get?.responses?.size)
+        assertEquals(
+            "#/components/schemas/${TestModel::class.qualifiedName}",
+            get?.responses?.get("200")?.content?.get("application/json")?.schema?.items?.`$ref`
+        )
+    }
+
+    @Test
     fun testAPIGetIdRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
@@ -108,6 +134,30 @@ class APIModelRouterTest {
         val response = client.get("/api/testmodels/1")
         assertEquals(HttpStatusCode.NotFound, response.status)
         assertEquals(mapOf("error" to "error_mock"), response.body())
+    }
+
+    @Test
+    fun testAPIGetIdRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val router = createRouter(controller)
+        val openAPI = OpenAPI()
+        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.get("/api/testmodels/1")
+        val get = openAPI.paths["/api/testmodels/{testmodelId}"]?.get
+        assertEquals("getTestModelById", get?.operationId)
+        assertEquals(listOf("TestModel"), get?.tags)
+        assertEquals("Get a TestModel by id", get?.description)
+        assertEquals(1, get?.parameters?.size)
+        assertEquals("testmodelId", get?.parameters?.firstOrNull()?.name)
+        assertEquals(1, get?.responses?.size)
+        assertEquals(
+            "#/components/schemas/${TestModel::class.qualifiedName}",
+            get?.responses?.get("200")?.content?.get("application/json")?.schema?.`$ref`
+        )
     }
 
     @Test
@@ -177,6 +227,40 @@ class APIModelRouterTest {
     }
 
     @Test
+    fun testAPIPostRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val router = createRouter(controller)
+        val openAPI = OpenAPI()
+        coEvery { controller.create(any(), UnitModel, createMock) } returns mock
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.post("/api/testmodels") {
+            contentType(ContentType.Application.Json)
+            setBody(createMock)
+        }
+        val post = openAPI.paths["/api/testmodels"]?.post
+        assertEquals("createTestModel", post?.operationId)
+        assertEquals(listOf("TestModel"), post?.tags)
+        assertEquals("Create a TestModel", post?.description)
+        assertEquals(0, post?.parameters?.size)
+        assertEquals(
+            "#/components/schemas/${TestCreatePayload::class.qualifiedName}",
+            post?.requestBody?.content?.get("application/json")?.schema?.`$ref`
+        )
+        assertEquals(2, post?.responses?.size)
+        assertEquals(
+            "#/components/schemas/${TestModel::class.qualifiedName}",
+            post?.responses?.get("201")?.content?.get("application/json")?.schema?.`$ref`
+        )
+        assertEquals(
+            Schema<String>().type("string").example("error_body_invalid"),
+            post?.responses?.get("400")?.content?.get("application/json")?.schema?.properties?.get("error")
+        )
+    }
+
+    @Test
     fun testAPIPutRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
@@ -214,6 +298,23 @@ class APIModelRouterTest {
     }
 
     @Test
+    fun testAPIPutRouteValidatorException() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val router = createRouter(controller)
+        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.put("/api/testmodels/1") {
+            contentType(ContentType.Application.Json)
+            setBody(updateMockInvalid)
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(mapOf("error" to "testmodels_string_regex"), response.body())
+    }
+
+    @Test
     fun testAPIPutRouteInvalidBody() = testApplication {
         val client = installApp(this)
         val router = createRouter(mockk())
@@ -225,6 +326,41 @@ class APIModelRouterTest {
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertEquals(mapOf("error" to "error_body_invalid"), response.body())
+    }
+
+    @Test
+    fun testAPIPutRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val router = createRouter(controller)
+        val openAPI = OpenAPI()
+        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.put("/api/testmodels/1") {
+            contentType(ContentType.Application.Json)
+            setBody(updateMock)
+        }
+        val put = openAPI.paths["/api/testmodels/{testmodelId}"]?.put
+        assertEquals("updateTestModelById", put?.operationId)
+        assertEquals(listOf("TestModel"), put?.tags)
+        assertEquals("Update a TestModel by id", put?.description)
+        assertEquals(1, put?.parameters?.size)
+        assertEquals("testmodelId", put?.parameters?.firstOrNull()?.name)
+        assertEquals(
+            "#/components/schemas/${TestUpdatePayload::class.qualifiedName}",
+            put?.requestBody?.content?.get("application/json")?.schema?.`$ref`
+        )
+        assertEquals(2, put?.responses?.size)
+        assertEquals(
+            "#/components/schemas/${TestModel::class.qualifiedName}",
+            put?.responses?.get("200")?.content?.get("application/json")?.schema?.`$ref`
+        )
+        assertEquals(
+            Schema<String>().type("string").example("error_body_invalid"),
+            put?.responses?.get("400")?.content?.get("application/json")?.schema?.properties?.get("error")
+        )
     }
 
     @Test
@@ -256,4 +392,29 @@ class APIModelRouterTest {
         assertEquals(HttpStatusCode.NotFound, response.status)
         assertEquals(mapOf("error" to "error_mock"), response.body())
     }
+
+    @Test
+    fun testAPIDeleteRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val router = createRouter(controller)
+        val openAPI = OpenAPI()
+        coEvery { controller.delete(any(), UnitModel, 1) } returns Unit
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.delete("/api/testmodels/1")
+        val delete = openAPI.paths["/api/testmodels/{testmodelId}"]?.delete
+        assertEquals("deleteTestModelById", delete?.operationId)
+        assertEquals(listOf("TestModel"), delete?.tags)
+        assertEquals("Delete a TestModel by id", delete?.description)
+        assertEquals(1, delete?.parameters?.size)
+        assertEquals("testmodelId", delete?.parameters?.firstOrNull()?.name)
+        assertEquals(1, delete?.responses?.size)
+        assertEquals(
+            null,
+            delete?.responses?.get("204")?.content
+        )
+    }
+
 }

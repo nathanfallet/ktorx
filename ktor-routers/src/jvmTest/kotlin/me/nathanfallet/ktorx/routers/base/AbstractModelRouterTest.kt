@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
@@ -37,7 +38,7 @@ class AbstractModelRouterTest {
     private fun createRouter(
         route: String?,
         id: String?,
-        prefix: String?
+        prefix: String?,
     ): AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
             override suspend fun list(call: ApplicationCall): List<TestModel> {
@@ -69,7 +70,7 @@ class AbstractModelRouterTest {
             id,
             prefix
         ) {
-            override fun createRoutes(root: Route) {
+            override fun createRoutes(root: Route, openAPI: OpenAPI?) {
                 root.get("$fullRoute/{${this.id}}") {
                     call.respond(mock)
                 }

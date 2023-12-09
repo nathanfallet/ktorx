@@ -1,13 +1,14 @@
 package me.nathanfallet.ktorx.routers.concat
 
 import io.ktor.server.routing.*
+import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
 
 open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     val routers: List<IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
-    parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?
+    parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
     routers.first().modelClass,
     routers.first().createPayloadClass,
@@ -19,9 +20,9 @@ open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdateP
     routers.first().prefix
 ) {
 
-    override fun createRoutes(root: Route) {
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
         routers.forEach {
-            it.createRoutes(root)
+            it.createRoutes(root, openAPI)
         }
     }
 

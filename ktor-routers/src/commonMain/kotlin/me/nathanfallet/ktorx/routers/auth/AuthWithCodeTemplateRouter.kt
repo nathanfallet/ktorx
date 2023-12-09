@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
@@ -31,8 +32,8 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
     prefix
 ) {
 
-    override fun createRoutes(root: Route) {
-        super.createRoutes(root)
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
+        super.createRoutes(root, openAPI)
         createTemplateGetRegisterCodeRoute(root)
         createTemplatePostRegisterCodeRoute(root)
     }
