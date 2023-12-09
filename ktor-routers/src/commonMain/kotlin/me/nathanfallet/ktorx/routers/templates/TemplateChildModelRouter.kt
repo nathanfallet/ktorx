@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
@@ -38,7 +39,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     prefix
 ) {
 
-    override fun createRoutes(root: Route) {
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
         createTemplateGetRoute(root)
         createTemplateGetCreateRoute(root)
         createTemplatePostCreateRoute(root)

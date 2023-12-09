@@ -40,6 +40,10 @@ kotlin {
                 implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
+                implementation("io.swagger.codegen.v3:swagger-codegen:3.0.51")
+                api("io.swagger.codegen.v3:swagger-codegen-generators:1.0.45")
+                api("io.swagger.core.v3:swagger-core:2.2.19")
+
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
             }
         }

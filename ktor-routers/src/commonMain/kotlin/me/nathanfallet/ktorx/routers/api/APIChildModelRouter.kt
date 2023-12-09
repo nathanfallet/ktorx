@@ -5,7 +5,9 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
+import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.api.APIMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
@@ -36,12 +38,19 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     prefix ?: "/api"
 ) {
 
-    override fun createRoutes(root: Route) {
-        createAPIGetRoute(root)
-        createAPIGetIdRoute(root)
-        createAPIPostRoute(root)
-        createAPIPutIdRoute(root)
-        createAPIDeleteIdRoute(root)
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
+        createSchema(openAPI)
+        createAPIGetRoute(root, openAPI)
+        createAPIGetIdRoute(root, openAPI)
+        createAPIPostRoute(root, openAPI)
+        createAPIPutIdRoute(root, openAPI)
+        createAPIDeleteIdRoute(root, openAPI)
+    }
+
+    open fun createSchema(openAPI: OpenAPI?) {
+        openAPI?.schema(modelClass)
+        openAPI?.schema(createPayloadClass)
+        openAPI?.schema(updatePayloadClass)
     }
 
     open suspend fun handleExceptionAPI(exception: Exception, call: ApplicationCall) {
@@ -71,7 +80,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
-    open fun createAPIGetRoute(root: Route) {
+    open fun createAPIGetRoute(root: Route, openAPI: OpenAPI?) {
         if (!mapping.listEnabled) return
         root.get(fullRoute) {
             try {
@@ -80,9 +89,21 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 handleExceptionAPI(exception, call)
             }
         }
+        openAPI?.get(fullRoute) {
+            operationId("list${modelClass.simpleName}")
+            addTagsItem(modelClass.simpleName)
+            description("Get all ${modelClass.simpleName}")
+            parameters(getOpenAPIParameters(false))
+            response("200") {
+                description("List of ${modelClass.simpleName}")
+                mediaType("application/json") {
+                    arraySchema(modelClass)
+                }
+            }
+        }
     }
 
-    open fun createAPIGetIdRoute(root: Route) {
+    open fun createAPIGetIdRoute(root: Route, openAPI: OpenAPI?) {
         if (!mapping.getEnabled) return
         root.get("$fullRoute/{$id}") {
             try {
@@ -91,9 +112,21 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 handleExceptionAPI(exception, call)
             }
         }
+        openAPI?.get("$fullRoute/{$id}") {
+            operationId("get${modelClass.simpleName}ById")
+            addTagsItem(modelClass.simpleName)
+            description("Get a ${modelClass.simpleName} by id")
+            parameters(getOpenAPIParameters())
+            response("200") {
+                description("A ${modelClass.simpleName}")
+                mediaType("application/json") {
+                    schema(modelClass)
+                }
+            }
+        }
     }
 
-    open fun createAPIPostRoute(root: Route) {
+    open fun createAPIPostRoute(root: Route, openAPI: OpenAPI?) {
         if (!mapping.createEnabled) return
         root.post(fullRoute) {
             try {
@@ -106,9 +139,26 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 handleExceptionAPI(exception, call)
             }
         }
+        openAPI?.post(fullRoute) {
+            operationId("create${modelClass.simpleName}")
+            addTagsItem(modelClass.simpleName)
+            description("Create a ${modelClass.simpleName}")
+            parameters(getOpenAPIParameters(false))
+            requestBody {
+                mediaType("application/json") {
+                    schema(createPayloadClass)
+                }
+            }
+            response("200") {
+                description("A ${modelClass.simpleName}")
+                mediaType("application/json") {
+                    schema(modelClass)
+                }
+            }
+        }
     }
 
-    open fun createAPIPutIdRoute(root: Route) {
+    open fun createAPIPutIdRoute(root: Route, openAPI: OpenAPI?) {
         if (!mapping.updateEnabled) return
         root.put("$fullRoute/{$id}") {
             try {
@@ -122,9 +172,26 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 handleExceptionAPI(exception, call)
             }
         }
+        openAPI?.put("$fullRoute/{$id}") {
+            operationId("update${modelClass.simpleName}ById")
+            addTagsItem(modelClass.simpleName)
+            description("Update a ${modelClass.simpleName} by id")
+            parameters(getOpenAPIParameters())
+            requestBody {
+                mediaType("application/json") {
+                    schema(updatePayloadClass)
+                }
+            }
+            response("200") {
+                description("A ${modelClass.simpleName}")
+                mediaType("application/json") {
+                    schema(modelClass)
+                }
+            }
+        }
     }
 
-    open fun createAPIDeleteIdRoute(root: Route) {
+    open fun createAPIDeleteIdRoute(root: Route, openAPI: OpenAPI?) {
         if (!mapping.deleteEnabled) return
         root.delete("$fullRoute/{$id}") {
             try {
@@ -133,6 +200,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             } catch (exception: Exception) {
                 handleExceptionAPI(exception, call)
             }
+        }
+        openAPI?.delete("$fullRoute/{$id}") {
+            operationId("delete${modelClass.simpleName}ById")
+            addTagsItem(modelClass.simpleName)
+            description("Delete a ${modelClass.simpleName} by id")
+            parameters(getOpenAPIParameters())
+            response("204")
         }
     }
 
