@@ -9,19 +9,42 @@ import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.descriptors.elementNames
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.typeOf
 
-fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>) {
-    schema(
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
+    val properties = modelClass.serializer().descriptor.elementNames.associateWith { name ->
+        modelClass.memberProperties.first { it.name == name }
+    }
+    return schema(
         modelClass.qualifiedName,
         Schema<Model>()
             .type("object")
-            .properties(modelClass.memberProperties.associate { property ->
-                property.name to Schema<Any>()
-                    .type(property.returnType.toString())
-            })
+            .properties(properties.mapValues { schema(it.value.returnType) })
+            .required(properties.filter {
+                it.value.returnType.isMarkedNullable.not()
+            }.keys.toList())
     )
+}
+
+fun OpenAPI.schema(type: KType): Schema<Any> {
+    return if (type.isSubtypeOf(typeOf<List<*>>())) {
+        Schema<List<*>>().type("array").items(
+            schema(type.arguments.firstOrNull()?.type ?: typeOf<Any>())
+        )
+    } else if (components?.schemas?.containsKey(type.toString()) == true) {
+        Schema<Any>().`$ref`("#/components/schemas/$type")
+    } else {
+        Schema<Any>().type(type.toString())
+    }
 }
 
 fun OpenAPI.path(path: String, build: PathItem.() -> Unit): OpenAPI = path(
