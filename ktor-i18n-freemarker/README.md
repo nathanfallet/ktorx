@@ -7,7 +7,7 @@ An i18n plugin for Ktor Freemarker
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-i18n-freemarker:1.6.1'
+compile 'me.nathanfallet.ktorx:ktor-i18n-freemarker:1.7.1'
 compile 'io.ktor:ktor-server-freemarker:2.3.6'
 ```
 
@@ -17,7 +17,7 @@ compile 'io.ktor:ktor-server-freemarker:2.3.6'
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-i18n-freemarker-jvm</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.1</version>
     </dependency>
     <dependency>
         <groupId>io.ktor</groupId>

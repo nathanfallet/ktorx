@@ -2,9 +2,9 @@ package me.nathanfallet.ktorx.controllers.auth
 
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.IUnitController
-import me.nathanfallet.ktorx.models.auth.AuthRequest
-import me.nathanfallet.ktorx.models.auth.AuthToken
 import me.nathanfallet.ktorx.models.auth.ClientForUser
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
 
 interface IAuthController<LoginPayload, RegisterPayload> : IUnitController {
 

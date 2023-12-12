@@ -1,6 +1,7 @@
 package me.nathanfallet.ktorx.models.auth
 
 import kotlinx.serialization.Serializable
+import me.nathanfallet.usecases.auth.IClient
 
 @Serializable
 data class TestClient(

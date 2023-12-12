@@ -7,7 +7,7 @@ A Sentry plugin for Ktor
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-sentry:1.6.1'
+compile 'me.nathanfallet.ktorx:ktor-sentry:1.7.1'
 compile 'io.sentry:sentry:6.32.0'
 ```
 
@@ -17,7 +17,7 @@ compile 'io.sentry:sentry:6.32.0'
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-sentry-jvm</artifactId>
-        <version>1.6.1</version>
+        <version>1.7.1</version>
     </dependency>
     <dependency>
         <groupId>io.sentry</groupId>

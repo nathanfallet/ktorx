@@ -8,9 +8,9 @@ import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.extensions.*
-import me.nathanfallet.ktorx.models.auth.AuthRequest
-import me.nathanfallet.ktorx.models.auth.AuthToken
 import me.nathanfallet.ktorx.routers.api.APIUnitRouter
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
 
 open class AuthAPIRouter(
     override val controller: IAuthController<*, *>,

@@ -8,7 +8,9 @@ import me.nathanfallet.ktorx.models.auth.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
-import me.nathanfallet.usecases.users.ISessionPayload
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
+import me.nathanfallet.usecases.auth.ISessionPayload
 import me.nathanfallet.usecases.users.IUser
 import kotlin.test.Test
 import kotlin.test.assertEquals

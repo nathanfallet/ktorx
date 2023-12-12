@@ -13,8 +13,8 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Schema
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
-import me.nathanfallet.ktorx.models.auth.AuthRequest
-import me.nathanfallet.ktorx.models.auth.AuthToken
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

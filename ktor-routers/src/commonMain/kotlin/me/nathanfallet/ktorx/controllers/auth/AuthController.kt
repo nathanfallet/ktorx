@@ -2,12 +2,12 @@ package me.nathanfallet.ktorx.controllers.auth
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import me.nathanfallet.ktorx.models.auth.AuthRequest
-import me.nathanfallet.ktorx.models.auth.AuthToken
 import me.nathanfallet.ktorx.models.auth.ClientForUser
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
 
 open class AuthController<LoginPayload, RegisterPayload>(
     private val loginUseCase: ILoginUseCase<LoginPayload>,
