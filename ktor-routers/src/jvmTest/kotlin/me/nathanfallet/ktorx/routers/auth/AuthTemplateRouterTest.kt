@@ -13,10 +13,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
-import me.nathanfallet.ktorx.models.auth.AuthMapping
-import me.nathanfallet.ktorx.models.auth.AuthTemplateResponse
-import me.nathanfallet.ktorx.models.auth.TestLoginPayload
-import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
+import me.nathanfallet.ktorx.models.auth.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,19 +35,24 @@ class AuthTemplateRouterTest {
     }
 
     private fun createRouter(
-        controller: IAuthController<TestLoginPayload, TestRegisterPayload>
+        controller: IAuthController<TestLoginPayload, TestRegisterPayload>,
     ) = AuthTemplateRouter(
         TestLoginPayload::class,
         TestRegisterPayload::class,
         AuthMapping(
             loginTemplate = "login",
             registerTemplate = "register",
+            authorizeTemplate = "authorize",
+            redirectUnauthorizedToUrl = "/auth/login?redirect={path}"
         ),
         { template, model ->
             respond(
                 AuthTemplateResponse(
                     template,
-                    model["error"] as? String
+                    model["error"] as? String,
+                    null,
+                    (model["client"] as? TestClient)?.id,
+                    (model["user"] as? TestUser)?.id
                 )
             )
         },
@@ -215,6 +217,59 @@ class AuthTemplateRouterTest {
                 error = "error_body_invalid"
             ), response.body()
         )
+    }
+
+    @Test
+    fun testGetAuthorizeCodeRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val router = createRouter(controller)
+        val clientForUser = ClientForUser(TestClient("cid"), TestUser("uid"))
+        coEvery { controller.authorize(any(), "cid") } returns clientForUser
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/auth/authorize?client_id=cid")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            AuthTemplateResponse(
+                "authorize",
+                client = (clientForUser.client as TestClient).id,
+                user = (clientForUser.user as TestUser).id
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testGetAuthorizeCodeRouteNeedsLogin() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val router = createRouter(controller)
+        coEvery { controller.authorize(any(), "cid") } throws ControllerException(
+            HttpStatusCode.Unauthorized,
+            "auth_invalid_credentials"
+        )
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/auth/authorize?client_id=cid")
+        assertEquals(HttpStatusCode.Found, response.status)
+    }
+
+    @Test
+    fun testPostAuthorizeRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val router = createRouter(controller)
+        val clientForUser = ClientForUser(TestClient("cid"), TestUser("uid"))
+        coEvery { controller.authorize(any(), "cid") } returns clientForUser
+        coEvery { controller.authorize(any(), clientForUser) } returns "url"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/auth/authorize?client_id=cid")
+        assertEquals(HttpStatusCode.Found, response.status)
+        coVerify { controller.authorize(any(), clientForUser) }
     }
 
 }

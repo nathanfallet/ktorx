@@ -57,11 +57,12 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     ) {
         when (exception) {
             is ControllerException -> {
-                mapping.redirectUnauthorizedToUrl?.takeIf { exception.code == HttpStatusCode.Unauthorized }
-                    ?.let { url ->
-                        call.respondRedirect(url.replace("{path}", call.request.path()))
-                        return
-                    }
+                mapping.redirectUnauthorizedToUrl?.takeIf {
+                    exception.code == HttpStatusCode.Unauthorized && !it.startsWith(call.request.path())
+                }?.let { url ->
+                    call.respondRedirect(url.replace("{path}", call.request.path()))
+                    return
+                }
                 call.response.status(exception.code)
                 call.respondTemplate(
                     mapping.errorTemplate ?: fromTemplate,

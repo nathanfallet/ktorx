@@ -24,7 +24,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     route: String? = "auth",
     prefix: String? = null,
 ) : TemplateUnitRouter(
-    TemplateMapping(authMapping.errorTemplate),
+    TemplateMapping(
+        errorTemplate = authMapping.errorTemplate,
+        redirectUnauthorizedToUrl = authMapping.redirectUnauthorizedToUrl
+    ),
     respondTemplate,
     controller,
     route,
@@ -36,6 +39,8 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
         createTemplatePostLoginRoute(root)
         createTemplateGetRegisterRoute(root)
         createTemplatePostRegisterRoute(root)
+        createTemplateGetAuthorizeRoute(root)
+        createTemplatePostAuthorizeRoute(root)
     }
 
     open fun createTemplateGetLoginRoute(root: Route) {
@@ -86,6 +91,36 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                 call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
             } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.registerTemplate)
+            }
+        }
+    }
+
+    open fun createTemplateGetAuthorizeRoute(root: Route) {
+        authMapping.authorizeTemplate ?: return
+        root.get("$fullRoute/authorize") {
+            try {
+                val client = controller.authorize(call, call.parameters["client_id"])
+                call.respondTemplate(
+                    authMapping.authorizeTemplate,
+                    mapOf(
+                        "user" to client.user,
+                        "client" to client.client
+                    )
+                )
+            } catch (exception: Exception) {
+                handleExceptionTemplate(exception, call, authMapping.authorizeTemplate)
+            }
+        }
+    }
+
+    open fun createTemplatePostAuthorizeRoute(root: Route) {
+        authMapping.authorizeTemplate ?: return
+        root.post("$fullRoute/authorize") {
+            try {
+                val client = controller.authorize(call, call.parameters["client_id"])
+                call.respondRedirect(controller.authorize(call, client))
+            } catch (exception: Exception) {
+                handleExceptionTemplate(exception, call, authMapping.authorizeTemplate)
             }
         }
     }

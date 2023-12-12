@@ -29,7 +29,7 @@ class AuthControllerTest {
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            loginUseCase, mockk(), createSessionForUserUseCase, setSessionForCallUseCase
+            loginUseCase, mockk(), createSessionForUserUseCase, setSessionForCallUseCase, mockk()
         )
         coEvery { loginUseCase(loginPayload) } returns user
         every { createSessionForUserUseCase(user) } returns sessionPayload
@@ -44,7 +44,7 @@ class AuthControllerTest {
         val call = mockk<ApplicationCall>()
         val loginPayload = TestLoginPayload("email", "password")
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            loginUseCase, mockk(), mockk(), mockk()
+            loginUseCase, mockk(), mockk(), mockk(), mockk()
         )
         coEvery { loginUseCase(loginPayload) } returns null
         val exception = assertFailsWith(ControllerException::class) {
@@ -64,7 +64,7 @@ class AuthControllerTest {
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase
+            mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase, mockk()
         )
         every { createSessionForUserUseCase(user) } returns sessionPayload
         every { setSessionForCallUseCase(call, sessionPayload) } returns Unit
@@ -82,7 +82,7 @@ class AuthControllerTest {
         val call = mockk<ApplicationCall>()
         val registerPayload = TestRegisterPayload("email", "password")
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            mockk(), registerUseCase, mockk(), mockk(),
+            mockk(), registerUseCase, mockk(), mockk(), mockk()
         )
         coEvery { registerUseCase(call, registerPayload) } returns null
         val exception = assertFailsWith(ControllerException::class) {
