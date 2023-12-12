@@ -5,5 +5,6 @@ data class AuthMapping(
     val loginTemplate: String? = null,
     val registerTemplate: String? = null,
     val authorizeTemplate: String? = null,
+    val redirectTemplate: String? = null,
     val redirectUnauthorizedToUrl: String? = null,
 )

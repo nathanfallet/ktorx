@@ -9,4 +9,5 @@ data class AuthTemplateResponse(
     val code: TestCodePayload? = null,
     val client: String? = null,
     val user: String? = null,
+    val redirect: String? = null,
 )

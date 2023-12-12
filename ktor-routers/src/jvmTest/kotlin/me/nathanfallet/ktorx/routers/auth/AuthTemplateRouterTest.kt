@@ -36,6 +36,7 @@ class AuthTemplateRouterTest {
 
     private fun createRouter(
         controller: IAuthController<TestLoginPayload, TestRegisterPayload>,
+        redirectTemplate: String? = null,
     ) = AuthTemplateRouter(
         TestLoginPayload::class,
         TestRegisterPayload::class,
@@ -43,6 +44,7 @@ class AuthTemplateRouterTest {
             loginTemplate = "login",
             registerTemplate = "register",
             authorizeTemplate = "authorize",
+            redirectTemplate = redirectTemplate,
             redirectUnauthorizedToUrl = "/auth/login?redirect={path}"
         ),
         { template, model ->
@@ -52,7 +54,8 @@ class AuthTemplateRouterTest {
                     model["error"] as? String,
                     null,
                     (model["client"] as? TestClient)?.clientId,
-                    (model["user"] as? TestUser)?.id
+                    (model["user"] as? TestUser)?.id,
+                    (model["redirect"] as? String)
                 )
             )
         },
@@ -270,6 +273,43 @@ class AuthTemplateRouterTest {
         val response = client.post("/auth/authorize?client_id=cid")
         assertEquals(HttpStatusCode.Found, response.status)
         coVerify { controller.authorize(any(), clientForUser) }
+    }
+
+    @Test
+    fun testPostAuthorizeRouteTemplate() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val router = createRouter(controller, "redirect")
+        val clientForUser = ClientForUser(TestClient("cid"), TestUser("uid"))
+        coEvery { controller.authorize(any(), "cid") } returns clientForUser
+        coEvery { controller.authorize(any(), clientForUser) } returns "url"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/auth/authorize?client_id=cid")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            AuthTemplateResponse(
+                "redirect",
+                redirect = "url"
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testPostAuthorizeCodeRouteNeedsLogin() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val router = createRouter(controller)
+        coEvery { controller.authorize(any(), "cid") } throws ControllerException(
+            HttpStatusCode.Unauthorized,
+            "auth_invalid_credentials"
+        )
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/auth/authorize?client_id=cid")
+        assertEquals(HttpStatusCode.Found, response.status)
     }
 
 }

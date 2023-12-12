@@ -118,7 +118,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
         root.post("$fullRoute/authorize") {
             try {
                 val client = controller.authorize(call, call.parameters["client_id"])
-                call.respondRedirect(controller.authorize(call, client))
+                val redirect = controller.authorize(call, client)
+                authMapping.redirectTemplate?.let {
+                    call.respondTemplate(it, mapOf("redirect" to redirect))
+                } ?: call.respondRedirect(redirect)
             } catch (exception: Exception) {
                 handleExceptionTemplate(exception, call, authMapping.authorizeTemplate)
             }
