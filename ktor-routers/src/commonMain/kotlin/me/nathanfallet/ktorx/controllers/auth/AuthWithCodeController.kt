@@ -12,10 +12,14 @@ open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePay
     private val registerUseCase: IRegisterUseCase<RegisterCodePayload>,
     private val createSessionForUserUseCase: ICreateSessionForUserUseCase,
     private val setSessionForCallUseCase: ISetSessionForCallUseCase,
-    requireUserForCallUseCase: IRequireUserForCallUseCase,
     private val createCodeRegisterUseCase: ICreateCodeRegisterUseCase<RegisterPayload>,
     private val getCodeRegisterUseCase: IGetCodeRegisterUseCase<RegisterPayload>,
     private val deleteCodeRegisterUseCase: IDeleteCodeRegisterUseCase,
+    requireUserForCallUseCase: IRequireUserForCallUseCase,
+    getClientUseCase: IGetClientUseCase,
+    getAuthCodeUseCase: IGetAuthCodeUseCase,
+    createAuthCodeUseCase: ICreateAuthCodeUseCase,
+    generateAuthTokenUseCase: IGenerateAuthTokenUseCase,
 ) : AuthController<LoginPayload, RegisterPayload>(
     loginUseCase,
     object : IRegisterUseCase<RegisterPayload> {
@@ -25,7 +29,11 @@ open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePay
     },
     createSessionForUserUseCase,
     setSessionForCallUseCase,
-    requireUserForCallUseCase
+    requireUserForCallUseCase,
+    getClientUseCase,
+    getAuthCodeUseCase,
+    createAuthCodeUseCase,
+    generateAuthTokenUseCase,
 ), IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload> {
 
     override suspend fun register(call: ApplicationCall, payload: RegisterPayload) {

@@ -4,5 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TestClient(
-    val id: String,
-) : IClient
+    override val clientId: String,
+) : IClient {
+
+    override val clientSecret: String = ""
+    override val redirectUri: String = "app://redirect?code={code}"
+
+}

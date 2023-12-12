@@ -51,7 +51,7 @@ class AuthTemplateRouterTest {
                     template,
                     model["error"] as? String,
                     null,
-                    (model["client"] as? TestClient)?.id,
+                    (model["client"] as? TestClient)?.clientId,
                     (model["user"] as? TestUser)?.id
                 )
             )
@@ -234,7 +234,7 @@ class AuthTemplateRouterTest {
         assertEquals(
             AuthTemplateResponse(
                 "authorize",
-                client = (clientForUser.client as TestClient).id,
+                client = (clientForUser.client as TestClient).clientId,
                 user = (clientForUser.user as TestUser).id
             ), response.body()
         )
