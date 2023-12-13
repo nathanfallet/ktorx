@@ -24,7 +24,7 @@ class AuthWithCodeControllerTest {
         val registerPayload = TestCodePayload("code")
         val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), createCodeRegisterUseCase, mockk(),
-            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { createCodeRegisterUseCase(call, registerPayload) } returns "code"
         controller.register(call, registerPayload)
@@ -40,7 +40,7 @@ class AuthWithCodeControllerTest {
         val registerPayload = TestCodePayload("code")
         val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), createCodeRegisterUseCase, mockk(),
-            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { createCodeRegisterUseCase(call, registerPayload) } returns null
         val exception = assertFailsWith(ControllerException::class) {
@@ -57,7 +57,7 @@ class AuthWithCodeControllerTest {
         val registerPayload = TestCodePayload("code")
         val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), mockk(), getCodeRegisterUseCase,
-            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { getCodeRegisterUseCase(call, "code") } returns registerPayload
         assertEquals(registerPayload, controller.register(call, "code"))
@@ -69,7 +69,7 @@ class AuthWithCodeControllerTest {
         val call = mockk<ApplicationCall>()
         val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), mockk(), mockk(), mockk(), mockk(), getCodeRegisterUseCase,
-            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { getCodeRegisterUseCase(call, "code") } returns null
         val exception = assertFailsWith(ControllerException::class) {
@@ -91,7 +91,7 @@ class AuthWithCodeControllerTest {
         val sessionPayload = mockk<ISessionPayload>()
         val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase,
-            mockk(), mockk(), deleteCodeRegisterUseCase, mockk(), mockk(), mockk(), mockk(), mockk()
+            mockk(), mockk(), deleteCodeRegisterUseCase, mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         every { createSessionForUserUseCase(user) } returns sessionPayload
         every { setSessionForCallUseCase(call, sessionPayload) } returns Unit
@@ -112,7 +112,7 @@ class AuthWithCodeControllerTest {
         val registerPayload = TestRegisterPayload("email", "password")
         val controller = AuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
             mockk(), registerUseCase, mockk(), mockk(), mockk(), mockk(),
-            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { registerUseCase(call, registerPayload) } returns null
         val exception = assertFailsWith(ControllerException::class) {

@@ -35,12 +35,12 @@ fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
             .type("object")
             .properties(properties.mapValues {
                 schema(it.value.returnType).apply {
-                    it.value.annotations
-                        .filterIsInstance<me.nathanfallet.usecases.models.annotations.Schema>()
-                        .firstOrNull()?.let { annotation ->
-                            name = annotation.name
-                            example = annotation.example
-                        }
+                    it.value.annotations.firstNotNullOfOrNull { annotation ->
+                        annotation as? me.nathanfallet.usecases.models.annotations.Schema
+                    }?.let { annotation ->
+                        name = annotation.name
+                        example = annotation.example
+                    }
                 }
             })
             .required(properties.filter {

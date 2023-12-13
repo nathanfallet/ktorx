@@ -19,6 +19,7 @@ open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePay
     getClientUseCase: IGetClientUseCase,
     getAuthCodeUseCase: IGetAuthCodeUseCase,
     createAuthCodeUseCase: ICreateAuthCodeUseCase,
+    deleteAuthCodeUseCase: IDeleteAuthCodeUseCase,
     generateAuthTokenUseCase: IGenerateAuthTokenUseCase,
 ) : AuthController<LoginPayload, RegisterPayload>(
     loginUseCase,
@@ -33,6 +34,7 @@ open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePay
     getClientUseCase,
     getAuthCodeUseCase,
     createAuthCodeUseCase,
+    deleteAuthCodeUseCase,
     generateAuthTokenUseCase,
 ), IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload> {
 

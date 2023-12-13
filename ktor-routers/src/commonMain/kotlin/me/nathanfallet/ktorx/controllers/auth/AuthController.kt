@@ -18,6 +18,7 @@ open class AuthController<LoginPayload, RegisterPayload>(
     private val getClientUseCase: IGetClientUseCase,
     private val getAuthCodeUseCase: IGetAuthCodeUseCase,
     private val createAuthCodeUseCase: ICreateAuthCodeUseCase,
+    private val deleteAuthCodeUseCase: IDeleteAuthCodeUseCase,
     private val generateAuthTokenUseCase: IGenerateAuthTokenUseCase,
 ) : IAuthController<LoginPayload, RegisterPayload> {
 
@@ -54,6 +55,7 @@ open class AuthController<LoginPayload, RegisterPayload>(
         } ?: throw ControllerException(
             HttpStatusCode.BadRequest, "auth_invalid_code"
         )
+        deleteAuthCodeUseCase(request.code)
         return generateAuthTokenUseCase(client)
     }
 
