@@ -7,7 +7,7 @@ i18n extension for ktor.
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers-locale:1.7.3'
+compile 'me.nathanfallet.ktorx:ktor-routers-locale:1.7.4'
 ```
 
 ```xml
@@ -15,7 +15,7 @@ compile 'me.nathanfallet.ktorx:ktor-routers-locale:1.7.3'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-locale-jvm</artifactId>
-    <version>1.7.3</version>
+    <version>1.7.4</version>
 </dependency>
 ```
 

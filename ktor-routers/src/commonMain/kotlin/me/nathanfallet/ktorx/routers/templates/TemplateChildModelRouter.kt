@@ -60,7 +60,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 mapping.redirectUnauthorizedToUrl?.takeIf {
                     exception.code == HttpStatusCode.Unauthorized && !it.startsWith(call.request.path())
                 }?.let { url ->
-                    call.respondRedirect(url.replace("{path}", call.request.path()))
+                    call.respondRedirect(url.replace("{path}", call.request.uri))
                     return
                 }
                 call.response.status(exception.code)
