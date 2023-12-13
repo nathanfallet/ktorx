@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
+import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
 import me.nathanfallet.usecases.users.IUser
 
 open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>(
@@ -13,7 +14,13 @@ open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePay
     private val setSessionForCallUseCase: ISetSessionForCallUseCase,
     private val createCodeRegisterUseCase: ICreateCodeRegisterUseCase<RegisterPayload>,
     private val getCodeRegisterUseCase: IGetCodeRegisterUseCase<RegisterPayload>,
-    private val deleteCodeRegisterUseCase: IDeleteCodeRegisterUseCase
+    private val deleteCodeRegisterUseCase: IDeleteCodeRegisterUseCase,
+    requireUserForCallUseCase: IRequireUserForCallUseCase,
+    getClientUseCase: IGetClientUseCase,
+    getAuthCodeUseCase: IGetAuthCodeUseCase,
+    createAuthCodeUseCase: ICreateAuthCodeUseCase,
+    deleteAuthCodeUseCase: IDeleteAuthCodeUseCase,
+    generateAuthTokenUseCase: IGenerateAuthTokenUseCase,
 ) : AuthController<LoginPayload, RegisterPayload>(
     loginUseCase,
     object : IRegisterUseCase<RegisterPayload> {
@@ -22,7 +29,13 @@ open class AuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePay
         }
     },
     createSessionForUserUseCase,
-    setSessionForCallUseCase
+    setSessionForCallUseCase,
+    requireUserForCallUseCase,
+    getClientUseCase,
+    getAuthCodeUseCase,
+    createAuthCodeUseCase,
+    deleteAuthCodeUseCase,
+    generateAuthTokenUseCase,
 ), IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload> {
 
     override suspend fun register(call: ApplicationCall, payload: RegisterPayload) {

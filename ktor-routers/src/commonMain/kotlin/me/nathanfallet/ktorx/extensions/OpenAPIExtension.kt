@@ -33,7 +33,16 @@ fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
         modelClass.qualifiedName,
         Schema<Model>()
             .type("object")
-            .properties(properties.mapValues { schema(it.value.returnType) })
+            .properties(properties.mapValues {
+                schema(it.value.returnType).apply {
+                    it.value.annotations.firstNotNullOfOrNull { annotation ->
+                        annotation as? me.nathanfallet.usecases.models.annotations.Schema
+                    }?.let { annotation ->
+                        description = annotation.name
+                        example = annotation.example
+                    }
+                }
+            })
             .required(properties.filter {
                 it.value.returnType.isMarkedNullable.not()
             }.keys.toList())

@@ -34,13 +34,12 @@ class AuthWithCodeTemplateRouterTest {
     }
 
     private fun createRouter(
-        controller: IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>
+        controller: IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>,
     ) = AuthWithCodeTemplateRouter(
         TestLoginPayload::class,
         TestCodePayload::class,
         TestRegisterPayload::class,
         AuthMapping(
-            loginTemplate = "login",
             registerTemplate = "register",
         ),
         { template, model ->

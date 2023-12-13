@@ -4,14 +4,13 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import me.nathanfallet.ktorx.models.auth.TestLoginPayload
-import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
+import me.nathanfallet.ktorx.models.auth.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.ktorx.usecases.auth.ICreateSessionForUserUseCase
-import me.nathanfallet.ktorx.usecases.auth.ILoginUseCase
-import me.nathanfallet.ktorx.usecases.auth.IRegisterUseCase
-import me.nathanfallet.ktorx.usecases.auth.ISetSessionForCallUseCase
-import me.nathanfallet.usecases.users.ISessionPayload
+import me.nathanfallet.ktorx.usecases.auth.*
+import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
+import me.nathanfallet.usecases.auth.ISessionPayload
 import me.nathanfallet.usecases.users.IUser
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -29,7 +28,8 @@ class AuthControllerTest {
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            loginUseCase, mockk(), createSessionForUserUseCase, setSessionForCallUseCase
+            loginUseCase, mockk(), createSessionForUserUseCase, setSessionForCallUseCase,
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { loginUseCase(loginPayload) } returns user
         every { createSessionForUserUseCase(user) } returns sessionPayload
@@ -44,7 +44,8 @@ class AuthControllerTest {
         val call = mockk<ApplicationCall>()
         val loginPayload = TestLoginPayload("email", "password")
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            loginUseCase, mockk(), mockk(), mockk()
+            loginUseCase, mockk(), mockk(), mockk(), mockk(),
+            mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { loginUseCase(loginPayload) } returns null
         val exception = assertFailsWith(ControllerException::class) {
@@ -64,7 +65,8 @@ class AuthControllerTest {
         val user = mockk<IUser>()
         val sessionPayload = mockk<ISessionPayload>()
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
-            mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase
+            mockk(), registerUseCase, createSessionForUserUseCase, setSessionForCallUseCase,
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         every { createSessionForUserUseCase(user) } returns sessionPayload
         every { setSessionForCallUseCase(call, sessionPayload) } returns Unit
@@ -83,6 +85,7 @@ class AuthControllerTest {
         val registerPayload = TestRegisterPayload("email", "password")
         val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
             mockk(), registerUseCase, mockk(), mockk(),
+            mockk(), mockk(), mockk(), mockk(), mockk(), mockk()
         )
         coEvery { registerUseCase(call, registerPayload) } returns null
         val exception = assertFailsWith(ControllerException::class) {
@@ -90,6 +93,127 @@ class AuthControllerTest {
         }
         assertEquals(HttpStatusCode.InternalServerError, exception.code)
         assertEquals("error_internal", exception.key)
+    }
+
+    @Test
+    fun testAuthorize() = runBlocking {
+        val requireUserForCallUseCase = mockk<IRequireUserForCallUseCase>()
+        val getClientUseCase = mockk<IGetClientUseCase>()
+        val call = mockk<ApplicationCall>()
+        val user = TestUser("id")
+        val client = TestClient("cid")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), requireUserForCallUseCase,
+            getClientUseCase, mockk(), mockk(), mockk(), mockk()
+        )
+        coEvery { requireUserForCallUseCase(call) } returns user
+        coEvery { getClientUseCase("cid") } returns client
+        assertEquals(ClientForUser(client, user), controller.authorize(call, "cid"))
+    }
+
+    @Test
+    fun testAuthorizeNoClient() = runBlocking {
+        val requireUserForCallUseCase = mockk<IRequireUserForCallUseCase>()
+        val getClientUseCase = mockk<IGetClientUseCase>()
+        val call = mockk<ApplicationCall>()
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), requireUserForCallUseCase,
+            getClientUseCase, mockk(), mockk(), mockk(), mockk()
+        )
+        coEvery { requireUserForCallUseCase(call) } returns TestUser("id")
+        coEvery { getClientUseCase("cid") } returns null
+        val exception = assertFailsWith(ControllerException::class) {
+            controller.authorize(call, "cid")
+        }
+        assertEquals(HttpStatusCode.BadRequest, exception.code)
+        assertEquals("auth_invalid_client", exception.key)
+    }
+
+    @Test
+    fun testAuthorizeWithClient() = runBlocking {
+        val createAuthCodeUseCase = mockk<ICreateAuthCodeUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), mockk(), createAuthCodeUseCase, mockk(), mockk()
+        )
+        coEvery { createAuthCodeUseCase(client) } returns "code"
+        assertEquals("app://redirect?code=code", controller.authorize(call, client))
+    }
+
+    @Test
+    fun testToken() = runBlocking {
+        val getAuthCodeUseCase = mockk<IGetAuthCodeUseCase>()
+        val deleteAuthCodeUseCase = mockk<IDeleteAuthCodeUseCase>()
+        val generateAuthTokenUseCase = mockk<IGenerateAuthTokenUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val request = AuthRequest(client.client.clientId, client.client.clientSecret, "code")
+        val token = AuthToken("token", "refresh")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), getAuthCodeUseCase, mockk(), deleteAuthCodeUseCase, generateAuthTokenUseCase
+        )
+        coEvery { getAuthCodeUseCase("code") } returns client
+        coEvery { generateAuthTokenUseCase(client) } returns token
+        coEvery { deleteAuthCodeUseCase("code") } returns Unit
+        assertEquals(token, controller.token(call, request))
+        coVerify { deleteAuthCodeUseCase("code") }
+    }
+
+    @Test
+    fun testTokenInvalidClientId() = runBlocking {
+        val getAuthCodeUseCase = mockk<IGetAuthCodeUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val request = AuthRequest("otherClientId", client.client.clientSecret, "code")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), getAuthCodeUseCase, mockk(), mockk(), mockk()
+        )
+        coEvery { getAuthCodeUseCase("code") } returns client
+        val exception = assertFailsWith(ControllerException::class) {
+            controller.token(call, request)
+        }
+        assertEquals(HttpStatusCode.BadRequest, exception.code)
+        assertEquals("auth_invalid_code", exception.key)
+    }
+
+    @Test
+    fun testTokenInvalidClientSecret() = runBlocking {
+        val getAuthCodeUseCase = mockk<IGetAuthCodeUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val request = AuthRequest(client.client.clientId, "otherSecret", "code")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), getAuthCodeUseCase, mockk(), mockk(), mockk()
+        )
+        coEvery { getAuthCodeUseCase("code") } returns client
+        val exception = assertFailsWith(ControllerException::class) {
+            controller.token(call, request)
+        }
+        assertEquals(HttpStatusCode.BadRequest, exception.code)
+        assertEquals("auth_invalid_code", exception.key)
+    }
+
+    @Test
+    fun testTokenInvalidCode() = runBlocking {
+        val getAuthCodeUseCase = mockk<IGetAuthCodeUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val request = AuthRequest(client.client.clientId, client.client.clientSecret, "code")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), getAuthCodeUseCase, mockk(), mockk(), mockk()
+        )
+        coEvery { getAuthCodeUseCase("code") } returns null
+        val exception = assertFailsWith(ControllerException::class) {
+            controller.token(call, request)
+        }
+        assertEquals(HttpStatusCode.BadRequest, exception.code)
+        assertEquals("auth_invalid_code", exception.key)
     }
 
 }
