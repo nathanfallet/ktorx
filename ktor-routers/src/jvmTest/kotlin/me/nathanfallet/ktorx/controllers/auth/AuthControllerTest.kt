@@ -143,6 +143,23 @@ class AuthControllerTest {
     }
 
     @Test
+    fun testAuthorizeWithClientInternalError() = runBlocking {
+        val createAuthCodeUseCase = mockk<ICreateAuthCodeUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), mockk(), createAuthCodeUseCase, mockk(), mockk()
+        )
+        coEvery { createAuthCodeUseCase(client) } returns null
+        val exception = assertFailsWith(ControllerException::class) {
+            controller.authorize(call, client)
+        }
+        assertEquals(HttpStatusCode.InternalServerError, exception.code)
+        assertEquals("error_internal", exception.key)
+    }
+
+    @Test
     fun testToken() = runBlocking {
         val getAuthCodeUseCase = mockk<IGetAuthCodeUseCase>()
         val deleteAuthCodeUseCase = mockk<IDeleteAuthCodeUseCase>()
@@ -157,9 +174,32 @@ class AuthControllerTest {
         )
         coEvery { getAuthCodeUseCase("code") } returns client
         coEvery { generateAuthTokenUseCase(client) } returns token
-        coEvery { deleteAuthCodeUseCase("code") } returns Unit
+        coEvery { deleteAuthCodeUseCase("code") } returns true
         assertEquals(token, controller.token(call, request))
         coVerify { deleteAuthCodeUseCase("code") }
+    }
+
+    @Test
+    fun testTokenInternalError() = runBlocking {
+        val getAuthCodeUseCase = mockk<IGetAuthCodeUseCase>()
+        val deleteAuthCodeUseCase = mockk<IDeleteAuthCodeUseCase>()
+        val generateAuthTokenUseCase = mockk<IGenerateAuthTokenUseCase>()
+        val call = mockk<ApplicationCall>()
+        val client = ClientForUser(TestClient("cid"), TestUser("id"))
+        val request = AuthRequest(client.client.clientId, client.client.clientSecret, "code")
+        val token = AuthToken("token", "refresh")
+        val controller = AuthController<TestLoginPayload, TestRegisterPayload>(
+            mockk(), mockk(), mockk(), mockk(), mockk(),
+            mockk(), getAuthCodeUseCase, mockk(), deleteAuthCodeUseCase, generateAuthTokenUseCase
+        )
+        coEvery { getAuthCodeUseCase("code") } returns client
+        coEvery { generateAuthTokenUseCase(client) } returns token
+        coEvery { deleteAuthCodeUseCase("code") } returns false
+        val exception = assertFailsWith(ControllerException::class) {
+            controller.token(call, request)
+        }
+        assertEquals(HttpStatusCode.InternalServerError, exception.code)
+        assertEquals("error_internal", exception.key)
     }
 
     @Test

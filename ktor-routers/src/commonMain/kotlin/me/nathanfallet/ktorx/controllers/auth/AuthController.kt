@@ -45,7 +45,9 @@ open class AuthController<LoginPayload, RegisterPayload>(
     }
 
     override suspend fun authorize(call: ApplicationCall, client: ClientForUser): String {
-        val code = createAuthCodeUseCase(client)
+        val code = createAuthCodeUseCase(client) ?: throw ControllerException(
+            HttpStatusCode.InternalServerError, "error_internal"
+        )
         return client.client.redirectUri.replace("{code}", code)
     }
 
@@ -55,7 +57,9 @@ open class AuthController<LoginPayload, RegisterPayload>(
         } ?: throw ControllerException(
             HttpStatusCode.BadRequest, "auth_invalid_code"
         )
-        deleteAuthCodeUseCase(request.code)
+        if (!deleteAuthCodeUseCase(request.code)) throw ControllerException(
+            HttpStatusCode.InternalServerError, "error_internal"
+        )
         return generateAuthTokenUseCase(client)
     }
 
