@@ -38,7 +38,7 @@ fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
                     it.value.annotations.firstNotNullOfOrNull { annotation ->
                         annotation as? me.nathanfallet.usecases.models.annotations.Schema
                     }?.let { annotation ->
-                        name = annotation.name
+                        description = annotation.name
                         example = annotation.example
                     }
                 }
