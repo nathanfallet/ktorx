@@ -13,5 +13,6 @@ Ktor extensions.
 - [ktor-i18n](ktor-i18n/README.md)
 - [ktor-i18n-freemarker](ktor-i18n-freemarker/README.md)
 - [ktor-routers](ktor-routers/README.md)
+- [ktor-routers-client](ktor-routers-client/README.md)
 - [ktor-routers-locale](ktor-routers-locale/README.md)
 - [ktor-sentry](ktor-sentry/README.md)

@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
@@ -46,11 +47,11 @@ class APIChildModelRouterTest {
         parentRouter: APIChildModelRouter<TestModel, Long, *, *, *, *>,
         mapping: APIMapping = APIMapping(),
         route: String? = null,
-        prefix: String? = null
+        prefix: String? = null,
     ) = APIChildModelRouter(
-        TestChildModel::class,
-        TestCreatePayload::class,
-        TestUpdatePayload::class,
+        typeInfo<TestChildModel>(),
+        typeInfo<TestCreatePayload>(),
+        typeInfo<TestUpdatePayload>(),
         controller,
         parentRouter,
         mapping,
@@ -60,12 +61,12 @@ class APIChildModelRouterTest {
     )
 
     private fun createRouter(
-        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>
+        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
     ): APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         return APIModelRouter(
-            TestModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
+            typeInfo<TestModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
             controller
         )
     }

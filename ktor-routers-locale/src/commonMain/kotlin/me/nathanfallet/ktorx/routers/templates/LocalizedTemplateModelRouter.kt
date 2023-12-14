@@ -2,17 +2,17 @@ package me.nathanfallet.ktorx.routers.templates
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.IModel
-import kotlin.reflect.KClass
 
 open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
-    modelClass: KClass<Model>,
-    createPayloadClass: KClass<CreatePayload>,
-    updatePayloadClass: KClass<UpdatePayload>,
+    modelTypeInfo: TypeInfo,
+    createPayloadTypeInfo: TypeInfo,
+    updatePayloadTypeInfo: TypeInfo,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
     mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
@@ -21,9 +21,9 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
     id: String? = null,
     prefix: String? = null,
 ) : TemplateModelRouter<Model, Id, CreatePayload, UpdatePayload>(
-    modelClass,
-    createPayloadClass,
-    updatePayloadClass,
+    modelTypeInfo,
+    createPayloadTypeInfo,
+    updatePayloadTypeInfo,
     controller,
     mapping,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),

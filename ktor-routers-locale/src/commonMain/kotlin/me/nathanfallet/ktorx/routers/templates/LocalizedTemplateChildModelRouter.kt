@@ -2,18 +2,18 @@ package me.nathanfallet.ktorx.routers.templates
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.IChildModel
-import kotlin.reflect.KClass
 
 open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
-    modelClass: KClass<Model>,
-    createPayloadClass: KClass<CreatePayload>,
-    updatePayloadClass: KClass<UpdatePayload>,
+    modelTypeInfo: TypeInfo,
+    createPayloadTypeInfo: TypeInfo,
+    updatePayloadTypeInfo: TypeInfo,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     mapping: TemplateMapping,
@@ -23,9 +23,9 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     id: String? = null,
     prefix: String? = null,
 ) : TemplateChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
-    modelClass,
-    createPayloadClass,
-    updatePayloadClass,
+    modelTypeInfo,
+    createPayloadTypeInfo,
+    updatePayloadTypeInfo,
     controller,
     parentRouter,
     mapping,

@@ -9,13 +9,37 @@ plugins {
 publishing {
     publications.withType<MavenPublication> {
         pom {
-            name.set("ktor-routers-locale")
-            description.set("locale extensions for ktor-routers.")
+            name.set("ktor-routers-client")
+            description.set("Client for APIs using ktor-routers.")
         }
     }
 }
 
 kotlin {
+    // Tiers are in accordance with <https://kotlinlang.org/docs/native-target-support.html>
+    // Tier 1
+    macosX64()
+    macosArm64()
+    iosSimulatorArm64()
+    iosX64()
+
+    // Tier 2
+    linuxX64()
+    linuxArm64()
+    watchosSimulatorArm64()
+    watchosX64()
+    watchosArm32()
+    watchosArm64()
+    tvosSimulatorArm64()
+    tvosX64()
+    tvosArm64()
+    iosArm64()
+
+    // Tier 3
+    mingwX64()
+    //watchosDeviceArm64() // Not supported by ktor
+
+    // jvm & js
     jvm {
         jvmToolchain(19)
         withJava()
@@ -24,6 +48,12 @@ kotlin {
                 useJUnitPlatform()
             }
         }
+    }
+    js {
+        binaries.library()
+        nodejs()
+        browser()
+        //generateTypeScriptDefinitions() // Not supported for now because of collections etc...
     }
 
     applyDefaultHierarchyTemplate()
@@ -35,25 +65,20 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
-                implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+                implementation("io.ktor:ktor-client-auth:$ktorVersion")
 
-                api(project(":ktor-i18n"))
-                api(project(":ktor-routers"))
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                api("me.nathanfallet.i18n:i18n:1.0.7")
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("io.ktor:ktor-server-test-host:$ktorVersion")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.mockative:mockative:2.0.1")
-                implementation("io.mockk:mockk:1.13.8")
             }
         }
     }

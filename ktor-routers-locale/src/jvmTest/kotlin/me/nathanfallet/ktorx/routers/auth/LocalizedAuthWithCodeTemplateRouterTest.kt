@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
@@ -39,11 +40,11 @@ class LocalizedAuthWithCodeTemplateRouterTest {
     }
 
     private fun createRouter(
-        getLocaleForCallUseCase: IGetLocaleForCallUseCase
-    ) = LocalizedAuthWithCodeTemplateRouter(
-        TestLoginPayload::class,
-        TestCodePayload::class,
-        TestRegisterPayload::class,
+        getLocaleForCallUseCase: IGetLocaleForCallUseCase,
+    ) = LocalizedAuthWithCodeTemplateRouter<TestLoginPayload, TestCodePayload, TestRegisterPayload>(
+        typeInfo<TestLoginPayload>(),
+        typeInfo<TestCodePayload>(),
+        typeInfo<TestRegisterPayload>(),
         AuthMapping(
             loginTemplate = "login",
             registerTemplate = "register",

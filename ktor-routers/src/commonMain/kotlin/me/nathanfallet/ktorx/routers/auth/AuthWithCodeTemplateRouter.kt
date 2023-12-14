@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
@@ -13,18 +14,19 @@ import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any, RegisterCodePayload : Any>(
-    loginPayloadClass: KClass<LoginPayload>,
-    registerPayloadClass: KClass<RegisterPayload>,
-    val registerCodePayloadClass: KClass<RegisterCodePayload>,
+    loginPayloadTypeInfo: TypeInfo,
+    registerPayloadTypeInfo: TypeInfo,
+    val registerCodePayloadTypeInfo: TypeInfo,
     authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     override val controller: IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>,
     route: String? = "auth",
     prefix: String? = null,
 ) : AuthTemplateRouter<LoginPayload, RegisterPayload>(
-    loginPayloadClass,
-    registerPayloadClass,
+    loginPayloadTypeInfo,
+    registerPayloadTypeInfo,
     authMapping,
     respondTemplate,
     controller,
@@ -43,9 +45,9 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
         root.post("$fullRoute/register") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    registerPayloadClass, call.receiveParameters().toMap()
+                    registerPayloadTypeInfo.type as KClass<RegisterPayload>, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, registerPayloadClass)
+                ModelAnnotations.validatePayload(payload, registerPayloadTypeInfo.type as KClass<RegisterPayload>)
                 controller.register(call, payload)
                 call.respondTemplate(
                     authMapping.registerTemplate,
@@ -80,9 +82,13 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 val code = call.parameters["code"]!!
                 controller.register(call, code)
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    registerCodePayloadClass, call.receiveParameters().toMap()
+                    registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>,
+                    call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, registerCodePayloadClass)
+                ModelAnnotations.validatePayload(
+                    payload,
+                    registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>
+                )
                 controller.register(
                     call,
                     code,

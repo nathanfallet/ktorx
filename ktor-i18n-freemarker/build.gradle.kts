@@ -32,7 +32,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     val coroutinesVersion = "1.7.3"
-    val ktorVersion = "2.3.6"
+    val ktorVersion = "2.3.7"
     val usecasesVersion = "1.5.3"
 
     sourceSets {
@@ -42,9 +42,9 @@ kotlin {
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-freemarker:$ktorVersion")
 
+                api(project(":ktor-i18n"))
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
                 api("me.nathanfallet.i18n:i18n:1.0.7")
-                api(project(":ktor-i18n"))
             }
         }
         val commonTest by getting {

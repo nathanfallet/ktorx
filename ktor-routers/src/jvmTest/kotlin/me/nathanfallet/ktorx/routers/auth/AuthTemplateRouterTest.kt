@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -38,8 +39,8 @@ class AuthTemplateRouterTest {
         controller: IAuthController<TestLoginPayload, TestRegisterPayload>,
         redirectTemplate: String? = null,
     ) = AuthTemplateRouter(
-        TestLoginPayload::class,
-        TestRegisterPayload::class,
+        typeInfo<TestLoginPayload>(),
+        typeInfo<TestRegisterPayload>(),
         AuthMapping(
             loginTemplate = "login",
             registerTemplate = "register",

@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
@@ -17,10 +18,11 @@ import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
-    modelClass: KClass<Model>,
-    createPayloadClass: KClass<CreatePayload>,
-    updatePayloadClass: KClass<UpdatePayload>,
+    modelTypeInfo: TypeInfo,
+    createPayloadTypeInfo: TypeInfo,
+    updatePayloadTypeInfo: TypeInfo,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     val mapping: APIMapping = APIMapping(),
@@ -28,9 +30,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     id: String? = null,
     prefix: String? = null,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
-    modelClass,
-    createPayloadClass,
-    updatePayloadClass,
+    modelTypeInfo,
+    createPayloadTypeInfo,
+    updatePayloadTypeInfo,
     controller,
     parentRouter,
     route,
@@ -48,9 +50,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     }
 
     open fun createSchema(openAPI: OpenAPI?) {
-        openAPI?.schema(modelClass)
-        openAPI?.schema(createPayloadClass)
-        openAPI?.schema(updatePayloadClass)
+        openAPI?.schema(modelTypeInfo.type)
+        openAPI?.schema(createPayloadTypeInfo.type)
+        openAPI?.schema(updatePayloadTypeInfo.type)
     }
 
     open suspend fun handleExceptionAPI(exception: Exception, call: ApplicationCall) {
@@ -90,14 +92,14 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
         }
         openAPI?.get(fullRoute) {
-            operationId("list${modelClass.simpleName}")
-            addTagsItem(modelClass.simpleName)
-            description("Get all ${modelClass.simpleName}")
+            operationId("list${modelTypeInfo.type.simpleName}")
+            addTagsItem(modelTypeInfo.type.simpleName)
+            description("Get all ${modelTypeInfo.type.simpleName}")
             parameters(getOpenAPIParameters(false))
             response("200") {
-                description("List of ${modelClass.simpleName}")
+                description("List of ${modelTypeInfo.type.simpleName}")
                 mediaType("application/json") {
-                    arraySchema(modelClass)
+                    arraySchema(modelTypeInfo.type)
                 }
             }
         }
@@ -113,14 +115,14 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
         }
         openAPI?.get("$fullRoute/{$id}") {
-            operationId("get${modelClass.simpleName}ById")
-            addTagsItem(modelClass.simpleName)
-            description("Get a ${modelClass.simpleName} by id")
+            operationId("get${modelTypeInfo.type.simpleName}ById")
+            addTagsItem(modelTypeInfo.type.simpleName)
+            description("Get a ${modelTypeInfo.type.simpleName} by id")
             parameters(getOpenAPIParameters())
             response("200") {
-                description("A ${modelClass.simpleName}")
+                description("A ${modelTypeInfo.type.simpleName}")
                 mediaType("application/json") {
-                    schema(modelClass)
+                    schema(modelTypeInfo.type)
                 }
             }
         }
@@ -131,7 +133,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         root.post(fullRoute) {
             try {
                 val payload: CreatePayload = call.receive(createPayloadTypeInfo)
-                ModelAnnotations.validatePayload(payload, createPayloadClass)
+                ModelAnnotations.validatePayload(payload, createPayloadTypeInfo.type as KClass<CreatePayload>)
                 val response = create(call, payload)
                 call.response.status(HttpStatusCode.Created)
                 call.respond(response, modelTypeInfo)
@@ -140,19 +142,19 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
         }
         openAPI?.post(fullRoute) {
-            operationId("create${modelClass.simpleName}")
-            addTagsItem(modelClass.simpleName)
-            description("Create a ${modelClass.simpleName}")
+            operationId("create${modelTypeInfo.type.simpleName}")
+            addTagsItem(modelTypeInfo.type.simpleName)
+            description("Create a ${modelTypeInfo.type.simpleName}")
             parameters(getOpenAPIParameters(false))
             requestBody {
                 mediaType("application/json") {
-                    schema(createPayloadClass)
+                    schema(createPayloadTypeInfo.type)
                 }
             }
             response("201") {
-                description("A ${modelClass.simpleName}")
+                description("A ${modelTypeInfo.type.simpleName}")
                 mediaType("application/json") {
-                    schema(modelClass)
+                    schema(modelTypeInfo.type)
                 }
             }
             response("400") {
@@ -169,7 +171,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         root.put("$fullRoute/{$id}") {
             try {
                 val payload: UpdatePayload = call.receive(updatePayloadTypeInfo)
-                ModelAnnotations.validatePayload(payload, updatePayloadClass)
+                ModelAnnotations.validatePayload(payload, updatePayloadTypeInfo.type as KClass<UpdatePayload>)
                 call.respond(
                     update(call, payload),
                     modelTypeInfo
@@ -179,19 +181,19 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
         }
         openAPI?.put("$fullRoute/{$id}") {
-            operationId("update${modelClass.simpleName}ById")
-            addTagsItem(modelClass.simpleName)
-            description("Update a ${modelClass.simpleName} by id")
+            operationId("update${modelTypeInfo.type.simpleName}ById")
+            addTagsItem(modelTypeInfo.type.simpleName)
+            description("Update a ${modelTypeInfo.type.simpleName} by id")
             parameters(getOpenAPIParameters())
             requestBody {
                 mediaType("application/json") {
-                    schema(updatePayloadClass)
+                    schema(updatePayloadTypeInfo.type)
                 }
             }
             response("200") {
-                description("A ${modelClass.simpleName}")
+                description("A ${modelTypeInfo.type.simpleName}")
                 mediaType("application/json") {
-                    schema(modelClass)
+                    schema(modelTypeInfo.type)
                 }
             }
             response("400") {
@@ -214,9 +216,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
         }
         openAPI?.delete("$fullRoute/{$id}") {
-            operationId("delete${modelClass.simpleName}ById")
-            addTagsItem(modelClass.simpleName)
-            description("Delete a ${modelClass.simpleName} by id")
+            operationId("delete${modelTypeInfo.type.simpleName}ById")
+            addTagsItem(modelTypeInfo.type.simpleName)
+            description("Delete a ${modelTypeInfo.type.simpleName} by id")
             parameters(getOpenAPIParameters())
             response("204")
         }

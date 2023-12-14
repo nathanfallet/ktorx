@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -36,9 +37,9 @@ class AuthWithCodeTemplateRouterTest {
     private fun createRouter(
         controller: IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>,
     ) = AuthWithCodeTemplateRouter(
-        TestLoginPayload::class,
-        TestCodePayload::class,
-        TestRegisterPayload::class,
+        typeInfo<TestLoginPayload>(),
+        typeInfo<TestCodePayload>(),
+        typeInfo<TestRegisterPayload>(),
         AuthMapping(
             registerTemplate = "register",
         ),

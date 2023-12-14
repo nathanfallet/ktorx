@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
@@ -17,10 +18,11 @@ import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
-    modelClass: KClass<Model>,
-    createPayloadClass: KClass<CreatePayload>,
-    updatePayloadClass: KClass<UpdatePayload>,
+    modelTypeInfo: TypeInfo,
+    createPayloadTypeInfo: TypeInfo,
+    updatePayloadTypeInfo: TypeInfo,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     val mapping: TemplateMapping,
@@ -29,9 +31,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     id: String? = null,
     prefix: String? = null,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
-    modelClass,
-    createPayloadClass,
-    updatePayloadClass,
+    modelTypeInfo,
+    createPayloadTypeInfo,
+    updatePayloadTypeInfo,
     controller,
     parentRouter,
     route,
@@ -126,9 +128,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         root.post("$fullRoute/create") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    createPayloadClass, call.receiveParameters().toMap()
+                    createPayloadTypeInfo.type as KClass<CreatePayload>, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, createPayloadClass)
+                ModelAnnotations.validatePayload(payload, createPayloadTypeInfo.type as KClass<CreatePayload>)
                 create(call, payload)
                 call.respondRedirect("../$route")
             } catch (exception: Exception) {
@@ -178,9 +180,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         root.post("$fullRoute/{$id}/update") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    updatePayloadClass, call.receiveParameters().toMap()
+                    updatePayloadTypeInfo.type as KClass<UpdatePayload>, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, updatePayloadClass)
+                ModelAnnotations.validatePayload(payload, updatePayloadTypeInfo.type as KClass<UpdatePayload>)
                 update(call, payload)
                 call.respondRedirect("../../$route")
             } catch (exception: Exception) {
