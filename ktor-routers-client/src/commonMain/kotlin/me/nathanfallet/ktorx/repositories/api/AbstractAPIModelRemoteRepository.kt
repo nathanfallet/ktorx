@@ -56,11 +56,11 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
         payload: UpdatePayload,
         parentId: RecursiveId<*, Unit, *>,
         context: IContext?,
-    ): Boolean {
+    ): Model? {
         return super<AbstractAPIChildModelRemoteRepository>.update(id, payload, parentId, context)
     }
 
-    override suspend fun update(id: Id, payload: UpdatePayload, context: IContext?): Boolean {
+    override suspend fun update(id: Id, payload: UpdatePayload, context: IContext?): Model? {
         return update(id, payload, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
     }
 

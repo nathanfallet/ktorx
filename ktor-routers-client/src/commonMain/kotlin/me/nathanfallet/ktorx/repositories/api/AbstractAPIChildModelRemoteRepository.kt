@@ -22,7 +22,7 @@ abstract class AbstractAPIChildModelRemoteRepository<Model : IChildModel<Id, Cre
 
     override val route = route ?: (modelTypeInfo.type.simpleName!!.lowercase() + "s")
     override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
-    override val prefix = prefix ?: ""
+    override val prefix = prefix ?: "/api"
 
     val listTypeInfo = typeInfo<List<Model>>()
 
@@ -54,12 +54,11 @@ abstract class AbstractAPIChildModelRemoteRepository<Model : IChildModel<Id, Cre
         payload: UpdatePayload,
         parentId: RecursiveId<*, ParentId, *>,
         context: IContext?,
-    ): Boolean {
-        client.request(HttpMethod.Put, "${constructFullRoute(parentId)}/$id") {
+    ): Model? {
+        return client.request(HttpMethod.Put, "${constructFullRoute(parentId)}/$id") {
             contentType(ContentType.Application.Json)
             setBody(payload, updatePayloadTypeInfo)
-        }.body<Model?>(modelTypeInfo)
-        return true
+        }.body(modelTypeInfo)
     }
 
     override suspend fun delete(id: Id, parentId: RecursiveId<*, ParentId, *>, context: IContext?): Boolean {

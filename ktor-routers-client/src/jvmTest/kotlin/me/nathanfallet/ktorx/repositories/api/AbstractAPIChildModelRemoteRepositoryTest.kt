@@ -21,7 +21,7 @@ class AbstractAPIChildModelRemoteRepositoryTest {
         engine: HttpClientEngine,
     ): AbstractAPIChildModelRemoteRepository<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, Long> {
         val client = object : AbstractAPIClient(
-            "https://api.example.com",
+            "https://example.com",
             engine = engine
         ) {}
         return object :
@@ -42,7 +42,7 @@ class AbstractAPIChildModelRemoteRepositoryTest {
     @Test
     fun testGet() = runBlocking {
         val repository = createRepository(MockEngine { request ->
-            assertEquals("https://api.example.com/testmodels/1/testchildmodels/2", request.url.toString())
+            assertEquals("https://example.com/api/testmodels/1/testchildmodels/2", request.url.toString())
             respond(
                 content = """{"id":2,"parentId":1,"string":"string"}""",
                 headers = headersOf(HttpHeaders.ContentType, "application/json")

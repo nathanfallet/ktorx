@@ -30,7 +30,7 @@ kotlin {
 
     val coroutinesVersion = "1.7.3"
     val ktorVersion = "2.3.7"
-    val usecasesVersion = "1.5.4"
+    val usecasesVersion = "1.5.5"
 
     sourceSets {
         val commonMain by getting {

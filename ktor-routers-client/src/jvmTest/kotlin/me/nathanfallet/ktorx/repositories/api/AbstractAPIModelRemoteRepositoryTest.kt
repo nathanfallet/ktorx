@@ -22,7 +22,7 @@ class AbstractAPIModelRemoteRepositoryTest {
         engine: HttpClientEngine,
     ): AbstractAPIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         val client = object : AbstractAPIClient(
-            "https://api.example.com",
+            "https://example.com",
             engine = engine
         ) {}
         return object : AbstractAPIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
@@ -36,7 +36,7 @@ class AbstractAPIModelRemoteRepositoryTest {
     @Test
     fun testGet() = runBlocking {
         val repository = createRepository(MockEngine { request ->
-            assertEquals("https://api.example.com/testmodels/1", request.url.toString())
+            assertEquals("https://example.com/api/testmodels/1", request.url.toString())
             respond(
                 content = """{"id":1,"string":"string"}""",
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
@@ -50,7 +50,7 @@ class AbstractAPIModelRemoteRepositoryTest {
     @Test
     fun testGetAPIError() = runBlocking {
         val repository = createRepository(MockEngine { request ->
-            assertEquals("https://api.example.com/testmodels/1", request.url.toString())
+            assertEquals("https://example.com/api/testmodels/1", request.url.toString())
             respond(
                 content = """{"error": "not_found"}""",
                 status = HttpStatusCode.NotFound,
@@ -67,7 +67,7 @@ class AbstractAPIModelRemoteRepositoryTest {
     @Test
     fun testCreate() = runBlocking {
         val repository = createRepository(MockEngine { request ->
-            assertEquals("https://api.example.com/testmodels", request.url.toString())
+            assertEquals("https://example.com/api/testmodels", request.url.toString())
             assertEquals(HttpMethod.Post, request.method)
             assertEquals(ContentType.Application.Json, request.body.contentType)
             assertEquals("""{"string":"string"}""", (request.body as TextContent).text)
@@ -85,7 +85,7 @@ class AbstractAPIModelRemoteRepositoryTest {
     @Test
     fun testUpdate() = runBlocking {
         val repository = createRepository(MockEngine { request ->
-            assertEquals("https://api.example.com/testmodels/1", request.url.toString())
+            assertEquals("https://example.com/api/testmodels/1", request.url.toString())
             assertEquals(HttpMethod.Put, request.method)
             assertEquals(ContentType.Application.Json, request.body.contentType)
             assertEquals("""{"string":"string"}""", (request.body as TextContent).text)
@@ -94,13 +94,15 @@ class AbstractAPIModelRemoteRepositoryTest {
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
         })
-        assertEquals(true, repository.update(1, TestUpdatePayload("string")))
+        val model = repository.update(1, TestUpdatePayload("string")) ?: fail("Model is null")
+        assertEquals(1, model.id)
+        assertEquals("string", model.string)
     }
 
     @Test
     fun testDelete() = runBlocking {
         val repository = createRepository(MockEngine { request ->
-            assertEquals("https://api.example.com/testmodels/1", request.url.toString())
+            assertEquals("https://example.com/api/testmodels/1", request.url.toString())
             assertEquals(HttpMethod.Delete, request.method)
             respond(
                 content = "",

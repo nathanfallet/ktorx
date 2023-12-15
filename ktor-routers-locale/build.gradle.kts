@@ -30,7 +30,7 @@ kotlin {
 
     val coroutinesVersion = "1.7.3"
     val ktorVersion = "2.3.7"
-    val usecasesVersion = "1.5.4"
+    val usecasesVersion = "1.5.5"
 
     sourceSets {
         val commonMain by getting {
@@ -43,7 +43,7 @@ kotlin {
                 api(project(":ktor-i18n"))
                 api(project(":ktor-routers"))
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                api("me.nathanfallet.i18n:i18n:1.0.8")
+                api("me.nathanfallet.i18n:i18n:1.0.9")
             }
         }
         val commonTest by getting {
