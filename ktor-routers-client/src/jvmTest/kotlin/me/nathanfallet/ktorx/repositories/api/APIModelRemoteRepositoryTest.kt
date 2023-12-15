@@ -16,22 +16,22 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
-class AbstractAPIModelRemoteRepositoryTest {
+class APIModelRemoteRepositoryTest {
 
     private fun createRepository(
         engine: HttpClientEngine,
-    ): AbstractAPIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
+    ): APIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         val client = object : AbstractAPIClient(
             "https://example.com",
             engine = engine
         ) {}
-        return object : AbstractAPIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
+        return APIModelRemoteRepository(
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
             client
-        ) {}
+        )
     }
 
     @Test

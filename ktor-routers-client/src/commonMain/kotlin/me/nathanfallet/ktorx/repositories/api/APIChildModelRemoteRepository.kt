@@ -9,7 +9,7 @@ import me.nathanfallet.usecases.context.IContext
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.id.RecursiveId
 
-abstract class AbstractAPIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentId>(
+open class APIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentId>(
     final override val modelTypeInfo: TypeInfo,
     final override val createPayloadTypeInfo: TypeInfo,
     final override val updatePayloadTypeInfo: TypeInfo,

@@ -8,7 +8,7 @@ import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.id.RecursiveId
 import me.nathanfallet.usecases.models.repositories.remote.IModelRemoteRepository
 
-abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
+open class APIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
     updatePayloadTypeInfo: TypeInfo,
@@ -17,7 +17,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
-) : AbstractAPIChildModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload, Unit>(
+) : APIChildModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload, Unit>(
     modelTypeInfo,
     createPayloadTypeInfo,
     updatePayloadTypeInfo,
@@ -30,7 +30,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
 ), IModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload> {
 
     override suspend fun list(parentId: RecursiveId<*, Unit, *>, context: IContext?): List<Model> {
-        return super<AbstractAPIChildModelRemoteRepository>.list(parentId, context)
+        return super<APIChildModelRemoteRepository>.list(parentId, context)
     }
 
     override suspend fun list(context: IContext?): List<Model> {
@@ -43,7 +43,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
         parentId: RecursiveId<*, Unit, *>,
         context: IContext?,
     ): List<Model> {
-        return super<AbstractAPIChildModelRemoteRepository>.list(limit, offset, parentId, context)
+        return super<APIChildModelRemoteRepository>.list(limit, offset, parentId, context)
     }
 
     override suspend fun list(limit: Long, offset: Long, context: IContext?): List<Model> {
@@ -51,7 +51,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
     }
 
     override suspend fun get(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? {
-        return super<AbstractAPIChildModelRemoteRepository>.get(id, parentId, context)
+        return super<APIChildModelRemoteRepository>.get(id, parentId, context)
     }
 
     override suspend fun get(id: Id, context: IContext?): Model? {
@@ -59,7 +59,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
     }
 
     override suspend fun create(payload: CreatePayload, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? {
-        return super<AbstractAPIChildModelRemoteRepository>.create(payload, parentId, context)
+        return super<APIChildModelRemoteRepository>.create(payload, parentId, context)
     }
 
     override suspend fun create(payload: CreatePayload, context: IContext?): Model? {
@@ -67,7 +67,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
     }
 
     override suspend fun delete(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Boolean {
-        return super<AbstractAPIChildModelRemoteRepository>.delete(id, parentId, context)
+        return super<APIChildModelRemoteRepository>.delete(id, parentId, context)
     }
 
     override suspend fun delete(id: Id, context: IContext?): Boolean {
@@ -80,7 +80,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
         parentId: RecursiveId<*, Unit, *>,
         context: IContext?,
     ): Model? {
-        return super<AbstractAPIChildModelRemoteRepository>.update(id, payload, parentId, context)
+        return super<APIChildModelRemoteRepository>.update(id, payload, parentId, context)
     }
 
     override suspend fun update(id: Id, payload: UpdatePayload, context: IContext?): Model? {

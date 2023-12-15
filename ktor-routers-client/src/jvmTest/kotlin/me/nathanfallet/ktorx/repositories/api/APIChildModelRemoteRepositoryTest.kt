@@ -15,30 +15,29 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
-class AbstractAPIChildModelRemoteRepositoryTest {
+class APIChildModelRemoteRepositoryTest {
 
     private fun createRepository(
         engine: HttpClientEngine,
-    ): AbstractAPIChildModelRemoteRepository<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, Long> {
+    ): APIChildModelRemoteRepository<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, Long> {
         val client = object : AbstractAPIClient(
             "https://example.com",
             engine = engine
         ) {}
-        return object :
-            AbstractAPIChildModelRemoteRepository<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, Long>(
-                typeInfo<TestChildModel>(),
+        return APIChildModelRemoteRepository(
+            typeInfo<TestChildModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestChildModel>>(),
+            client,
+            APIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
+                typeInfo<TestModel>(),
                 typeInfo<TestCreatePayload>(),
                 typeInfo<TestUpdatePayload>(),
-                typeInfo<List<TestChildModel>>(),
-                client,
-                object : AbstractAPIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
-                    typeInfo<TestModel>(),
-                    typeInfo<TestCreatePayload>(),
-                    typeInfo<TestUpdatePayload>(),
-                    typeInfo<List<TestModel>>(),
-                    client
-                ) {}
-            ) {}
+                typeInfo<List<TestModel>>(),
+                client
+            )
+        )
     }
 
     @Test
