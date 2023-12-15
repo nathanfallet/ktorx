@@ -44,6 +44,7 @@ class ConcatModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
             mockk()
         )
         val router = ConcatModelRouter(listOf(apiRouter))
@@ -59,6 +60,7 @@ class ConcatModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
             mockk()
         )
         val router = ConcatModelRouter(listOf(apiRouter))
@@ -76,6 +78,7 @@ class ConcatModelRouterTest {
                     typeInfo<TestModel>(),
                     typeInfo<TestCreatePayload>(),
                     typeInfo<TestUpdatePayload>(),
+                    typeInfo<List<TestModel>>(),
                     controller
                 )
             )

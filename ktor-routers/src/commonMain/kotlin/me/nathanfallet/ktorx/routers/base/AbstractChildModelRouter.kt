@@ -10,17 +10,14 @@ import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.KVariance
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.starProjectedType
 
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     final override val modelTypeInfo: TypeInfo,
     final override val createPayloadTypeInfo: TypeInfo,
     final override val updatePayloadTypeInfo: TypeInfo,
+    final override val listTypeInfo: TypeInfo,
     override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     final override val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     route: String? = null,
@@ -37,13 +34,6 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         val parentId = it.id.takeIf(String::isNotEmpty)?.let { i -> "/{$i}" } ?: ""
         parentRoute + parentId
     } ?: "") + "/" + this.route
-
-    val listTypeInfo = TypeInfo(
-        List::class, List::class.java,
-        List::class.createType(
-            listOf(KTypeProjection(KVariance.INVARIANT, modelTypeInfo.type.starProjectedType))
-        )
-    )
 
     val modelKeys = ModelAnnotations.modelKeys(modelTypeInfo.type as KClass<Model>)
     val createPayloadKeys = ModelAnnotations.createPayloadKeys(

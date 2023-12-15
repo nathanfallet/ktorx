@@ -17,6 +17,7 @@ open class TemplateUnitRouter(
     typeInfo<UnitModel>(),
     typeInfo<Unit>(),
     typeInfo<Unit>(),
+    typeInfo<List<UnitModel>>(),
     controller,
     mapping,
     respondTemplate,

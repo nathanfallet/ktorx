@@ -13,6 +13,7 @@ abstract class AbstractAPIChildModelRemoteRepository<Model : IChildModel<Id, Cre
     final override val modelTypeInfo: TypeInfo,
     final override val createPayloadTypeInfo: TypeInfo,
     final override val updatePayloadTypeInfo: TypeInfo,
+    final override val listTypeInfo: TypeInfo,
     val client: IAPIClient,
     val parentRepository: IAPIChildModelRemoteRepository<*, ParentId, *, *, *>? = null,
     route: String? = null,
@@ -24,14 +25,28 @@ abstract class AbstractAPIChildModelRemoteRepository<Model : IChildModel<Id, Cre
     override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
     override val prefix = prefix ?: "/api"
 
-    val listTypeInfo = typeInfo<List<Model>>()
-
     open fun constructFullRoute(parentId: RecursiveId<*, ParentId, *>): String {
         return this.prefix + (parentRepository?.let {
             val parentRoute = it.route.takeIf(String::isNotEmpty)?.let { r -> "/$r" } ?: ""
             val parentIdString = it.id.takeIf(String::isNotEmpty)?.let { "/${parentId.id}" } ?: ""
             parentRoute + parentIdString
         } ?: "") + "/" + this.route
+    }
+
+    override suspend fun list(parentId: RecursiveId<*, ParentId, *>, context: IContext?): List<Model> {
+        return client.request(HttpMethod.Get, constructFullRoute(parentId)).body(listTypeInfo)
+    }
+
+    override suspend fun list(
+        limit: Long,
+        offset: Long,
+        parentId: RecursiveId<*, ParentId, *>,
+        context: IContext?,
+    ): List<Model> {
+        return client.request(HttpMethod.Get, constructFullRoute(parentId)) {
+            parameter("limit", limit)
+            parameter("offset", offset)
+        }.body(listTypeInfo)
     }
 
     override suspend fun get(id: Id, parentId: RecursiveId<*, ParentId, *>, context: IContext?): Model? {

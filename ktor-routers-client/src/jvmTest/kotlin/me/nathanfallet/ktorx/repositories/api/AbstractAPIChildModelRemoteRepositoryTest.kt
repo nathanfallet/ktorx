@@ -29,11 +29,13 @@ class AbstractAPIChildModelRemoteRepositoryTest {
                 typeInfo<TestChildModel>(),
                 typeInfo<TestCreatePayload>(),
                 typeInfo<TestUpdatePayload>(),
+                typeInfo<List<TestChildModel>>(),
                 client,
                 object : AbstractAPIModelRemoteRepository<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
                     typeInfo<TestModel>(),
                     typeInfo<TestCreatePayload>(),
                     typeInfo<TestUpdatePayload>(),
+                    typeInfo<List<TestModel>>(),
                     client
                 ) {}
             ) {}

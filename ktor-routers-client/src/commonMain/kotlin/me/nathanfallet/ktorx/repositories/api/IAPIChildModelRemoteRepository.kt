@@ -10,6 +10,7 @@ interface IAPIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, 
     val modelTypeInfo: TypeInfo
     val createPayloadTypeInfo: TypeInfo
     val updatePayloadTypeInfo: TypeInfo
+    val listTypeInfo: TypeInfo
 
     val route: String
     val id: String

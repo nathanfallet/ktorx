@@ -13,6 +13,7 @@ open class APIUnitRouter(
     typeInfo<UnitModel>(),
     typeInfo<Unit>(),
     typeInfo<Unit>(),
+    typeInfo<List<UnitModel>>(),
     controller,
     route = route,
     prefix = prefix

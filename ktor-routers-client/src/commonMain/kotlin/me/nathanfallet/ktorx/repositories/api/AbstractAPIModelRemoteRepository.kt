@@ -12,6 +12,7 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
     updatePayloadTypeInfo: TypeInfo,
+    listTypeInfo: TypeInfo,
     client: IAPIClient,
     route: String? = null,
     id: String? = null,
@@ -20,12 +21,34 @@ abstract class AbstractAPIModelRemoteRepository<Model : IModel<Id, CreatePayload
     modelTypeInfo,
     createPayloadTypeInfo,
     updatePayloadTypeInfo,
+    listTypeInfo,
     client,
     null,
     route,
     id,
     prefix,
 ), IModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload> {
+
+    override suspend fun list(parentId: RecursiveId<*, Unit, *>, context: IContext?): List<Model> {
+        return super<AbstractAPIChildModelRemoteRepository>.list(parentId, context)
+    }
+
+    override suspend fun list(context: IContext?): List<Model> {
+        return list(RecursiveId<UnitModel, Unit, Unit>(Unit), context)
+    }
+
+    override suspend fun list(
+        limit: Long,
+        offset: Long,
+        parentId: RecursiveId<*, Unit, *>,
+        context: IContext?,
+    ): List<Model> {
+        return super<AbstractAPIChildModelRemoteRepository>.list(limit, offset, parentId, context)
+    }
+
+    override suspend fun list(limit: Long, offset: Long, context: IContext?): List<Model> {
+        return list(limit, offset, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
+    }
 
     override suspend fun get(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? {
         return super<AbstractAPIChildModelRemoteRepository>.get(id, parentId, context)

@@ -64,6 +64,7 @@ class MyRouter(
     typeInfo<MyModel>(),
     typeInfo<CreateMyModelPayload>(),
     typeInfo<UpdateMyModelPayload>(),
+    typeInfo<List<MyModel>>(),
     controller
 )
 ```
@@ -82,6 +83,7 @@ class PostRouter(
     typeInfo<Post>(),
     typeInfo<CreatePostPayload>(),
     typeInfo<UpdatePostPayload>(),
+    typeInfo<List<Post>>(),
     controller,
     userRouter
 )

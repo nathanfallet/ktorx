@@ -29,8 +29,39 @@ class AbstractAPIModelRemoteRepositoryTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
             client
         ) {}
+    }
+
+    @Test
+    fun testList() = runBlocking {
+        val repository = createRepository(MockEngine { request ->
+            assertEquals("https://example.com/api/testmodels", request.url.toString())
+            respond(
+                content = """[{"id":1,"string":"string"}]""",
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        })
+        val models = repository.list()
+        assertEquals(1, models.size)
+        assertEquals(1, models.first().id)
+        assertEquals("string", models.first().string)
+    }
+
+    @Test
+    fun testListWithOffsetLimit() = runBlocking {
+        val repository = createRepository(MockEngine { request ->
+            assertEquals("https://example.com/api/testmodels?limit=10&offset=5", request.url.toString())
+            respond(
+                content = """[{"id":1,"string":"string"}]""",
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        })
+        val models = repository.list(10, 5)
+        assertEquals(1, models.size)
+        assertEquals(1, models.first().id)
+        assertEquals("string", models.first().string)
     }
 
     @Test

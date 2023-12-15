@@ -66,6 +66,7 @@ class AbstractModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
             controller,
             route,
             id,
