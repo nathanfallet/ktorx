@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IModelController
@@ -62,9 +63,10 @@ class AbstractModelRouterTest {
             }
         }
         return object : AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
-            TestModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
+            typeInfo<TestModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
             controller,
             route,
             id,

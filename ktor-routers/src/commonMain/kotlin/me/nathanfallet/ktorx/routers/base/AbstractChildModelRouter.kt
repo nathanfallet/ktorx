@@ -10,16 +10,14 @@ import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.KVariance
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.starProjectedType
 
+@Suppress("UNCHECKED_CAST")
 abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
-    final override val modelClass: KClass<Model>,
-    final override val createPayloadClass: KClass<CreatePayload>,
-    final override val updatePayloadClass: KClass<UpdatePayload>,
+    final override val modelTypeInfo: TypeInfo,
+    final override val createPayloadTypeInfo: TypeInfo,
+    final override val updatePayloadTypeInfo: TypeInfo,
+    final override val listTypeInfo: TypeInfo,
     override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     final override val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     route: String? = null,
@@ -27,8 +25,8 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     prefix: String? = null,
 ) : IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId> {
 
-    final override val route = route ?: (modelClass.simpleName!!.lowercase() + "s")
-    final override val id = id ?: (modelClass.simpleName!!.lowercase() + "Id")
+    final override val route = route ?: (modelTypeInfo.type.simpleName!!.lowercase() + "s")
+    final override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
     final override val prefix = prefix ?: ""
 
     val fullRoute = this.prefix + (parentRouter?.let {
@@ -37,39 +35,24 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         parentRoute + parentId
     } ?: "") + "/" + this.route
 
-    val modelTypeInfo = TypeInfo(
-        modelClass, modelClass.java,
-        modelClass.starProjectedType
+    val modelKeys = ModelAnnotations.modelKeys(modelTypeInfo.type as KClass<Model>)
+    val createPayloadKeys = ModelAnnotations.createPayloadKeys(
+        modelTypeInfo.type as KClass<Model>,
+        createPayloadTypeInfo.type as KClass<CreatePayload>
     )
-    val createPayloadTypeInfo = TypeInfo(
-        createPayloadClass, createPayloadClass.java,
-        createPayloadClass.starProjectedType
-    )
-    val updatePayloadTypeInfo = TypeInfo(
-        updatePayloadClass, updatePayloadClass.java,
-        updatePayloadClass.starProjectedType
-    )
-    val listTypeInfo = TypeInfo(
-        List::class, List::class.java,
-        List::class.createType(
-            listOf(KTypeProjection(KVariance.INVARIANT, modelClass.starProjectedType))
-        )
+    val updatePayloadKeys = ModelAnnotations.updatePayloadKeys(
+        modelTypeInfo.type as KClass<Model>,
+        updatePayloadTypeInfo.type as KClass<UpdatePayload>
     )
 
-    val modelKeys = ModelAnnotations.modelKeys(modelClass)
-    val updatePayloadKeys = ModelAnnotations.updatePayloadKeys(modelClass, updatePayloadClass)
-    val createPayloadKeys = ModelAnnotations.createPayloadKeys(modelClass, createPayloadClass)
-
-    @Suppress("UNCHECKED_CAST")
     override suspend fun get(call: ApplicationCall): Model {
         return controller.get(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel,
-            ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!)
+            ModelAnnotations.constructIdFromString(modelTypeInfo.type as KClass<Model>, call.parameters[id]!!)
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
     open suspend fun getAll(call: ApplicationCall): List<Model> {
         return controller.list(
             call,
@@ -77,7 +60,6 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
     open suspend fun create(call: ApplicationCall, payload: CreatePayload): Model {
         return controller.create(
             call,
@@ -86,22 +68,20 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
     open suspend fun update(call: ApplicationCall, payload: UpdatePayload): Model {
         return controller.update(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel,
-            ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!),
+            ModelAnnotations.constructIdFromString(modelTypeInfo.type as KClass<Model>, call.parameters[id]!!),
             payload
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
     open suspend fun delete(call: ApplicationCall) {
         return controller.delete(
             call,
             parentRouter?.get(call) ?: UnitModel as ParentModel,
-            ModelAnnotations.constructIdFromString(modelClass, call.parameters[id]!!)
+            ModelAnnotations.constructIdFromString(modelTypeInfo.type as KClass<Model>, call.parameters[id]!!)
         )
     }
 
@@ -109,9 +89,9 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         return parentRouter?.getOpenAPIParameters().orEmpty() + if (self) listOf(
             Parameter()
                 .name(id)
-                .schema(Schema<Id>().type(modelClass.memberProperties.first { it.name == "id" }.returnType.toString()))
+                .schema(Schema<Id>().type(modelTypeInfo.type.memberProperties.first { it.name == "id" }.returnType.toString()))
                 .`in`("path")
-                .description("Id of the ${modelClass.simpleName}")
+                .description("Id of the ${modelTypeInfo.type.simpleName}")
                 .required(true)
         ) else emptyList()
     }

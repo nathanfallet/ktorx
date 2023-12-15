@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -50,9 +51,10 @@ class TemplateModelRouterTest {
     private inline fun <reified Keys> createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
     ) = TemplateModelRouter(
-        TestModel::class,
-        TestCreatePayload::class,
-        TestUpdatePayload::class,
+        typeInfo<TestModel>(),
+        typeInfo<TestCreatePayload>(),
+        typeInfo<TestUpdatePayload>(),
+        typeInfo<List<TestModel>>(),
         controller,
         TemplateMapping(
             errorTemplate = "error",

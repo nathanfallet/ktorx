@@ -7,7 +7,7 @@ Generic routers for Ktor projects.
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers:1.7.4'
+compile 'me.nathanfallet.ktorx:ktor-routers:1.8.0'
 ```
 
 ```xml
@@ -15,7 +15,7 @@ compile 'me.nathanfallet.ktorx:ktor-routers:1.7.4'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-jvm</artifactId>
-    <version>1.7.4</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -61,9 +61,10 @@ class MyController(
 class MyRouter(
     controller: MyController
 ) : AbstractModelRouter<MyModel, Long, CreateMyModelPayload, UpdateMyModelPayload>(
-    MyModel::class,
-    CreateMyModelPayload::class,
-    UpdateMyModelPayload::class,
+    typeInfo<MyModel>(),
+    typeInfo<CreateMyModelPayload>(),
+    typeInfo<UpdateMyModelPayload>(),
+    typeInfo<List<MyModel>>(),
     controller
 )
 ```
@@ -79,9 +80,10 @@ class PostRouter(
     controller: PostController,
     userRouter: UserRouter
 ) : AbstractChildModelRouter<Post, Long, CreatePostPayload, UpdatePostPayload, User>(
-    Post::class,
-    CreatePostPayload::class,
-    UpdatePostPayload::class,
+    typeInfo<Post>(),
+    typeInfo<CreatePostPayload>(),
+    typeInfo<UpdatePostPayload>(),
+    typeInfo<List<Post>>(),
     controller,
     userRouter
 )

@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -51,12 +52,13 @@ class LocalizedTemplateModelRouterTest {
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified Keys> createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
-        getLocaleForCallUseCase: IGetLocaleForCallUseCase
+        getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     ): LocalizedTemplateModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         return LocalizedTemplateModelRouter(
-            TestModel::class,
-            TestCreatePayload::class,
-            TestUpdatePayload::class,
+            typeInfo<TestModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
             controller,
             TemplateMapping(
                 errorTemplate = "error",

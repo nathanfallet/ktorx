@@ -10,9 +10,10 @@ open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdateP
     val routers: List<IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
     parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
-    routers.first().modelClass,
-    routers.first().createPayloadClass,
-    routers.first().updatePayloadClass,
+    routers.first().modelTypeInfo,
+    routers.first().createPayloadTypeInfo,
+    routers.first().updatePayloadTypeInfo,
+    routers.first().listTypeInfo,
     routers.first().controller,
     parentRouter,
     routers.first().route,

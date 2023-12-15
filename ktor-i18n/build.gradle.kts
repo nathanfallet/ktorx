@@ -29,8 +29,8 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     val coroutinesVersion = "1.7.3"
-    val ktorVersion = "2.3.6"
-    val usecasesVersion = "1.5.3"
+    val ktorVersion = "2.3.7"
+    val usecasesVersion = "1.5.5"
 
     sourceSets {
         val commonMain by getting {
@@ -41,7 +41,7 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
                 api("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                api("me.nathanfallet.i18n:i18n:1.0.7")
+                api("me.nathanfallet.i18n:i18n:1.0.9")
             }
         }
         val commonTest by getting {

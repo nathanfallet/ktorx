@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
@@ -39,7 +40,13 @@ class ConcatModelRouterTest {
 
     @Test
     fun testRouterOf() {
-        val apiRouter = APIModelRouter(TestModel::class, TestCreatePayload::class, TestUpdatePayload::class, mockk())
+        val apiRouter = APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
+            typeInfo<TestModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
+            mockk()
+        )
         val router = ConcatModelRouter(listOf(apiRouter))
         assertEquals(apiRouter, router.routerOf())
         assertFailsWith(NoSuchElementException::class) {
@@ -49,7 +56,13 @@ class ConcatModelRouterTest {
 
     @Test
     fun testRouterOfOrNull() {
-        val apiRouter = APIModelRouter(TestModel::class, TestCreatePayload::class, TestUpdatePayload::class, mockk())
+        val apiRouter = APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
+            typeInfo<TestModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
+            typeInfo<List<TestModel>>(),
+            mockk()
+        )
         val router = ConcatModelRouter(listOf(apiRouter))
         assertEquals(apiRouter, router.routerOfOrNull())
         assertEquals(null as ConcatModelRouter<*, *, *, *>?, router.routerOfOrNull())
@@ -62,9 +75,10 @@ class ConcatModelRouterTest {
         val router = ConcatModelRouter(
             listOf(
                 APIModelRouter(
-                    TestModel::class,
-                    TestCreatePayload::class,
-                    TestUpdatePayload::class,
+                    typeInfo<TestModel>(),
+                    typeInfo<TestCreatePayload>(),
+                    typeInfo<TestUpdatePayload>(),
+                    typeInfo<List<TestModel>>(),
                     controller
                 )
             )

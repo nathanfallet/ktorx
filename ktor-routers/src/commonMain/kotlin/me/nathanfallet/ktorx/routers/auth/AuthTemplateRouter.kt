@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
@@ -15,9 +16,10 @@ import me.nathanfallet.ktorx.routers.templates.TemplateUnitRouter
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
-    val loginPayloadClass: KClass<LoginPayload>,
-    val registerPayloadClass: KClass<RegisterPayload>,
+    val loginPayloadTypeInfo: TypeInfo,
+    val registerPayloadTypeInfo: TypeInfo,
     val authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     override val controller: IAuthController<LoginPayload, RegisterPayload>,
@@ -58,9 +60,9 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
         root.post("$fullRoute/login") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    loginPayloadClass, call.receiveParameters().toMap()
+                    loginPayloadTypeInfo.type as KClass<LoginPayload>, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, loginPayloadClass)
+                ModelAnnotations.validatePayload(payload, loginPayloadTypeInfo.type as KClass<LoginPayload>)
                 controller.login(call, payload)
                 call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
             } catch (exception: Exception) {
@@ -84,9 +86,9 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
         root.post("$fullRoute/register") {
             try {
                 val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    registerPayloadClass, call.receiveParameters().toMap()
+                    registerPayloadTypeInfo.type as KClass<RegisterPayload>, call.receiveParameters().toMap()
                 ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, registerPayloadClass)
+                ModelAnnotations.validatePayload(payload, registerPayloadTypeInfo.type as KClass<RegisterPayload>)
                 controller.register(call, payload)
                 call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
             } catch (exception: Exception) {

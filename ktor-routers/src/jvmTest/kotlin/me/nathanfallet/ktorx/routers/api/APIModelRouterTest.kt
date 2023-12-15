@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.swagger.v3.oas.models.OpenAPI
@@ -45,9 +46,10 @@ class APIModelRouterTest {
     private fun createRouter(
         controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
     ) = APIModelRouter(
-        TestModel::class,
-        TestCreatePayload::class,
-        TestUpdatePayload::class,
+        typeInfo<TestModel>(),
+        typeInfo<TestCreatePayload>(),
+        typeInfo<TestUpdatePayload>(),
+        typeInfo<List<TestModel>>(),
         controller
     )
 
