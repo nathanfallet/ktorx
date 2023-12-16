@@ -31,20 +31,14 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    val coroutinesVersion = "1.7.3"
-    val ktorVersion = "2.3.7"
-    val usecasesVersion = "1.5.5"
-
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
-                implementation("io.ktor:ktor-server-freemarker:$ktorVersion")
-
                 api(project(":ktor-i18n"))
-                api("me.nathanfallet.usecases:usecases:$usecasesVersion")
-                api("me.nathanfallet.i18n:i18n:1.0.9")
+                api(libs.coroutines)
+                api(libs.bundles.ktor.server.freemarker)
+                api(libs.usecases)
+                api(libs.i18n)
             }
         }
         val commonTest by getting {

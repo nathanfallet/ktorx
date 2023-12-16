@@ -27,20 +27,17 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    val coroutinesVersion = "1.7.3"
-    val ktorVersion = "2.3.7"
     val sentryVersion = "6.32.0"
-    val usecasesVersion = "1.5.5"
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.sentry:sentry:$sentryVersion")
                 implementation("io.sentry:sentry-kotlin-extensions:$sentryVersion")
 
-                api("me.nathanfallet.usecases:usecases:$usecasesVersion")
+                api(libs.coroutines)
+                api(libs.bundles.ktor.server.api)
+                api(libs.usecases)
             }
         }
         val commonTest by getting {
