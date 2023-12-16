@@ -6,7 +6,6 @@ import me.nathanfallet.usecases.context.IContext
 import me.nathanfallet.usecases.models.IModel
 import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.id.RecursiveId
-import me.nathanfallet.usecases.models.repositories.remote.IModelRemoteRepository
 
 open class APIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
@@ -27,7 +26,7 @@ open class APIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayl
     route,
     id,
     prefix,
-), IModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload> {
+), IAPIModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload> {
 
     override suspend fun list(parentId: RecursiveId<*, Unit, *>, context: IContext?): List<Model> {
         return super<APIChildModelRemoteRepository>.list(parentId, context)

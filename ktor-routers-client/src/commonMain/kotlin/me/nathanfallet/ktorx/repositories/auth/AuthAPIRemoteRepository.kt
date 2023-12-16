@@ -18,9 +18,9 @@ open class AuthAPIRemoteRepository(
     client,
     route,
     prefix
-) {
+), IAuthAPIRemoteRepository {
 
-    suspend fun token(
+    override suspend fun token(
         payload: AuthRequest,
     ): AuthToken? {
         return client.request(

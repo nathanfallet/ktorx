@@ -7,7 +7,7 @@ Client for APIs using ktor-routers.
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers-client:1.8.1'
+compile 'me.nathanfallet.ktorx:ktor-routers-client:1.8.2'
 ```
 
 ```xml
@@ -15,6 +15,6 @@ compile 'me.nathanfallet.ktorx:ktor-routers-client:1.8.1'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-client-jvm</artifactId>
-    <version>1.8.1</version>
+    <version>1.8.2</version>
 </dependency>
 ```
