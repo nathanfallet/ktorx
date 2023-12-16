@@ -36,9 +36,10 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
-                implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
+                api("io.ktor:ktor-server-core:$ktorVersion")
+                api("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+                api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
                 implementation("io.swagger.codegen.v3:swagger-codegen:3.0.51")
                 api("io.swagger.codegen.v3:swagger-codegen-generators:1.0.45")
