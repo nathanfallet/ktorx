@@ -14,8 +14,8 @@ import me.nathanfallet.ktorx.models.exceptions.APIException
 import me.nathanfallet.ktorx.usecases.api.IGetTokenUseCase
 
 abstract class AbstractAPIClient(
-    private val baseUrl: String,
-    private val getTokenUseCase: IGetTokenUseCase? = null,
+    override val baseUrl: String,
+    override val getTokenUseCase: IGetTokenUseCase? = null,
     json: Json? = null,
     engine: HttpClientEngine? = null,
 ) : IAPIClient {
@@ -41,10 +41,10 @@ abstract class AbstractAPIClient(
 
     override suspend fun request(
         method: HttpMethod,
-        url: String,
+        path: String,
         builder: HttpRequestBuilder.() -> Unit,
     ): HttpResponse {
-        return httpClient.request(baseUrl + url) {
+        return httpClient.request(baseUrl + path) {
             this.method = method
             getTokenUseCase?.invoke()?.let { token ->
                 header("Authorization", "Bearer $token")
