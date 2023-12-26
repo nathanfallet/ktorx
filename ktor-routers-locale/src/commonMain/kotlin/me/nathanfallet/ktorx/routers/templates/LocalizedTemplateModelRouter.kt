@@ -17,7 +17,7 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
     mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    getLocaleForCallUseCase: IGetLocaleForCallUseCase,
+    val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -35,6 +35,9 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
 ), ILocalizedTemplateRouter {
 
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
+
+    override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
+        isUnauthorizedRedirectPath(call, mapping, getLocaleForCallUseCase)
 
     override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
         super.createRoutes(root, openAPI)

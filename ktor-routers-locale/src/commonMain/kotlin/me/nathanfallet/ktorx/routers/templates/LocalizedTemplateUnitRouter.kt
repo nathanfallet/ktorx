@@ -9,13 +9,16 @@ import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 open class LocalizedTemplateUnitRouter(
     mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    getLocaleForCallUseCase: IGetLocaleForCallUseCase,
+    val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
 ) : TemplateUnitRouter(
     mapping,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
 ), ILocalizedTemplateRouter {
 
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
+
+    override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
+        isUnauthorizedRedirectPath(call, mapping, getLocaleForCallUseCase)
 
     override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
         super.createRoutes(root, openAPI)

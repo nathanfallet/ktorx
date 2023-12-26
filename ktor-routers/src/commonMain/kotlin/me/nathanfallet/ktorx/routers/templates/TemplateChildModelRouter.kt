@@ -62,7 +62,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         when (exception) {
             is ControllerException -> {
                 mapping.redirectUnauthorizedToUrl?.takeIf {
-                    exception.code == HttpStatusCode.Unauthorized && !it.startsWith(call.request.path())
+                    exception.code == HttpStatusCode.Unauthorized && !isUnauthorizedRedirectPath(call)
                 }?.let { url ->
                     call.respondRedirect(url.replace("{path}", call.request.uri))
                     return
@@ -88,6 +88,10 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
 
             else -> throw exception
         }
+    }
+
+    open fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean {
+        return mapping.redirectUnauthorizedToUrl?.startsWith(call.request.path()) == true
     }
 
     open fun createTemplateGetRoute(root: Route) {
