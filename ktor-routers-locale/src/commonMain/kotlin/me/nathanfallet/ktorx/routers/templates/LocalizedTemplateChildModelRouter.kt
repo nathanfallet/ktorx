@@ -19,7 +19,7 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
-    getLocaleForCallUseCase: IGetLocaleForCallUseCase,
+    private val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -38,6 +38,9 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
 ), ILocalizedTemplateRouter {
 
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
+
+    override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
+        isUnauthorizedRedirectPath(call, mapping, getLocaleForCallUseCase)
 
     override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
         super.createRoutes(root, openAPI)

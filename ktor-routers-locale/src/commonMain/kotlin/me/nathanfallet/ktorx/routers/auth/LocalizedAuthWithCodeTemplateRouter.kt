@@ -16,7 +16,7 @@ open class LocalizedAuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPaylo
     authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
     controller: IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>,
-    getLocaleForCallUseCase: IGetLocaleForCallUseCase,
+    val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = "auth",
     prefix: String? = null,
 ) : AuthWithCodeTemplateRouter<LoginPayload, RegisterPayload, RegisterCodePayload>(
@@ -31,6 +31,9 @@ open class LocalizedAuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPaylo
 ), ILocalizedTemplateRouter {
 
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
+
+    override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
+        isUnauthorizedRedirectPath(call, mapping, getLocaleForCallUseCase)
 
     override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
         super.createRoutes(root, openAPI)
