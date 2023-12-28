@@ -196,4 +196,10 @@ class APIChildModelRouterTest {
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
+    @Test
+    fun testDecodeUnit() = testApplication {
+        val router = createChildRouter(mockk(), createRouter(mockk()))
+        assertEquals(Unit, router.decodeAndValidatePayload(mockk(), typeInfo<Unit>()))
+    }
+
 }

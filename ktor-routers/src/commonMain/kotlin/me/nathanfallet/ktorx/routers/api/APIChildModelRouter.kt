@@ -84,6 +84,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
+    open suspend fun <Payload : Any> decodeAndValidatePayload(call: ApplicationCall, typeInfo: TypeInfo): Payload {
+        if (typeInfo.type == Unit::class) return Unit as Payload
+        val payload: Payload = call.receive(typeInfo)
+        ModelAnnotations.validatePayload(payload, typeInfo.type as KClass<Payload>)
+        return payload
+    }
+
     open fun createAPIGetRoute(root: Route, openAPI: OpenAPI?) {
         if (!mapping.listEnabled) return
         root.get(fullRoute) {
@@ -134,8 +141,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         if (!mapping.createEnabled) return
         root.post(fullRoute) {
             try {
-                val payload: CreatePayload = call.receive(createPayloadTypeInfo)
-                ModelAnnotations.validatePayload(payload, createPayloadTypeInfo.type as KClass<CreatePayload>)
+                val payload = decodeAndValidatePayload<CreatePayload>(call, createPayloadTypeInfo)
                 val response = create(call, payload)
                 call.response.status(HttpStatusCode.Created)
                 call.respond(response, modelTypeInfo)
@@ -148,9 +154,11 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             addTagsItem(modelTypeInfo.type.simpleName)
             description("Create a ${modelTypeInfo.type.simpleName}")
             parameters(getOpenAPIParameters(false))
-            requestBody {
-                mediaType("application/json") {
-                    schema(createPayloadTypeInfo.type)
+            if (createPayloadTypeInfo.type != Unit::class) {
+                requestBody {
+                    mediaType("application/json") {
+                        schema(createPayloadTypeInfo.type)
+                    }
                 }
             }
             response("201") {
@@ -172,8 +180,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         if (!mapping.updateEnabled) return
         root.put("$fullRoute/{$id}") {
             try {
-                val payload: UpdatePayload = call.receive(updatePayloadTypeInfo)
-                ModelAnnotations.validatePayload(payload, updatePayloadTypeInfo.type as KClass<UpdatePayload>)
+                val payload = decodeAndValidatePayload<UpdatePayload>(call, updatePayloadTypeInfo)
                 call.respond(
                     update(call, payload),
                     modelTypeInfo
@@ -187,9 +194,11 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             addTagsItem(modelTypeInfo.type.simpleName)
             description("Update a ${modelTypeInfo.type.simpleName} by id")
             parameters(getOpenAPIParameters())
-            requestBody {
-                mediaType("application/json") {
-                    schema(updatePayloadTypeInfo.type)
+            if (updatePayloadTypeInfo.type != Unit::class) {
+                requestBody {
+                    mediaType("application/json") {
+                        schema(updatePayloadTypeInfo.type)
+                    }
                 }
             }
             response("200") {
