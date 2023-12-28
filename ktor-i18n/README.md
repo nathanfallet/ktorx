@@ -7,7 +7,7 @@ i18n extension for ktor.
 Add dependency to your `build.gradle` or `pom.xml`:
 
 ```groovy
-compile 'me.nathanfallet.ktorx:ktor-i18n:1.8.4'
+compile 'me.nathanfallet.ktorx:ktor-i18n:1.8.5'
 ```
 
 ```xml
@@ -15,7 +15,7 @@ compile 'me.nathanfallet.ktorx:ktor-i18n:1.8.4'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-i18n-jvm</artifactId>
-    <version>1.8.4</version>
+    <version>1.8.5</version>
 </dependency>
 ```
 
