@@ -10,6 +10,7 @@ Ktor extensions.
 
 ## Components
 
+- [ktor-databases](ktor-databases/README.md)
 - [ktor-i18n](ktor-i18n/README.md)
 - [ktor-i18n-freemarker](ktor-i18n-freemarker/README.md)
 - [ktor-routers](ktor-routers/README.md)
