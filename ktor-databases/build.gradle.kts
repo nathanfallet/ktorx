@@ -8,8 +8,8 @@ plugins {
 publishing {
     publications.withType<MavenPublication> {
         pom {
-            name.set("ktor-sentry")
-            description.set("A Sentry plugin for Ktor")
+            name.set("ktor-databases")
+            description.set("Database extensions for Ktor")
         }
     }
 }
@@ -27,13 +27,14 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    val sentryVersion = "6.32.0"
+    val exposedVersion = "0.46.0"
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("io.sentry:sentry:$sentryVersion")
-                api("io.sentry:sentry-kotlin-extensions:$sentryVersion")
+                api("org.jetbrains.exposed:exposed-core:$exposedVersion")
+                api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
 
                 api(libs.coroutines)
                 api(libs.bundles.ktor.server.api)
@@ -44,6 +45,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("io.mockative:mockative:2.0.1")
+                implementation("com.h2database:h2:2.2.224")
             }
         }
     }
