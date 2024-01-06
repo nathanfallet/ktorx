@@ -20,6 +20,7 @@ dependencyResolutionManagement {
             library("ktor-serialization-kotlinx-json", "io.ktor", "ktor-serialization-kotlinx-json").versionRef("ktor")
             library("ktor-server-core", "io.ktor", "ktor-server-core").versionRef("ktor")
             library("ktor-server-content-negotiation", "io.ktor", "ktor-server-content-negotiation").versionRef("ktor")
+            library("ktor-server-sessions", "io.ktor", "ktor-server-sessions").versionRef("ktor")
             library("ktor-server-freemarker", "io.ktor", "ktor-server-freemarker").versionRef("ktor")
             library("ktor-client-core", "io.ktor", "ktor-client-core").versionRef("ktor")
             library("ktor-client-content-negotiation", "io.ktor", "ktor-client-content-negotiation").versionRef("ktor")
@@ -30,6 +31,7 @@ dependencyResolutionManagement {
                 listOf(
                     "ktor-server-core",
                     "ktor-server-content-negotiation",
+                    "ktor-server-sessions",
                     "ktor-serialization-kotlinx-json"
                 )
             )
@@ -55,6 +57,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "ktorx"
 includeBuild("convention-plugins")
+include(":ktor-databases")
 include(":ktor-i18n")
 include(":ktor-i18n-freemarker")
 include(":ktor-routers")
