@@ -4,16 +4,19 @@ import me.nathanfallet.ktorx.database.IDatabase
 import me.nathanfallet.ktorx.models.sessions.Session
 import me.nathanfallet.ktorx.repositories.sessions.ISessionsRepository
 import me.nathanfallet.usecases.context.IContext
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
 import java.sql.SQLException
 
 class SessionsDatabaseRepository(
     private val database: IDatabase,
 ) : ISessionsRepository {
+
+    init {
+        database.transaction {
+            SchemaUtils.create(Sessions)
+        }
+    }
 
     override suspend fun invalidate(id: String) {
         if (!delete(id)) throw NoSuchElementException("Session $id not found")
@@ -32,13 +35,13 @@ class SessionsDatabaseRepository(
     }
 
     override suspend fun get(id: String, context: IContext?): Session? {
-        return database.dbQuery {
+        return database.suspendedTransaction {
             Sessions.selectAll().where { Sessions.id eq id }.map(Sessions::toSession).singleOrNull()
         }
     }
 
     override suspend fun create(payload: Session, context: IContext?): Session? {
-        return database.dbQuery {
+        return database.suspendedTransaction {
             Sessions.insert {
                 it[id] = payload.id
                 it[value] = payload.value
@@ -48,7 +51,7 @@ class SessionsDatabaseRepository(
     }
 
     override suspend fun update(id: String, payload: String, context: IContext?): Boolean {
-        return database.dbQuery {
+        return database.suspendedTransaction {
             Sessions.update({ Sessions.id eq id }) {
                 it[value] = payload
             }
@@ -56,7 +59,7 @@ class SessionsDatabaseRepository(
     }
 
     override suspend fun delete(id: String, context: IContext?): Boolean {
-        return database.dbQuery {
+        return database.suspendedTransaction {
             Sessions.deleteWhere { Sessions.id eq id }
         } == 1
     }

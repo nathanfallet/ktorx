@@ -21,7 +21,7 @@ class SessionsDatabaseRepositoryTest {
         val database = createDatabase("testWriteNewSession")
         val repository = SessionsDatabaseRepository(database)
         repository.write("id", "value")
-        val session = database.dbQuery {
+        val session = database.suspendedTransaction {
             Sessions.selectAll().map(Sessions::toSession).singleOrNull()
         }
         assertEquals("id", session?.id)
@@ -34,7 +34,7 @@ class SessionsDatabaseRepositoryTest {
         val repository = SessionsDatabaseRepository(database)
         repository.write("id", "value")
         repository.write("id", "value2")
-        val session = database.dbQuery {
+        val session = database.suspendedTransaction {
             Sessions.selectAll().map(Sessions::toSession).singleOrNull()
         }
         assertEquals("id", session?.id)
@@ -56,7 +56,7 @@ class SessionsDatabaseRepositoryTest {
         val repository = SessionsDatabaseRepository(database)
         repository.write("id", "value")
         repository.invalidate("id")
-        val count = database.dbQuery {
+        val count = database.suspendedTransaction {
             Sessions.selectAll().count()
         }
         assertEquals(0, count)

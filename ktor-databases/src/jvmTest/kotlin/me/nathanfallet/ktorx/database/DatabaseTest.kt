@@ -8,20 +8,15 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 class DatabaseTest(
     name: String,
-    createTables: Transaction.() -> Unit = {},
 ) : IDatabase {
 
     private val database: Database = Database.connect(
         "jdbc:h2:mem:$name;DB_CLOSE_DELAY=-1;", "org.h2.Driver"
     )
 
-    init {
-        transaction(database) {
-            createTables()
-        }
-    }
+    override fun <T> transaction(statement: Transaction.() -> T): T = transaction(database, statement)
 
-    override suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO, database) { block() }
+    override suspend fun <T> suspendedTransaction(statement: suspend Transaction.() -> T): T =
+        newSuspendedTransaction(Dispatchers.IO, database) { statement() }
 
 }

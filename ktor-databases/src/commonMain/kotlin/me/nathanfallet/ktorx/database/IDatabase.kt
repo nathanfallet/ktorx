@@ -1,7 +1,11 @@
 package me.nathanfallet.ktorx.database
 
+import org.jetbrains.exposed.sql.Transaction
+
 interface IDatabase {
 
-    suspend fun <T> dbQuery(block: suspend () -> T): T
+    fun <T> transaction(statement: Transaction.() -> T): T
+
+    suspend fun <T> suspendedTransaction(statement: suspend Transaction.() -> T): T
 
 }
