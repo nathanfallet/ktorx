@@ -3,7 +3,6 @@ package me.nathanfallet.ktorx.database.sessions
 import kotlinx.coroutines.runBlocking
 import me.nathanfallet.ktorx.database.DatabaseTest
 import me.nathanfallet.ktorx.database.IDatabase
-import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,9 +10,7 @@ import kotlin.test.assertEquals
 class SessionsDatabaseRepositoryTest {
 
     private fun createDatabase(name: String): IDatabase {
-        return DatabaseTest(name) {
-            SchemaUtils.create(Sessions)
-        }
+        return DatabaseTest(name)
     }
 
     @Test
