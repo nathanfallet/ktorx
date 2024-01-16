@@ -21,6 +21,8 @@ interface IChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload
     val id: String
     val prefix: String
 
+    val routeIncludingParent: String
+
     suspend fun get(call: ApplicationCall): Model
 
     fun getOpenAPIParameters(self: Boolean = true): List<Parameter>
