@@ -25,12 +25,21 @@ open class APIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, 
     override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
     override val prefix = prefix ?: "/api"
 
-    open fun constructFullRoute(parentId: RecursiveId<*, ParentId, *>): String {
-        return this.prefix + (parentRepository?.let {
-            val parentRoute = it.route.takeIf(String::isNotEmpty)?.let { r -> "/$r" } ?: ""
+    override fun constructRouteIncludingParent(parentId: Any?): String {
+        return (parentRepository?.let {
+            if (parentId !is RecursiveId<*, *, *>) return@let null
+            val parentRoute = it
+                .constructRouteIncludingParent(parentId.parentId)
+                .trim('/')
+                .takeIf(String::isNotEmpty)
+                ?.let { r -> "/$r" } ?: ""
             val parentIdString = it.id.takeIf(String::isNotEmpty)?.let { "/${parentId.id}" } ?: ""
             parentRoute + parentIdString
         } ?: "") + "/" + this.route
+    }
+
+    open fun constructFullRoute(parentId: RecursiveId<*, ParentId, *>): String {
+        return this.prefix + constructRouteIncludingParent(parentId)
     }
 
     override suspend fun list(parentId: RecursiveId<*, ParentId, *>, context: IContext?): List<Model> {

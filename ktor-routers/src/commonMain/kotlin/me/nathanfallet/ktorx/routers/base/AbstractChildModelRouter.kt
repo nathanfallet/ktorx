@@ -29,11 +29,17 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     final override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
     final override val prefix = prefix ?: ""
 
-    val fullRoute = this.prefix + (parentRouter?.let {
-        val parentRoute = it.route.takeIf(String::isNotEmpty)?.let { r -> "/$r" } ?: ""
+    final override val routeIncludingParent = (parentRouter?.let {
+        val parentRoute = it
+            .routeIncludingParent
+            .trim('/')
+            .takeIf(String::isNotEmpty)
+            ?.let { r -> "/$r" } ?: ""
         val parentId = it.id.takeIf(String::isNotEmpty)?.let { i -> "/{$i}" } ?: ""
         parentRoute + parentId
     } ?: "") + "/" + this.route
+
+    val fullRoute = this.prefix + routeIncludingParent
 
     val modelKeys = ModelAnnotations.modelKeys(modelTypeInfo.type as KClass<Model>)
     val createPayloadKeys = ModelAnnotations.createPayloadKeys(

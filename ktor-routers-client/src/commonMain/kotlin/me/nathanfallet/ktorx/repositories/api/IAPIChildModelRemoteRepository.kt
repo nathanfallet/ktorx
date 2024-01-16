@@ -16,4 +16,6 @@ interface IAPIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, 
     val id: String
     val prefix: String
 
+    fun constructRouteIncludingParent(parentId: Any?): String
+
 }
