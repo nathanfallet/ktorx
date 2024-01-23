@@ -86,6 +86,10 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
 
     abstract fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?)
 
+    // Decode payloads
+
+    abstract suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload
+
     // Default operations
 
     override suspend fun get(call: ApplicationCall): Model {

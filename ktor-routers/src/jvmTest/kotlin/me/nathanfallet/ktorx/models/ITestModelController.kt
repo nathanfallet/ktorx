@@ -29,7 +29,7 @@ interface ITestModelController : IModelController<TestModel, Long, TestCreatePay
     @APIMapping
     @TemplateMapping(template = "create")
     @CreatePath
-    suspend fun create(call: ApplicationCall, payload: TestCreatePayload): TestModel
+    suspend fun create(call: ApplicationCall, @Payload payload: TestCreatePayload): TestModel
 
     @APIMapping
     @TemplateMapping(template = "get")
@@ -39,7 +39,7 @@ interface ITestModelController : IModelController<TestModel, Long, TestCreatePay
     @APIMapping
     @TemplateMapping(template = "update")
     @UpdatePath
-    suspend fun update(call: ApplicationCall, @Id id: Long, payload: TestUpdatePayload): TestModel
+    suspend fun update(call: ApplicationCall, @Id id: Long, @Payload payload: TestUpdatePayload): TestModel
 
     @APIMapping
     @TemplateMapping(template = "delete")

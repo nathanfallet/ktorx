@@ -88,6 +88,12 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         return redirectUnauthorizedToUrl?.startsWith(call.request.path()) == true
     }
 
+    override suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload {
+        return ModelAnnotations.constructPayloadFromStringLists(
+            type, call.receiveParameters().toMap()
+        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+    }
+
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
         val mapping = controllerRoute.function.annotations
             .firstNotNullOfOrNull { it as? TemplateMapping } ?: return
@@ -138,11 +144,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
                 root.post("$fullRoute/create") {
                     try {
-                        val payload = ModelAnnotations.constructPayloadFromStringLists(
-                            createPayloadTypeInfo.type as KClass<CreatePayload>, call.receiveParameters().toMap()
-                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                        ModelAnnotations.validatePayload(payload, createPayloadTypeInfo.type as KClass<CreatePayload>)
-                        controllerRoute(call, this@TemplateChildModelRouter, mapOf("payload" to payload))
+                        controllerRoute(call, this@TemplateChildModelRouter)
                         call.respondRedirect("../$route")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -167,11 +169,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
                 root.post("$fullRoute/{$id}/update") {
                     try {
-                        val payload = ModelAnnotations.constructPayloadFromStringLists(
-                            updatePayloadTypeInfo.type as KClass<UpdatePayload>, call.receiveParameters().toMap()
-                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                        ModelAnnotations.validatePayload(payload, updatePayloadTypeInfo.type as KClass<UpdatePayload>)
-                        controllerRoute(call, this@TemplateChildModelRouter, mapOf("payload" to payload))
+                        controllerRoute(call, this@TemplateChildModelRouter)
                         call.respondRedirect("../../$route")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)

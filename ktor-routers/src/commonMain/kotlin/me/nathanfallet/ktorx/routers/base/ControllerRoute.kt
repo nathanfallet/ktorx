@@ -21,29 +21,35 @@ data class ControllerRoute(
     @Suppress("UNCHECKED_CAST")
     suspend operator fun <Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId> invoke(
         call: ApplicationCall,
-        router: IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
+        router: AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
         parameters: Map<String, Any?> = mapOf(),
     ): Any? {
         try {
             return function.callBy(function.parameters.associateWith { parameter ->
                 if (parameter.kind == KParameter.Kind.INSTANCE) return@associateWith router.controller
                 if (parameter.type == typeOf<ApplicationCall>()) return@associateWith call
-                parameter.annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Id }
-                    ?.let {
-                        return@associateWith ModelAnnotations.constructIdFromString(
-                            router.modelTypeInfo.type as KClass<Model>,
-                            call.parameters[router.id]!!
-                        )
-                    }
-                parameter.annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.ParentModel }
-                    ?.let {
-                        var target: IChildModelRouter<*, *, *, *, *, *> = router
-                        do {
-                            target =
-                                target.parentRouter ?: throw IllegalArgumentException("Illegal parent model: ${it.id}")
-                        } while (target.id != it.id)
-                        return@associateWith target.get(call)
-                    }
+                val annotations = parameter.annotations
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Id }?.let {
+                    return@associateWith ModelAnnotations.constructIdFromString(
+                        router.modelTypeInfo.type as KClass<Model>,
+                        call.parameters[router.id]!!
+                    )
+                }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Payload }?.let {
+                    val type = parameter.type.classifier as KClass<Any>
+                    if (type == Unit::class) return@associateWith Unit
+                    val payload = router.decodePayload(call, type)
+                    ModelAnnotations.validatePayload(payload, type)
+                    return@associateWith payload
+                }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.ParentModel }?.let {
+                    var target: IChildModelRouter<*, *, *, *, *, *> = router
+                    do {
+                        target =
+                            target.parentRouter ?: throw IllegalArgumentException("Illegal parent model: ${it.id}")
+                    } while (target.id != it.id)
+                    return@associateWith target.get(call)
+                }
                 parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
             })
         } catch (e: Exception) {

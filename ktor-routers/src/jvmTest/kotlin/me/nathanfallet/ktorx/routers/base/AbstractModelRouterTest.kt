@@ -13,6 +13,7 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.models.*
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -89,6 +90,10 @@ class AbstractModelRouterTest {
             }
 
             override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {}
+
+            override suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload {
+                throw NotImplementedError()
+            }
         }
     }
 

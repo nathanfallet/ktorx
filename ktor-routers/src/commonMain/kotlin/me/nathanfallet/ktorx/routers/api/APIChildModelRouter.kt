@@ -10,13 +10,13 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.APIMapping
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.ktorx.routers.base.ControllerRoute
 import me.nathanfallet.ktorx.routers.base.RouteType
 import me.nathanfallet.usecases.models.IChildModel
-import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
@@ -83,11 +83,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         }
     }
 
-    open suspend fun <Payload : Any> decodeAndValidatePayload(call: ApplicationCall, typeInfo: TypeInfo): Payload {
-        if (typeInfo.type == Unit::class) return Unit as Payload
-        val payload: Payload = call.receive(typeInfo)
-        ModelAnnotations.validatePayload(payload, typeInfo.type as KClass<Payload>)
-        return payload
+    override suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload {
+        return call.receive(type)
     }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
@@ -97,7 +94,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             RouteType.list -> {
                 root.get(fullRoute) {
                     try {
-                        call.respond(controllerRoute(call, this@APIChildModelRouter), listTypeInfo)
+                        controllerRoute(call, this@APIChildModelRouter)
+                            ?.takeIf { it != Unit }
+                            ?.let { call.respond(it) }
                     } catch (exception: Exception) {
                         handleExceptionAPI(exception, call)
                     }
@@ -119,7 +118,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             RouteType.get -> {
                 root.get("$fullRoute/{$id}") {
                     try {
-                        call.respond(controllerRoute(call, this@APIChildModelRouter), modelTypeInfo)
+                        controllerRoute(call, this@APIChildModelRouter)
+                            ?.takeIf { it != Unit }
+                            ?.let { call.respond(it) }
                     } catch (exception: Exception) {
                         handleExceptionAPI(exception, call)
                     }
@@ -141,10 +142,12 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             RouteType.create -> {
                 root.post(fullRoute) {
                     try {
-                        val payload = decodeAndValidatePayload<CreatePayload>(call, createPayloadTypeInfo)
-                        val response = controllerRoute(call, this@APIChildModelRouter, mapOf("payload" to payload))
-                        call.response.status(HttpStatusCode.Created)
-                        call.respond(response, modelTypeInfo)
+                        controllerRoute(call, this@APIChildModelRouter)
+                            ?.takeIf { it != Unit }
+                            ?.let {
+                                call.response.status(HttpStatusCode.Created)
+                                call.respond(it)
+                            }
                     } catch (exception: Exception) {
                         handleExceptionAPI(exception, call)
                     }
@@ -179,11 +182,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             RouteType.update -> {
                 root.put("$fullRoute/{$id}") {
                     try {
-                        val payload = decodeAndValidatePayload<UpdatePayload>(call, updatePayloadTypeInfo)
-                        call.respond(
-                            controllerRoute(call, this@APIChildModelRouter, mapOf("payload" to payload)),
-                            modelTypeInfo
-                        )
+                        controllerRoute(call, this@APIChildModelRouter)
+                            ?.takeIf { it != Unit }
+                            ?.let { call.respond(it) }
                     } catch (exception: Exception) {
                         handleExceptionAPI(exception, call)
                     }
@@ -241,9 +242,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                     try {
                         controllerRoute(call, this@APIChildModelRouter)
                             ?.takeIf { it != Unit }
-                            ?.let {
-                                call.respond(it)
-                            }
+                            ?.let { call.respond(it) }
                     } catch (exception: Exception) {
                         handleExceptionAPI(exception, call)
                     }

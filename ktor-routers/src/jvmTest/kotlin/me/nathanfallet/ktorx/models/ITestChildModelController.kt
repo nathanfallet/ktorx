@@ -23,7 +23,7 @@ interface ITestChildModelController :
     fun create(
         call: ApplicationCall,
         @ParentModel("testmodelId") parent: TestModel,
-        payload: TestCreatePayload,
+        @Payload payload: TestCreatePayload,
     ): TestChildModel
 
     @APIMapping
@@ -38,7 +38,7 @@ interface ITestChildModelController :
         call: ApplicationCall,
         @ParentModel("testmodelId") parent: TestModel,
         @Id id: Long,
-        payload: TestUpdatePayload,
+        @Payload payload: TestUpdatePayload,
     ): TestChildModel
 
     @APIMapping

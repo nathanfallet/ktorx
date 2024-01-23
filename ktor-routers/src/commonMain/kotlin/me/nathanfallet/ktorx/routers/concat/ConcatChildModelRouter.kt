@@ -1,5 +1,6 @@
 package me.nathanfallet.ktorx.routers.concat
 
+import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
@@ -36,6 +37,10 @@ open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdateP
         routers.mapNotNull { it as? AbstractChildModelRouter<*, *, *, *, *, *> }.forEach {
             it.createControllerRoute(root, controllerRoute, openAPI)
         }
+    }
+
+    override suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload {
+        throw UnsupportedOperationException("Cannot decode payload from concat router")
     }
 
     inline fun <reified T> routersOf(): List<T> {

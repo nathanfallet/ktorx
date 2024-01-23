@@ -148,10 +148,4 @@ class APIChildModelRouterTest {
         assertEquals(childMock, response.body())
     }
 
-    @Test
-    fun testDecodeUnit() = testApplication {
-        val router = createChildRouter(mockk(), createRouter(mockk()))
-        assertEquals(Unit, router.decodeAndValidatePayload(mockk(), typeInfo<Unit>()))
-    }
-
 }
