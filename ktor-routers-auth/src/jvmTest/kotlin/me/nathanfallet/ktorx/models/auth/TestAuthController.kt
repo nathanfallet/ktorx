@@ -2,12 +2,11 @@ package me.nathanfallet.ktorx.models.auth
 
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.auth.AbstractAuthController
-import me.nathanfallet.ktorx.models.annotations.AuthorizePath
-import me.nathanfallet.ktorx.models.annotations.LoginPath
-import me.nathanfallet.ktorx.models.annotations.RegisterPath
-import me.nathanfallet.ktorx.models.annotations.TemplateMapping
+import me.nathanfallet.ktorx.models.annotations.*
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
+import me.nathanfallet.usecases.auth.AuthRequest
+import me.nathanfallet.usecases.auth.AuthToken
 
 class TestAuthController(
     loginUseCase: ILoginUseCase<TestLoginPayload>,
@@ -47,8 +46,20 @@ class TestAuthController(
 
     @TemplateMapping("authorize")
     @AuthorizePath
+    override suspend fun authorize(call: ApplicationCall, clientId: String?): ClientForUser {
+        return super.authorize(call, clientId)
+    }
+
+    @TemplateMapping("authorize")
+    @AuthorizeRedirectPath
     override suspend fun authorize(call: ApplicationCall, client: ClientForUser): String {
         return super.authorize(call, client)
+    }
+
+    @APIMapping
+    @TokenPath
+    override suspend fun token(call: ApplicationCall, request: AuthRequest): AuthToken {
+        return super.token(call, request)
     }
 
 }

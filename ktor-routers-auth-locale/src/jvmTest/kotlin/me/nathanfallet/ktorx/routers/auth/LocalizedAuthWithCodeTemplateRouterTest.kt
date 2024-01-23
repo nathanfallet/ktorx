@@ -45,10 +45,6 @@ class LocalizedAuthWithCodeTemplateRouterTest {
         typeInfo<TestLoginPayload>(),
         typeInfo<TestCodePayload>(),
         typeInfo<TestRegisterPayload>(),
-        AuthMapping(
-            loginTemplate = "login",
-            registerTemplate = "register",
-        ),
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -58,6 +54,7 @@ class LocalizedAuthWithCodeTemplateRouterTest {
                 )
             )
         },
+        null,
         null,
         null,
         mockk(),

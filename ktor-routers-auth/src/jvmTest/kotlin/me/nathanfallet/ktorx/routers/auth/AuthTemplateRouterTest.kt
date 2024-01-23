@@ -41,12 +41,6 @@ class AuthTemplateRouterTest {
     ) = AuthTemplateRouter(
         typeInfo<TestLoginPayload>(),
         typeInfo<TestRegisterPayload>(),
-        AuthMapping(
-            loginTemplate = "login",
-            registerTemplate = "register",
-            authorizeTemplate = "authorize",
-            redirectTemplate = redirectTemplate,
-        ),
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -61,6 +55,7 @@ class AuthTemplateRouterTest {
         },
         null,
         "/auth/login?redirect={path}",
+        redirectTemplate,
         controller,
         TestAuthController::class,
     )
@@ -84,7 +79,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostLoginRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val loginPayload = TestLoginPayload("email", "password")
         coEvery { controller.login(any(), loginPayload) } returns Unit
@@ -107,7 +102,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostLoginRouteInvalidCredentials() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val loginPayload = TestLoginPayload("email", "password")
         coEvery { controller.login(any(), loginPayload) } throws ControllerException(
@@ -178,7 +173,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostRegisterRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val registerPayload = TestRegisterPayload("email", "password")
         coEvery { controller.register(any(), registerPayload) } returns Unit
@@ -201,7 +196,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostRegisterRouteInvalidBody() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val registerPayload = TestRegisterPayload("email", "password")
         coEvery { controller.register(any(), registerPayload) } returns Unit
@@ -228,7 +223,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testGetAuthorizeCodeRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val clientForUser = ClientForUser(TestClient("cid"), TestUser("uid"))
         coEvery { controller.authorize(any(), "cid") } returns clientForUser
@@ -249,7 +244,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testGetAuthorizeCodeRouteNeedsLogin() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         coEvery { controller.authorize(any(), "cid") } throws ControllerException(
             HttpStatusCode.Unauthorized,
@@ -265,7 +260,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostAuthorizeRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val clientForUser = ClientForUser(TestClient("cid"), TestUser("uid"))
         coEvery { controller.authorize(any(), "cid") } returns clientForUser
@@ -281,7 +276,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostAuthorizeRouteTemplate() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller, "redirect")
         val clientForUser = ClientForUser(TestClient("cid"), TestUser("uid"))
         coEvery { controller.authorize(any(), "cid") } returns clientForUser
@@ -302,7 +297,7 @@ class AuthTemplateRouterTest {
     @Test
     fun testPostAuthorizeCodeRouteNeedsLogin() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         coEvery { controller.authorize(any(), "cid") } throws ControllerException(
             HttpStatusCode.Unauthorized,

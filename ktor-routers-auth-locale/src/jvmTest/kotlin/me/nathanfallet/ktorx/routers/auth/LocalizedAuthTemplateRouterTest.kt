@@ -14,7 +14,10 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
-import me.nathanfallet.ktorx.models.auth.*
+import me.nathanfallet.ktorx.models.auth.AuthTemplateResponse
+import me.nathanfallet.ktorx.models.auth.TestAuthController
+import me.nathanfallet.ktorx.models.auth.TestLoginPayload
+import me.nathanfallet.ktorx.models.auth.TestRegisterPayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
@@ -48,10 +51,6 @@ class LocalizedAuthTemplateRouterTest {
     ) = LocalizedAuthTemplateRouter(
         typeInfo<TestLoginPayload>(),
         typeInfo<TestRegisterPayload>(),
-        AuthMapping(
-            loginTemplate = "login",
-            registerTemplate = "register",
-        ),
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -63,6 +62,7 @@ class LocalizedAuthTemplateRouterTest {
         },
         null,
         "/auth/login?redirect={path}",
+        null,
         controller,
         TestAuthController::class,
         getLocaleForCallUseCase
@@ -101,7 +101,7 @@ class LocalizedAuthTemplateRouterTest {
     @Test
     fun testPostLoginRouteInvalidCredentials() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<TestLoginPayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter(controller, getLocaleForCallUseCase)
         val loginPayload = TestLoginPayload("email", "password")

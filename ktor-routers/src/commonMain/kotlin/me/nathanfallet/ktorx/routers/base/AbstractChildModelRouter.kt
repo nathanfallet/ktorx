@@ -62,7 +62,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
 
     // Route calculation
 
-    private val controllerRoutes = controllerClass.memberFunctions.mapNotNull {
+    val controllerRoutes = controllerClass.memberFunctions.mapNotNull {
         val typeAnnotation = it.annotations.mapNotNull { annotation ->
             if (annotation.annotationClass.simpleName?.endsWith("Path") == true) Triple(
                 RouteType(annotation.annotationClass.simpleName!!.removeSuffix("Path").lowercase()),

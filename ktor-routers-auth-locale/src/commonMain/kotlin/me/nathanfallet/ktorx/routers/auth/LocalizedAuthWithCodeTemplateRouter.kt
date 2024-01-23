@@ -5,7 +5,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
-import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.routers.templates.ILocalizedTemplateRouter
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import kotlin.reflect.KClass
@@ -14,10 +13,10 @@ open class LocalizedAuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPaylo
     loginPayloadTypeInfo: TypeInfo,
     registerPayloadTypeInfo: TypeInfo,
     registerCodePayloadTypeInfo: TypeInfo,
-    authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
+    redirectTemplate: String? = null,
     controller: IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>,
     controllerClass: KClass<out IAuthWithCodeController<*, *, *>>,
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
@@ -27,10 +26,10 @@ open class LocalizedAuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPaylo
     loginPayloadTypeInfo,
     registerPayloadTypeInfo,
     registerCodePayloadTypeInfo,
-    authMapping,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     errorTemplate,
     redirectUnauthorizedToUrl,
+    redirectTemplate,
     controller,
     controllerClass,
     route,

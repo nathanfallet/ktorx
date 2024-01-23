@@ -40,9 +40,6 @@ class AuthWithCodeTemplateRouterTest {
         typeInfo<TestLoginPayload>(),
         typeInfo<TestCodePayload>(),
         typeInfo<TestRegisterPayload>(),
-        AuthMapping(
-            registerTemplate = "register",
-        ),
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -54,6 +51,7 @@ class AuthWithCodeTemplateRouterTest {
         },
         null,
         "/auth/login?redirect={path}",
+        null,
         controller,
         TestAuthWithCodeController::class
     )
@@ -77,7 +75,7 @@ class AuthWithCodeTemplateRouterTest {
     @Test
     fun testPostRegisterRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthWithCodeController>()
         val router = createRouter(controller)
         val registerPayload = TestCodePayload("code")
         coEvery { controller.register(any(), registerPayload) } returns Unit
@@ -123,7 +121,7 @@ class AuthWithCodeTemplateRouterTest {
     @Test
     fun testGetRegisterCodeRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthWithCodeController>()
         val router = createRouter(controller)
         val codePayload = TestCodePayload("code")
         coEvery { controller.register(any(), "code") } returns codePayload
@@ -143,7 +141,7 @@ class AuthWithCodeTemplateRouterTest {
     @Test
     fun testPostRegisterCodeRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthWithCodeController>()
         val router = createRouter(controller)
         val codePayload = TestCodePayload("code")
         val registerPayload = TestRegisterPayload("email", "password")
@@ -168,7 +166,7 @@ class AuthWithCodeTemplateRouterTest {
     @Test
     fun testPostRegisterCodeRouteInvalidBody() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthWithCodeController<TestLoginPayload, TestCodePayload, TestRegisterPayload>>()
+        val controller = mockk<TestAuthWithCodeController>()
         val router = createRouter(controller)
         val codePayload = TestCodePayload("code")
         val registerPayload = TestRegisterPayload("email", "password")

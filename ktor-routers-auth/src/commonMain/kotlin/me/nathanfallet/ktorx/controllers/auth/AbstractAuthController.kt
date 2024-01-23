@@ -22,21 +22,21 @@ abstract class AbstractAuthController<LoginPayload, RegisterPayload>(
     private val generateAuthTokenUseCase: IGenerateAuthTokenUseCase,
 ) : IAuthController<LoginPayload, RegisterPayload> {
 
-    override suspend fun login(call: ApplicationCall, payload: LoginPayload) {
+    open suspend fun login(call: ApplicationCall, payload: LoginPayload) {
         val user = loginUseCase(payload) ?: throw ControllerException(
             HttpStatusCode.Unauthorized, "auth_invalid_credentials"
         )
         setSessionForCallUseCase(call, createSessionForUserUseCase(user))
     }
 
-    override suspend fun register(call: ApplicationCall, payload: RegisterPayload) {
+    open suspend fun register(call: ApplicationCall, payload: RegisterPayload) {
         val user = registerUseCase(call, payload) ?: throw ControllerException(
             HttpStatusCode.InternalServerError, "error_internal"
         )
         setSessionForCallUseCase(call, createSessionForUserUseCase(user))
     }
 
-    override suspend fun authorize(call: ApplicationCall, clientId: String?): ClientForUser {
+    open suspend fun authorize(call: ApplicationCall, clientId: String?): ClientForUser {
         val user = requireUserForCallUseCase(call)
         val client = clientId?.let { getClientUseCase(it) } ?: throw ControllerException(
             HttpStatusCode.BadRequest, "auth_invalid_client"
@@ -44,14 +44,14 @@ abstract class AbstractAuthController<LoginPayload, RegisterPayload>(
         return ClientForUser(client, user)
     }
 
-    override suspend fun authorize(call: ApplicationCall, client: ClientForUser): String {
+    open suspend fun authorize(call: ApplicationCall, client: ClientForUser): String {
         val code = createAuthCodeUseCase(client) ?: throw ControllerException(
             HttpStatusCode.InternalServerError, "error_internal"
         )
         return client.client.redirectUri.replace("{code}", code)
     }
 
-    override suspend fun token(call: ApplicationCall, request: AuthRequest): AuthToken {
+    open suspend fun token(call: ApplicationCall, request: AuthRequest): AuthToken {
         val client = getAuthCodeUseCase(request.code)?.takeIf {
             it.client.clientId == request.clientId && it.client.clientSecret == request.clientSecret
         } ?: throw ControllerException(

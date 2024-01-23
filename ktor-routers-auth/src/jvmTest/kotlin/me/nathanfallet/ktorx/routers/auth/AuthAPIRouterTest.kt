@@ -12,7 +12,7 @@ import io.mockk.mockk
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Schema
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.auth.IAuthController
+import me.nathanfallet.ktorx.models.auth.TestAuthController
 import me.nathanfallet.usecases.auth.AuthRequest
 import me.nathanfallet.usecases.auth.AuthToken
 import kotlin.test.Test
@@ -34,13 +34,13 @@ class AuthAPIRouterTest {
     }
 
     private fun createRouter(
-        controller: IAuthController<*, *>,
-    ) = AuthAPIRouter(controller, IAuthController::class)
+        controller: TestAuthController,
+    ) = AuthAPIRouter(controller, TestAuthController::class)
 
     @Test
     fun testPostTokenRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<*, *>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val authRequest = AuthRequest("cid", "secret", "code")
         val authResponse = AuthToken("token", "refresh")
@@ -59,8 +59,7 @@ class AuthAPIRouterTest {
     @Test
     fun testPostTokenRouteInvalidBody() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<*, *>>()
-        val router = createRouter(controller)
+        val router = createRouter(mockk())
         routing {
             router.createRoutes(this)
         }
@@ -74,7 +73,7 @@ class AuthAPIRouterTest {
     @Test
     fun testAPIPostRouteOpenAPI() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IAuthController<*, *>>()
+        val controller = mockk<TestAuthController>()
         val router = createRouter(controller)
         val openAPI = OpenAPI()
         val authRequest = AuthRequest("cid", "secret", "code")

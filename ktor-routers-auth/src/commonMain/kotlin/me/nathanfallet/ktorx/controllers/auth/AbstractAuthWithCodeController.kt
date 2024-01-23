@@ -44,13 +44,13 @@ abstract class AbstractAuthWithCodeController<LoginPayload, RegisterPayload, Reg
         )
     }
 
-    override suspend fun register(call: ApplicationCall, code: String): RegisterPayload {
+    open suspend fun register(call: ApplicationCall, code: String): RegisterPayload {
         return getCodeRegisterUseCase(call, code) ?: throw ControllerException(
             HttpStatusCode.NotFound, "auth_code_invalid"
         )
     }
 
-    override suspend fun register(call: ApplicationCall, code: String, payload: RegisterCodePayload) {
+    open suspend fun register(call: ApplicationCall, code: String, payload: RegisterCodePayload) {
         val user = registerUseCase(call, payload) ?: throw ControllerException(
             HttpStatusCode.InternalServerError, "error_internal"
         )

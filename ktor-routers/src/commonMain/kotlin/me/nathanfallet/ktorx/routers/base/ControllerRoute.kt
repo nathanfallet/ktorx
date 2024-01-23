@@ -44,8 +44,7 @@ data class ControllerRoute(
                         } while (target.id != it.id)
                         return@associateWith target.get(call)
                     }
-                parameters[parameter.name]
-                    ?: throw IllegalArgumentException("Unknown parameter type: ${parameter.type}")
+                parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
             })
         } catch (e: Exception) {
             throw if (e is InvocationTargetException) e.targetException else e

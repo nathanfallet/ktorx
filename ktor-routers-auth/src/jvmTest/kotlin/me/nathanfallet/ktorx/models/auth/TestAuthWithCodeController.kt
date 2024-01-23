@@ -3,6 +3,7 @@ package me.nathanfallet.ktorx.models.auth
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.auth.AbstractAuthWithCodeController
 import me.nathanfallet.ktorx.models.annotations.RegisterCodePath
+import me.nathanfallet.ktorx.models.annotations.RegisterCodeRedirectPath
 import me.nathanfallet.ktorx.models.annotations.RegisterPath
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.usecases.auth.*
@@ -48,6 +49,12 @@ class TestAuthWithCodeController(
     @RegisterCodePath
     override suspend fun register(call: ApplicationCall, code: String): TestCodePayload {
         return super.register(call, code)
+    }
+
+    @TemplateMapping("register")
+    @RegisterCodeRedirectPath
+    override suspend fun register(call: ApplicationCall, code: String, payload: TestRegisterPayload) {
+        super.register(call, code, payload)
     }
 
 }

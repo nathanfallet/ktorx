@@ -10,10 +10,11 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.extensions.authorize
+import me.nathanfallet.ktorx.extensions.authorizeRedirect
 import me.nathanfallet.ktorx.extensions.login
 import me.nathanfallet.ktorx.extensions.register
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
-import me.nathanfallet.ktorx.models.auth.AuthMapping
+import me.nathanfallet.ktorx.models.auth.ClientForUser
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.base.ControllerRoute
 import me.nathanfallet.ktorx.routers.base.RouteType
@@ -25,10 +26,10 @@ import kotlin.reflect.KClass
 open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     val loginPayloadTypeInfo: TypeInfo,
     val registerPayloadTypeInfo: TypeInfo,
-    val authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
+    val redirectTemplate: String? = null,
     override val controller: IAuthController<LoginPayload, RegisterPayload>,
     controllerClass: KClass<out IAuthController<*, *>>,
     route: String? = "auth",
@@ -60,7 +61,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                             loginPayloadTypeInfo.type as KClass<LoginPayload>, call.receiveParameters().toMap()
                         ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
                         ModelAnnotations.validatePayload(payload, loginPayloadTypeInfo.type as KClass<LoginPayload>)
-                        controller.login(call, payload)
+                        controllerRoute(call, this@AuthTemplateRouter, mapOf("payload" to payload))
                         call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -84,7 +85,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                             payload,
                             registerPayloadTypeInfo.type as KClass<RegisterPayload>
                         )
-                        controller.register(call, payload)
+                        controllerRoute(call, this@AuthTemplateRouter, mapOf("payload" to payload))
                         call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -95,7 +96,9 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
             RouteType.authorize -> {
                 root.get("$fullRoute/authorize") {
                     try {
-                        val client = controller.authorize(call, call.parameters["client_id"])
+                        val client = controllerRoute(
+                            call, this@AuthTemplateRouter, mapOf("clientId" to call.parameters["client_id"])
+                        ) as ClientForUser
                         call.respondTemplate(
                             mapping.template,
                             mapOf(
@@ -107,11 +110,17 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                         handleExceptionTemplate(exception, call, mapping.template)
                     }
                 }
+            }
+
+            RouteType.authorizeRedirect -> {
                 root.post("$fullRoute/authorize") {
                     try {
-                        val client = controller.authorize(call, call.parameters["client_id"])
-                        val redirect = controller.authorize(call, client)
-                        authMapping.redirectTemplate?.let {
+                        val clientId = call.parameters["client_id"]
+                        val client = authorize(call, clientId)
+                        val redirect = controllerRoute(
+                            call, this@AuthTemplateRouter, mapOf("client" to client)
+                        ) as String
+                        redirectTemplate?.let {
                             call.respondTemplate(it, mapOf("redirect" to redirect))
                         } ?: call.respondRedirect(redirect)
                     } catch (exception: Exception) {
@@ -122,6 +131,12 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
 
             else -> super.createControllerRoute(root, controllerRoute, openAPI)
         }
+    }
+
+    private suspend fun authorize(call: ApplicationCall, clientId: String?): ClientForUser {
+        return controllerRoutes.singleOrNull { it.type == RouteType.authorize }?.invoke(
+            call, this, mapOf("clientId" to clientId)
+        ) as ClientForUser
     }
 
 }

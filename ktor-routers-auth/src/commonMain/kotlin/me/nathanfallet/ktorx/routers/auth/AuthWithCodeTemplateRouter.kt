@@ -10,8 +10,9 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
 import me.nathanfallet.ktorx.extensions.register
+import me.nathanfallet.ktorx.extensions.registerCode
+import me.nathanfallet.ktorx.extensions.registerCodeRedirect
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
-import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.base.ControllerRoute
 import me.nathanfallet.ktorx.routers.base.RouteType
@@ -23,10 +24,10 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
     loginPayloadTypeInfo: TypeInfo,
     registerPayloadTypeInfo: TypeInfo,
     val registerCodePayloadTypeInfo: TypeInfo,
-    authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
+    redirectTemplate: String? = null,
     override val controller: IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload>,
     controllerClass: KClass<out IAuthWithCodeController<*, *, *>>,
     route: String? = "auth",
@@ -34,21 +35,15 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
 ) : AuthTemplateRouter<LoginPayload, RegisterPayload>(
     loginPayloadTypeInfo,
     registerPayloadTypeInfo,
-    authMapping,
     respondTemplate,
     errorTemplate,
     redirectUnauthorizedToUrl,
+    redirectTemplate,
     controller,
     controllerClass,
     route,
     prefix
 ) {
-
-    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
-        super.createRoutes(root, openAPI)
-        createTemplateGetRegisterCodeRoute(root)
-        createTemplatePostRegisterCodeRoute(root)
-    }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
         val mapping = controllerRoute.function.annotations
@@ -70,7 +65,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                             payload,
                             registerPayloadTypeInfo.type as KClass<RegisterPayload>
                         )
-                        controller.register(call, payload)
+                        controllerRoute(call, this@AuthWithCodeTemplateRouter, mapOf("payload" to payload))
                         call.respondTemplate(
                             mapping.template,
                             mapOf("success" to "auth_register_code_created")
@@ -81,50 +76,57 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 }
             }
 
+            RouteType.registerCode -> {
+                root.get("$fullRoute/register/{code}") {
+                    try {
+                        val code = call.parameters["code"]!!
+                        val codePayload = controllerRoute(
+                            call, this@AuthWithCodeTemplateRouter, mapOf("code" to code)
+                        ) as RegisterCodePayload
+                        call.respondTemplate(
+                            mapping.template,
+                            mapOf("codePayload" to codePayload)
+                        )
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
+            }
+
+            RouteType.registerCodeRedirect -> {
+                root.post("$fullRoute/register/{code}") {
+                    try {
+                        val code = call.parameters["code"]!!
+                        register(call, code)
+                        val payload = ModelAnnotations.constructPayloadFromStringLists(
+                            registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>,
+                            call.receiveParameters().toMap()
+                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                        ModelAnnotations.validatePayload(
+                            payload,
+                            registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>
+                        )
+                        controllerRoute(
+                            call, this@AuthWithCodeTemplateRouter, mapOf(
+                                "code" to code,
+                                "payload" to payload
+                            )
+                        )
+                        call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
+            }
+
             else -> super.createControllerRoute(root, controllerRoute, openAPI)
         }
     }
 
-    open fun createTemplateGetRegisterCodeRoute(root: Route) {
-        authMapping.registerTemplate ?: return
-        root.get("$fullRoute/register/{code}") {
-            try {
-                val code = call.parameters["code"]!!
-                val codePayload = controller.register(call, code)
-                call.respondTemplate(
-                    authMapping.registerTemplate,
-                    mapOf("codePayload" to codePayload)
-                )
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, authMapping.registerTemplate)
-            }
-        }
-    }
-
-    open fun createTemplatePostRegisterCodeRoute(root: Route) {
-        authMapping.registerTemplate ?: return
-        root.post("$fullRoute/register/{code}") {
-            try {
-                val code = call.parameters["code"]!!
-                controller.register(call, code)
-                val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>,
-                    call.receiveParameters().toMap()
-                ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(
-                    payload,
-                    registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>
-                )
-                controller.register(
-                    call,
-                    code,
-                    payload
-                )
-                call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, authMapping.registerTemplate)
-            }
-        }
+    private suspend fun register(call: ApplicationCall, code: String): RegisterCodePayload {
+        return controllerRoutes.singleOrNull { it.type == RouteType.registerCode }?.invoke(
+            call, this, mapOf("code" to code)
+        ) as RegisterCodePayload
     }
 
 }
