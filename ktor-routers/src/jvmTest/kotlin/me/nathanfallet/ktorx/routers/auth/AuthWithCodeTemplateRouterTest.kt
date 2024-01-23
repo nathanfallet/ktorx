@@ -52,7 +52,8 @@ class AuthWithCodeTemplateRouterTest {
                 )
             )
         },
-        controller
+        controller,
+        IAuthWithCodeController::class
     )
 
     @Test

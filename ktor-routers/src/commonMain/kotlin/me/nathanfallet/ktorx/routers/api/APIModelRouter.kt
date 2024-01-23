@@ -6,6 +6,7 @@ import me.nathanfallet.ktorx.models.api.APIMapping
 import me.nathanfallet.ktorx.routers.IModelRouter
 import me.nathanfallet.usecases.models.IModel
 import me.nathanfallet.usecases.models.UnitModel
+import kotlin.reflect.KClass
 
 open class APIModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
@@ -13,6 +14,7 @@ open class APIModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, 
     updatePayloadTypeInfo: TypeInfo,
     listTypeInfo: TypeInfo,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
+    controllerClass: KClass<out IModelController<Model, Id, CreatePayload, UpdatePayload>>,
     mapping: APIMapping = APIMapping(),
     route: String? = null,
     id: String? = null,
@@ -24,6 +26,7 @@ open class APIModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, 
     listTypeInfo,
     controller,
     null,
+    controllerClass,
     mapping,
     route,
     id,

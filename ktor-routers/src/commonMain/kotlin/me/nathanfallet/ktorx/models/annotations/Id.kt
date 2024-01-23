@@ -1,0 +1,6 @@
+package me.nathanfallet.ktorx.models.annotations
+
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class Id(
+    val name: String = "id",
+)

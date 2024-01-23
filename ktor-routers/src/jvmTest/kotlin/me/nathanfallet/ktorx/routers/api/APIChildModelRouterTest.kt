@@ -13,12 +13,8 @@ import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.controllers.IModelController
-import me.nathanfallet.ktorx.models.TestChildModel
-import me.nathanfallet.ktorx.models.TestCreatePayload
-import me.nathanfallet.ktorx.models.TestModel
-import me.nathanfallet.ktorx.models.TestUpdatePayload
+import me.nathanfallet.ktorx.models.*
 import me.nathanfallet.ktorx.models.api.APIMapping
-import me.nathanfallet.usecases.models.UnitModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -55,6 +51,7 @@ class APIChildModelRouterTest {
         typeInfo<List<TestChildModel>>(),
         controller,
         parentRouter,
+        ITestChildModelController::class,
         mapping,
         route,
         null,
@@ -69,18 +66,18 @@ class APIChildModelRouterTest {
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
-            controller
+            controller,
+            ITestModelController::class
         )
     }
 
     @Test
     fun testAPIGetRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
-        val childController =
-            mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
+        val controller = mockk<ITestModelController>()
+        val childController = mockk<ITestChildModelController>()
         val router = createChildRouter(childController, createRouter(controller))
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         coEvery { childController.list(any(), mock) } returns listOf(childMock)
         routing {
             router.createRoutes(this)
@@ -93,11 +90,10 @@ class APIChildModelRouterTest {
     @Test
     fun testAPIGetRouteCustomRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
-        val childController =
-            mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
+        val controller = mockk<ITestModelController>()
+        val childController = mockk<ITestChildModelController>()
         val router = createChildRouter(childController, createRouter(controller), route = "childs")
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         coEvery { childController.list(any(), mock) } returns listOf(childMock)
         routing {
             router.createRoutes(this)
@@ -110,11 +106,10 @@ class APIChildModelRouterTest {
     @Test
     fun testAPIGetRouteCustomPrefix() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
-        val childController =
-            mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
+        val controller = mockk<ITestModelController>()
+        val childController = mockk<ITestChildModelController>()
         val router = createChildRouter(childController, createRouter(controller), route = "childs", prefix = "/api/v1")
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         coEvery { childController.list(any(), mock) } returns listOf(childMock)
         routing {
             router.createRoutes(this)
@@ -127,11 +122,10 @@ class APIChildModelRouterTest {
     @Test
     fun testAPIGetIdRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
-        val childController =
-            mockk<IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>>()
+        val controller = mockk<ITestModelController>()
+        val childController = mockk<ITestChildModelController>()
         val router = createChildRouter(childController, createRouter(controller))
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         coEvery { childController.get(any(), mock, 2) } returns childMock
         routing {
             router.createRoutes(this)
@@ -139,61 +133,6 @@ class APIChildModelRouterTest {
         val response = client.get("/api/testmodels/1/testchildmodels/2")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(childMock, response.body())
-    }
-
-    @Test
-    fun testAPIGetRouteNotMapped() = testApplication {
-        val client = installApp(this)
-        val router = createChildRouter(mockk(), createRouter(mockk()), APIMapping(listEnabled = false))
-        routing {
-            router.createRoutes(this)
-        }
-        val response = client.get("/api/testmodels/1/testchildmodels")
-        assertEquals(HttpStatusCode.NotFound, response.status)
-    }
-
-    @Test
-    fun testAPIGetIdRouteNotMapped() = testApplication {
-        val client = installApp(this)
-        val router = createChildRouter(mockk(), createRouter(mockk()), APIMapping(getEnabled = false))
-        routing {
-            router.createRoutes(this)
-        }
-        val response = client.get("/api/testmodels/1/testchildmodels/2")
-        assertEquals(HttpStatusCode.NotFound, response.status)
-    }
-
-    @Test
-    fun testAPICreateRouteNotMapped() = testApplication {
-        val client = installApp(this)
-        val router = createChildRouter(mockk(), createRouter(mockk()), APIMapping(createEnabled = false))
-        routing {
-            router.createRoutes(this)
-        }
-        val response = client.post("/api/testmodels/1/testchildmodels")
-        assertEquals(HttpStatusCode.NotFound, response.status)
-    }
-
-    @Test
-    fun testAPIUpdateRouteNotMapped() = testApplication {
-        val client = installApp(this)
-        val router = createChildRouter(mockk(), createRouter(mockk()), APIMapping(updateEnabled = false))
-        routing {
-            router.createRoutes(this)
-        }
-        val response = client.put("/api/testmodels/1/testchildmodels/1")
-        assertEquals(HttpStatusCode.NotFound, response.status)
-    }
-
-    @Test
-    fun testAPIDeleteRouteNotMapped() = testApplication {
-        val client = installApp(this)
-        val router = createChildRouter(mockk(), createRouter(mockk()), APIMapping(deleteEnabled = false))
-        routing {
-            router.createRoutes(this)
-        }
-        val response = client.delete("/api/testmodels/1/testchildmodels/1")
-        assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
     @Test

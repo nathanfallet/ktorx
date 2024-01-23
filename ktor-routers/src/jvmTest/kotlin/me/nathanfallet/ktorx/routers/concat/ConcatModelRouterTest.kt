@@ -11,12 +11,11 @@ import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.routers.api.APIModelRouter
-import me.nathanfallet.usecases.models.UnitModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -40,14 +39,15 @@ class ConcatModelRouterTest {
 
     @Test
     fun testRouterOf() {
-        val apiRouter = APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
+        val apiRouter = APIModelRouter(
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
-            mockk()
+            mockk(),
+            ITestModelController::class
         )
-        val router = ConcatModelRouter(listOf(apiRouter))
+        val router = ConcatModelRouter(listOf(apiRouter), ITestModelController::class)
         assertEquals(apiRouter, router.routerOf())
         assertFailsWith(NoSuchElementException::class) {
             router.routerOf<ConcatModelRouter<*, *, *, *>>()
@@ -56,14 +56,15 @@ class ConcatModelRouterTest {
 
     @Test
     fun testRouterOfOrNull() {
-        val apiRouter = APIModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
+        val apiRouter = APIModelRouter(
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
-            mockk()
+            mockk(),
+            ITestModelController::class
         )
-        val router = ConcatModelRouter(listOf(apiRouter))
+        val router = ConcatModelRouter(listOf(apiRouter), ITestModelController::class)
         assertEquals(apiRouter, router.routerOfOrNull())
         assertEquals(null as ConcatModelRouter<*, *, *, *>?, router.routerOfOrNull())
     }
@@ -71,7 +72,7 @@ class ConcatModelRouterTest {
     @Test
     fun testAPIGetRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = ConcatModelRouter(
             listOf(
                 APIModelRouter(
@@ -79,11 +80,13 @@ class ConcatModelRouterTest {
                     typeInfo<TestCreatePayload>(),
                     typeInfo<TestUpdatePayload>(),
                     typeInfo<List<TestModel>>(),
-                    controller
+                    controller,
+                    ITestModelController::class
                 )
-            )
+            ),
+            ITestModelController::class
         )
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         routing {
             router.createRoutes(this)
         }

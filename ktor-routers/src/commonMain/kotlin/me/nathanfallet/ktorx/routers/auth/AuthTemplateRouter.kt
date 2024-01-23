@@ -21,8 +21,9 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     val loginPayloadTypeInfo: TypeInfo,
     val registerPayloadTypeInfo: TypeInfo,
     val authMapping: AuthMapping,
-    respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+    respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     override val controller: IAuthController<LoginPayload, RegisterPayload>,
+    controllerClass: KClass<out IAuthController<*, *>>,
     route: String? = "auth",
     prefix: String? = null,
 ) : TemplateUnitRouter(
@@ -32,6 +33,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     ),
     respondTemplate,
     controller,
+    controllerClass,
     route,
     prefix
 ) {

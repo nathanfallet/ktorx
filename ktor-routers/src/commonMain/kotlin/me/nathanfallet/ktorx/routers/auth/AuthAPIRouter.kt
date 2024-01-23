@@ -11,13 +11,16 @@ import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.routers.api.APIUnitRouter
 import me.nathanfallet.usecases.auth.AuthRequest
 import me.nathanfallet.usecases.auth.AuthToken
+import kotlin.reflect.KClass
 
 open class AuthAPIRouter(
     override val controller: IAuthController<*, *>,
+    controllerClass: KClass<out IAuthController<*, *>>,
     route: String? = "auth",
     prefix: String? = null,
 ) : APIUnitRouter(
     controller,
+    controllerClass,
     route,
     prefix
 ) {

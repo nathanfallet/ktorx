@@ -12,7 +12,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
@@ -41,7 +41,11 @@ class AbstractModelRouterTest {
         id: String?,
         prefix: String?,
     ): AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-        val controller = object : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
+        val controller = object : ITestModelController {
+            override suspend fun basic(call: ApplicationCall): String {
+                throw NotImplementedError()
+            }
+
             override suspend fun list(call: ApplicationCall): List<TestModel> {
                 return emptyList()
             }
@@ -68,6 +72,7 @@ class AbstractModelRouterTest {
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
             controller,
+            ITestModelController::class,
             route,
             id,
             prefix
@@ -77,6 +82,8 @@ class AbstractModelRouterTest {
                     call.respond(mock)
                 }
             }
+
+            override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {}
         }
     }
 

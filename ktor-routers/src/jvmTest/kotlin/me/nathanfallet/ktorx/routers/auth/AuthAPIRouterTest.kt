@@ -35,7 +35,7 @@ class AuthAPIRouterTest {
 
     private fun createRouter(
         controller: IAuthController<*, *>,
-    ) = AuthAPIRouter(controller)
+    ) = AuthAPIRouter(controller, IAuthController::class)
 
     @Test
     fun testPostTokenRoute() = testApplication {

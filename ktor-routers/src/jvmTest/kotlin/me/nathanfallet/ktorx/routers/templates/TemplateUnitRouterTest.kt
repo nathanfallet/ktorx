@@ -11,6 +11,8 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
+import me.nathanfallet.ktorx.controllers.IUnitController
+import me.nathanfallet.ktorx.controllers.base.UnitController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,7 +37,7 @@ class TemplateUnitRouterTest {
         val client = installApp(this)
         val router = object : TemplateUnitRouter(TemplateMapping(""), { template, _ ->
             respond(template)
-        }) {
+        }, UnitController, IUnitController::class) {
             override fun createRoutes(root: Route, openAPI: OpenAPI?) {
                 root.get("/test") {
                     call.respondTemplate("test", mapOf())

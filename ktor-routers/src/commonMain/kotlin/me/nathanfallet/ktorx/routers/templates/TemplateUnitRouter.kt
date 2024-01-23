@@ -5,12 +5,15 @@ import io.ktor.util.reflect.*
 import me.nathanfallet.ktorx.controllers.IUnitController
 import me.nathanfallet.ktorx.controllers.base.UnitController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
+import me.nathanfallet.ktorx.routers.IUnitRouter
 import me.nathanfallet.usecases.models.UnitModel
+import kotlin.reflect.KClass
 
 open class TemplateUnitRouter(
     mapping: TemplateMapping,
-    respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+    respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     controller: IUnitController = UnitController,
+    controllerClass: KClass<out IUnitController> = UnitController::class,
     route: String? = null,
     prefix: String? = null,
 ) : TemplateModelRouter<UnitModel, Unit, Unit, Unit>(
@@ -19,8 +22,9 @@ open class TemplateUnitRouter(
     typeInfo<Unit>(),
     typeInfo<List<UnitModel>>(),
     controller,
+    controllerClass,
     mapping,
     respondTemplate,
     route = route,
     prefix = prefix
-)
+), IUnitRouter

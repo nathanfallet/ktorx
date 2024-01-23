@@ -60,7 +60,8 @@ class AuthTemplateRouterTest {
                 )
             )
         },
-        controller
+        controller,
+        IAuthController::class
     )
 
     @Test

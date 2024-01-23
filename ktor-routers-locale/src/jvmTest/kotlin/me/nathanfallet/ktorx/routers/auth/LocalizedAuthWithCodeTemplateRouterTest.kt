@@ -12,6 +12,7 @@ import io.ktor.util.reflect.*
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
+import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
 import me.nathanfallet.ktorx.models.auth.*
 import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
@@ -59,6 +60,7 @@ class LocalizedAuthWithCodeTemplateRouterTest {
             )
         },
         mockk(),
+        IAuthWithCodeController::class,
         getLocaleForCallUseCase
     )
 

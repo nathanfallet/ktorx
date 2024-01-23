@@ -14,11 +14,11 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Schema
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.usecases.models.UnitModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -50,15 +50,16 @@ class APIModelRouterTest {
         typeInfo<TestCreatePayload>(),
         typeInfo<TestUpdatePayload>(),
         typeInfo<List<TestModel>>(),
-        controller
+        controller,
+        ITestModelController::class
     )
 
     @Test
     fun testAPIGetRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         routing {
             router.createRoutes(this)
         }
@@ -70,9 +71,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIGetRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.list(any(), UnitModel) } throws ControllerException(
+        coEvery { controller.list(any()) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -87,10 +88,10 @@ class APIModelRouterTest {
     @Test
     fun testAPIGetRouteOpenAPI() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
         val openAPI = OpenAPI()
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         routing {
             router.createRoutes(this, openAPI)
         }
@@ -110,9 +111,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIGetIdRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -124,9 +125,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIGetIdRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } throws ControllerException(
+        coEvery { controller.get(any(), 1) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -141,10 +142,10 @@ class APIModelRouterTest {
     @Test
     fun testAPIGetIdRouteOpenAPI() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
         val openAPI = OpenAPI()
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         routing {
             router.createRoutes(this, openAPI)
         }
@@ -165,9 +166,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIPostRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.create(any(), UnitModel, createMock) } returns mock
+        coEvery { controller.create(any(), createMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -182,9 +183,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIPostRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.create(any(), UnitModel, createMock) } throws ControllerException(
+        coEvery { controller.create(any(), createMock) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -231,10 +232,10 @@ class APIModelRouterTest {
     @Test
     fun testAPIPostRouteOpenAPI() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
         val openAPI = OpenAPI()
-        coEvery { controller.create(any(), UnitModel, createMock) } returns mock
+        coEvery { controller.create(any(), createMock) } returns mock
         routing {
             router.createRoutes(this, openAPI)
         }
@@ -265,9 +266,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIPutRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
+        coEvery { controller.update(any(), 1, updateMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -282,9 +283,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIPutRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.update(any(), UnitModel, 1, updateMock) } throws ControllerException(
+        coEvery { controller.update(any(), 1, updateMock) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -302,9 +303,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIPutRouteValidatorException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
+        coEvery { controller.update(any(), 1, updateMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -333,10 +334,10 @@ class APIModelRouterTest {
     @Test
     fun testAPIPutRouteOpenAPI() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
         val openAPI = OpenAPI()
-        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
+        coEvery { controller.update(any(), 1, updateMock) } returns mock
         routing {
             router.createRoutes(this, openAPI)
         }
@@ -368,9 +369,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIDeleteRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.delete(any(), UnitModel, 1) } returns Unit
+        coEvery { controller.delete(any(), 1) } returns Unit
         routing {
             router.createRoutes(this)
         }
@@ -381,9 +382,9 @@ class APIModelRouterTest {
     @Test
     fun testAPIDeleteRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
-        coEvery { controller.delete(any(), UnitModel, 1) } throws ControllerException(
+        coEvery { controller.delete(any(), 1) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -398,10 +399,10 @@ class APIModelRouterTest {
     @Test
     fun testAPIDeleteRouteOpenAPI() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter(controller)
         val openAPI = OpenAPI()
-        coEvery { controller.delete(any(), UnitModel, 1) } returns Unit
+        coEvery { controller.delete(any(), 1) } returns Unit
         routing {
             router.createRoutes(this, openAPI)
         }

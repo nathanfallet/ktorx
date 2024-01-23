@@ -13,6 +13,8 @@ import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
+import me.nathanfallet.ktorx.routers.base.ControllerRoute
+import me.nathanfallet.ktorx.routers.base.RouteType
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
@@ -26,8 +28,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     listTypeInfo: TypeInfo,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
+    controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
     val mapping: TemplateMapping,
-    val respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+    val respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -38,21 +41,11 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     listTypeInfo,
     controller,
     parentRouter,
+    controllerClass,
     route,
     id,
     prefix
 ) {
-
-    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
-        createTemplateGetRoute(root)
-        createTemplateGetCreateRoute(root)
-        createTemplatePostCreateRoute(root)
-        createTemplateGetIdRoute(root)
-        createTemplateGetIdUpdateRoute(root)
-        createTemplatePostIdUpdateRoute(root)
-        createTemplateGetIdDeleteRoute(root)
-        createTemplatePostIdDeleteRoute(root)
-    }
 
     open suspend fun handleExceptionTemplate(
         exception: Exception,
@@ -94,136 +87,123 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         return mapping.redirectUnauthorizedToUrl?.startsWith(call.request.path()) == true
     }
 
-    open fun createTemplateGetRoute(root: Route) {
-        mapping.listTemplate ?: return
-        root.get(fullRoute) {
-            try {
-                call.respondTemplate(
-                    mapping.listTemplate,
-                    mapOf(
-                        "route" to route,
-                        "items" to getAll(call),
-                        "keys" to modelKeys
+    override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
+        val mapping = controllerRoute.function.annotations
+            .firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.TemplateMapping } ?: return
+        when (controllerRoute.type) {
+            RouteType.LIST -> root.get(fullRoute) {
+                try {
+                    call.respondTemplate(
+                        mapping.template,
+                        mapOf(
+                            "route" to route,
+                            "items" to controllerRoute(call, this@TemplateChildModelRouter),
+                            "keys" to modelKeys
+                        )
                     )
-                )
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.listTemplate)
+                } catch (exception: Exception) {
+                    handleExceptionTemplate(exception, call, mapping.template)
+                }
             }
-        }
-    }
 
-    open fun createTemplateGetCreateRoute(root: Route) {
-        mapping.createTemplate ?: return
-        root.get("$fullRoute/create") {
-            try {
-                call.respondTemplate(
-                    mapping.createTemplate,
-                    mapOf(
-                        "route" to route,
-                        "keys" to createPayloadKeys
+            RouteType.GET -> root.get("$fullRoute/{$id}") {
+                try {
+                    call.respondTemplate(
+                        mapping.template,
+                        mapOf(
+                            "route" to route,
+                            "item" to controllerRoute(call, this@TemplateChildModelRouter),
+                            "keys" to modelKeys
+                        )
                     )
-                )
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.createTemplate)
+                } catch (exception: Exception) {
+                    handleExceptionTemplate(exception, call, mapping.template)
+                }
             }
-        }
-    }
 
-    open fun createTemplatePostCreateRoute(root: Route) {
-        mapping.createTemplate ?: return
-        root.post("$fullRoute/create") {
-            try {
-                val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    createPayloadTypeInfo.type as KClass<CreatePayload>, call.receiveParameters().toMap()
-                ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, createPayloadTypeInfo.type as KClass<CreatePayload>)
-                create(call, payload)
-                call.respondRedirect("../$route")
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.createTemplate)
+            RouteType.CREATE -> {
+                root.get("$fullRoute/create") {
+                    try {
+                        call.respondTemplate(
+                            mapping.template,
+                            mapOf(
+                                "route" to route,
+                                "keys" to createPayloadKeys
+                            )
+                        )
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
+                root.post("$fullRoute/create") {
+                    try {
+                        val payload = ModelAnnotations.constructPayloadFromStringLists(
+                            createPayloadTypeInfo.type as KClass<CreatePayload>, call.receiveParameters().toMap()
+                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                        ModelAnnotations.validatePayload(payload, createPayloadTypeInfo.type as KClass<CreatePayload>)
+                        controllerRoute(call, this@TemplateChildModelRouter, mapOf("payload" to payload))
+                        call.respondRedirect("../$route")
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
             }
-        }
-    }
 
-    open fun createTemplateGetIdRoute(root: Route) {
-        mapping.getTemplate ?: return
-        root.get("$fullRoute/{$id}") {
-            try {
-                call.respondTemplate(
-                    mapping.getTemplate,
-                    mapOf(
-                        "route" to route,
-                        "item" to get(call),
-                        "keys" to modelKeys
-                    )
-                )
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.getTemplate)
+            RouteType.UPDATE -> {
+                root.get("$fullRoute/{$id}/update") {
+                    try {
+                        call.respondTemplate(
+                            mapping.template,
+                            mapOf(
+                                "route" to route,
+                                "item" to get(call),
+                                "keys" to updatePayloadKeys
+                            )
+                        )
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
+                root.post("$fullRoute/{$id}/update") {
+                    try {
+                        val payload = ModelAnnotations.constructPayloadFromStringLists(
+                            updatePayloadTypeInfo.type as KClass<UpdatePayload>, call.receiveParameters().toMap()
+                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
+                        ModelAnnotations.validatePayload(payload, updatePayloadTypeInfo.type as KClass<UpdatePayload>)
+                        controllerRoute(call, this@TemplateChildModelRouter, mapOf("payload" to payload))
+                        call.respondRedirect("../../$route")
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
             }
-        }
-    }
 
-    open fun createTemplateGetIdUpdateRoute(root: Route) {
-        mapping.updateTemplate ?: return
-        root.get("$fullRoute/{$id}/update") {
-            try {
-                call.respondTemplate(
-                    mapping.updateTemplate,
-                    mapOf(
-                        "route" to route,
-                        "item" to get(call),
-                        "keys" to updatePayloadKeys
-                    )
-                )
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.updateTemplate)
+            RouteType.DELETE -> {
+                root.get("$fullRoute/{$id}/delete") {
+                    try {
+                        call.respondTemplate(
+                            mapping.template,
+                            mapOf(
+                                "route" to route,
+                                "item" to get(call),
+                                "keys" to modelKeys
+                            )
+                        )
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
+                root.post("$fullRoute/{$id}/delete") {
+                    try {
+                        controllerRoute(call, this@TemplateChildModelRouter)
+                        call.respondRedirect("../../$route")
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
             }
-        }
-    }
 
-    open fun createTemplatePostIdUpdateRoute(root: Route) {
-        mapping.updateTemplate ?: return
-        root.post("$fullRoute/{$id}/update") {
-            try {
-                val payload = ModelAnnotations.constructPayloadFromStringLists(
-                    updatePayloadTypeInfo.type as KClass<UpdatePayload>, call.receiveParameters().toMap()
-                ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                ModelAnnotations.validatePayload(payload, updatePayloadTypeInfo.type as KClass<UpdatePayload>)
-                update(call, payload)
-                call.respondRedirect("../../$route")
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.updateTemplate)
-            }
-        }
-    }
-
-    open fun createTemplateGetIdDeleteRoute(root: Route) {
-        mapping.deleteTemplate ?: return
-        root.get("$fullRoute/{$id}/delete") {
-            try {
-                call.respondTemplate(
-                    mapping.deleteTemplate,
-                    mapOf(
-                        "route" to route,
-                        "item" to get(call),
-                        "keys" to modelKeys
-                    )
-                )
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.deleteTemplate)
-            }
-        }
-    }
-
-    open fun createTemplatePostIdDeleteRoute(root: Route) {
-        mapping.deleteTemplate ?: return
-        root.post("$fullRoute/{$id}/delete") {
-            try {
-                delete(call)
-                call.respondRedirect("../../$route")
-            } catch (exception: Exception) {
-                handleExceptionTemplate(exception, call, mapping.deleteTemplate)
-            }
+            else -> {}
         }
     }
 

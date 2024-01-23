@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
@@ -60,6 +61,7 @@ class LocalizedTemplateChildModelRouterTest {
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
             controller,
+            ITestModelController::class,
             null,
             TemplateMapping(
                 errorTemplate = "error",
@@ -104,10 +106,10 @@ class LocalizedTemplateChildModelRouterTest {
     @Test
     fun testLocaleEnglish() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)

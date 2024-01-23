@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
@@ -21,7 +22,6 @@ import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
-import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelKey
 import java.util.*
 import kotlin.test.Test
@@ -60,6 +60,7 @@ class LocalizedTemplateModelRouterTest {
             typeInfo<TestUpdatePayload>(),
             typeInfo<List<TestModel>>(),
             controller,
+            ITestModelController::class,
             TemplateMapping(
                 errorTemplate = "error",
                 listTemplate = "list",
@@ -102,10 +103,10 @@ class LocalizedTemplateModelRouterTest {
     @Test
     fun testLocaleEnglish() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)

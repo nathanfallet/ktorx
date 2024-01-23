@@ -66,6 +66,7 @@ class LocalizedAuthTemplateRouterTest {
             )
         },
         controller,
+        IAuthController::class,
         getLocaleForCallUseCase
     )
 

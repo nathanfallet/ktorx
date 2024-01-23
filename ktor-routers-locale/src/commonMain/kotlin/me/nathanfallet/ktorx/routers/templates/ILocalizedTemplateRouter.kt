@@ -14,9 +14,9 @@ interface ILocalizedTemplateRouter {
     companion object {
 
         fun wrapRespondTemplate(
-            respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+            respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
             getLocaleForCallUseCase: IGetLocaleForCallUseCase,
-        ): suspend ApplicationCall.(String, Map<String, Any>) -> Unit {
+        ): suspend ApplicationCall.(String, Map<String, Any?>) -> Unit {
             return { template, model ->
                 respondTemplate(template, model + mapOf("locale" to getLocaleForCallUseCase(this)))
             }

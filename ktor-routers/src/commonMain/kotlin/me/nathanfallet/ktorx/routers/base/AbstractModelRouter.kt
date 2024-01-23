@@ -5,6 +5,7 @@ import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.routers.IModelRouter
 import me.nathanfallet.usecases.models.IModel
 import me.nathanfallet.usecases.models.UnitModel
+import kotlin.reflect.KClass
 
 abstract class AbstractModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
@@ -12,6 +13,7 @@ abstract class AbstractModelRouter<Model : IModel<Id, CreatePayload, UpdatePaylo
     updatePayloadTypeInfo: TypeInfo,
     listTypeInfo: TypeInfo,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
+    controllerClass: KClass<out IModelController<Model, Id, CreatePayload, UpdatePayload>>,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -22,6 +24,7 @@ abstract class AbstractModelRouter<Model : IModel<Id, CreatePayload, UpdatePaylo
     listTypeInfo,
     controller,
     null,
+    controllerClass,
     route,
     id,
     prefix

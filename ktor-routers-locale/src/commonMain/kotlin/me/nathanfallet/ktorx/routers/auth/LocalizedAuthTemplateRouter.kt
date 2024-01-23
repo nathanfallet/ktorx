@@ -8,13 +8,15 @@ import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.routers.templates.ILocalizedTemplateRouter
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
+import kotlin.reflect.KClass
 
 open class LocalizedAuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     loginPayloadTypeInfo: TypeInfo,
     registerPayloadTypeInfo: TypeInfo,
     authMapping: AuthMapping,
-    respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+    respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     controller: IAuthController<LoginPayload, RegisterPayload>,
+    controllerClass: KClass<out IAuthController<*, *>>,
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = "auth",
     prefix: String? = null,
@@ -24,6 +26,7 @@ open class LocalizedAuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any
     authMapping,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     controller,
+    controllerClass,
     route,
     prefix
 ), ILocalizedTemplateRouter {

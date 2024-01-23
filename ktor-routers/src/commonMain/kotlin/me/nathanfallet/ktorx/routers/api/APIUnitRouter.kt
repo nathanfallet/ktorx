@@ -3,10 +3,13 @@ package me.nathanfallet.ktorx.routers.api
 import io.ktor.util.reflect.*
 import me.nathanfallet.ktorx.controllers.IUnitController
 import me.nathanfallet.ktorx.controllers.base.UnitController
+import me.nathanfallet.ktorx.routers.IUnitRouter
 import me.nathanfallet.usecases.models.UnitModel
+import kotlin.reflect.KClass
 
 open class APIUnitRouter(
     controller: IUnitController = UnitController,
+    controllerClass: KClass<out IUnitController>,
     route: String? = null,
     prefix: String? = null,
 ) : APIModelRouter<UnitModel, Unit, Unit, Unit>(
@@ -15,6 +18,7 @@ open class APIUnitRouter(
     typeInfo<Unit>(),
     typeInfo<List<UnitModel>>(),
     controller,
+    controllerClass,
     route = route,
     prefix = prefix
-)
+), IUnitRouter

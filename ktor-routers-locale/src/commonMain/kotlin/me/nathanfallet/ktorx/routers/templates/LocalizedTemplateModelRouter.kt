@@ -8,6 +8,7 @@ import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.IModel
+import kotlin.reflect.KClass
 
 open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
@@ -15,8 +16,9 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
     updatePayloadTypeInfo: TypeInfo,
     listTypeInfo: TypeInfo,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
+    controllerClass: KClass<out IModelController<Model, Id, CreatePayload, UpdatePayload>>,
     mapping: TemplateMapping,
-    respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+    respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = null,
     id: String? = null,
@@ -27,6 +29,7 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
     updatePayloadTypeInfo,
     listTypeInfo,
     controller,
+    controllerClass,
     mapping,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     route,
