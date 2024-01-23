@@ -2,6 +2,7 @@ package me.nathanfallet.ktorx.controllers.auth
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
@@ -38,7 +39,7 @@ abstract class AbstractAuthWithCodeController<LoginPayload, RegisterPayload, Reg
     generateAuthTokenUseCase,
 ), IAuthWithCodeController<LoginPayload, RegisterPayload, RegisterCodePayload> {
 
-    override suspend fun register(call: ApplicationCall, payload: RegisterPayload) {
+    override suspend fun register(call: ApplicationCall, @Payload payload: RegisterPayload) {
         createCodeRegisterUseCase(call, payload) ?: throw ControllerException(
             HttpStatusCode.BadRequest, "auth_register_email_taken"
         )
@@ -50,7 +51,7 @@ abstract class AbstractAuthWithCodeController<LoginPayload, RegisterPayload, Reg
         )
     }
 
-    open suspend fun register(call: ApplicationCall, code: String, payload: RegisterCodePayload) {
+    open suspend fun register(call: ApplicationCall, code: String, @Payload payload: RegisterCodePayload) {
         val user = registerUseCase(call, payload) ?: throw ControllerException(
             HttpStatusCode.InternalServerError, "error_internal"
         )

@@ -4,9 +4,9 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
-import me.nathanfallet.ktorx.routers.base.ControllerRoute
 import me.nathanfallet.usecases.models.IChildModel
 import kotlin.reflect.KClass
 

@@ -190,7 +190,7 @@ class APIModelRouterTest {
         }
         client.get("/api/testmodels/1")
         val get = openAPI.paths["/api/testmodels/{testmodelId}"]?.get
-        assertEquals("getTestModelById", get?.operationId)
+        assertEquals("getTestModel", get?.operationId)
         assertEquals(listOf("TestModel"), get?.tags)
         assertEquals("Get a TestModel by id", get?.description)
         assertEquals(1, get?.parameters?.size)
@@ -385,7 +385,7 @@ class APIModelRouterTest {
             setBody(updateMock)
         }
         val put = openAPI.paths["/api/testmodels/{testmodelId}"]?.put
-        assertEquals("updateTestModelById", put?.operationId)
+        assertEquals("updateTestModel", put?.operationId)
         assertEquals(listOf("TestModel"), put?.tags)
         assertEquals("Update a TestModel by id", put?.description)
         assertEquals(1, put?.parameters?.size)
@@ -447,7 +447,7 @@ class APIModelRouterTest {
         }
         client.delete("/api/testmodels/1")
         val delete = openAPI.paths["/api/testmodels/{testmodelId}"]?.delete
-        assertEquals("deleteTestModelById", delete?.operationId)
+        assertEquals("deleteTestModel", delete?.operationId)
         assertEquals(listOf("TestModel"), delete?.tags)
         assertEquals("Delete a TestModel by id", delete?.description)
         assertEquals(1, delete?.parameters?.size)

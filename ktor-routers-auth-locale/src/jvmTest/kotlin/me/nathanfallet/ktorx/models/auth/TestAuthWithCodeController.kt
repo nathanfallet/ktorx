@@ -3,6 +3,7 @@ package me.nathanfallet.ktorx.models.auth
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.auth.AbstractAuthWithCodeController
 import me.nathanfallet.ktorx.models.annotations.LoginPath
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
@@ -39,7 +40,7 @@ class TestAuthWithCodeController(
 
     @TemplateMapping("login")
     @LoginPath
-    override suspend fun login(call: ApplicationCall, payload: TestLoginPayload) {
+    override suspend fun login(call: ApplicationCall, @Payload payload: TestLoginPayload) {
         super.login(call, payload)
     }
 

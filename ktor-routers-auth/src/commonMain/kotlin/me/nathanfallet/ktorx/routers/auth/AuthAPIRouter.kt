@@ -2,16 +2,15 @@ package me.nathanfallet.ktorx.routers.auth
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.APIMapping
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.api.APIUnitRouter
-import me.nathanfallet.ktorx.routers.base.ControllerRoute
-import me.nathanfallet.ktorx.routers.base.RouteType
 import me.nathanfallet.usecases.auth.AuthRequest
 import me.nathanfallet.usecases.auth.AuthToken
 import kotlin.reflect.KClass
@@ -45,10 +44,7 @@ open class AuthAPIRouter(
             RouteType.token -> {
                 root.post("$fullRoute/token") {
                     try {
-                        val request = call.receive<AuthRequest>()
-                        val response = controllerRoute(
-                            call, this@AuthAPIRouter, mapOf("request" to request)
-                        ) as AuthToken
+                        val response = invokeControllerRoute(call, controllerRoute) as AuthToken
                         call.response.status(HttpStatusCode.Created)
                         call.respond(response)
                     } catch (exception: Exception) {

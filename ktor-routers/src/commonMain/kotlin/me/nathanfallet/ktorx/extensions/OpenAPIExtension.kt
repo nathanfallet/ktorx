@@ -1,5 +1,6 @@
 package me.nathanfallet.ktorx.extensions
 
+import io.ktor.http.*
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
@@ -64,6 +65,10 @@ fun OpenAPI.schema(type: KType): Schema<Any> {
 fun OpenAPI.path(path: String, build: PathItem.() -> Unit): OpenAPI = path(
     path, (paths?.get(path) ?: PathItem()).apply(build)
 )
+
+fun OpenAPI.route(method: HttpMethod, path: String, build: Operation.() -> Unit) = path(path) {
+    javaClass.methods.firstOrNull { it.name == method.value.lowercase() }?.invoke(this, Operation().apply(build))
+}
 
 fun OpenAPI.get(path: String, build: Operation.() -> Unit) = path(path) {
     get(Operation().apply(build))

@@ -2,10 +2,7 @@ package me.nathanfallet.ktorx.models.auth
 
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.auth.AbstractAuthWithCodeController
-import me.nathanfallet.ktorx.models.annotations.RegisterCodePath
-import me.nathanfallet.ktorx.models.annotations.RegisterCodeRedirectPath
-import me.nathanfallet.ktorx.models.annotations.RegisterPath
-import me.nathanfallet.ktorx.models.annotations.TemplateMapping
+import me.nathanfallet.ktorx.models.annotations.*
 import me.nathanfallet.ktorx.usecases.auth.*
 import me.nathanfallet.ktorx.usecases.users.IRequireUserForCallUseCase
 
@@ -41,7 +38,7 @@ class TestAuthWithCodeController(
 
     @TemplateMapping("register")
     @RegisterPath
-    override suspend fun register(call: ApplicationCall, payload: TestCodePayload) {
+    override suspend fun register(call: ApplicationCall, @Payload payload: TestCodePayload) {
         super.register(call, payload)
     }
 
@@ -53,7 +50,7 @@ class TestAuthWithCodeController(
 
     @TemplateMapping("register")
     @RegisterCodeRedirectPath
-    override suspend fun register(call: ApplicationCall, code: String, payload: TestRegisterPayload) {
+    override suspend fun register(call: ApplicationCall, code: String, @Payload payload: TestRegisterPayload) {
         super.register(call, code, payload)
     }
 

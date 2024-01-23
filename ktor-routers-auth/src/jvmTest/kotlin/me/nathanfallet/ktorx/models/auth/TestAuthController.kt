@@ -34,13 +34,13 @@ class TestAuthController(
 
     @TemplateMapping("login")
     @LoginPath
-    override suspend fun login(call: ApplicationCall, payload: TestLoginPayload) {
+    override suspend fun login(call: ApplicationCall, @Payload payload: TestLoginPayload) {
         super.login(call, payload)
     }
 
     @TemplateMapping("register")
     @RegisterPath
-    override suspend fun register(call: ApplicationCall, payload: TestRegisterPayload) {
+    override suspend fun register(call: ApplicationCall, @Payload payload: TestRegisterPayload) {
         super.register(call, payload)
     }
 
@@ -58,7 +58,7 @@ class TestAuthController(
 
     @APIMapping
     @TokenPath
-    override suspend fun token(call: ApplicationCall, request: AuthRequest): AuthToken {
+    override suspend fun token(call: ApplicationCall, @Payload request: AuthRequest): AuthToken {
         return super.token(call, request)
     }
 

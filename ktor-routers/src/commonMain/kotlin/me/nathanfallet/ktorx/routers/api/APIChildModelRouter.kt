@@ -10,12 +10,11 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.APIMapping
-import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
-import me.nathanfallet.ktorx.routers.base.ControllerRoute
-import me.nathanfallet.ktorx.routers.base.RouteType
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
@@ -88,24 +87,57 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        controllerRoute.function.annotations
-            .firstNotNullOfOrNull { it as? APIMapping } ?: return
-        when (controllerRoute.type) {
-            RouteType.list -> {
-                root.get(fullRoute) {
-                    try {
-                        controllerRoute(call, this@APIChildModelRouter)
-                            ?.takeIf { it != Unit }
-                            ?.let { call.respond(it) }
-                    } catch (exception: Exception) {
-                        handleExceptionAPI(exception, call)
-                    }
+        controllerRoute.function.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
+
+        val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
+            RouteType.get, RouteType.update, RouteType.delete -> "{$id}"
+            else -> ""
+        }).removePrefix("/")).removeSuffix("/")
+        val method = controllerRoute.method ?: when (controllerRoute.type) {
+            RouteType.create -> HttpMethod.Post
+            RouteType.update -> HttpMethod.Put
+            RouteType.delete -> HttpMethod.Delete
+            else -> HttpMethod.Get
+        }
+
+        root.route(fullRoute + path, method) {
+            handle {
+                try {
+                    invokeControllerRoute(call, controllerRoute)
+                        ?.takeIf { it != Unit }
+                        ?.let {
+                            if (controllerRoute.type == RouteType.create) {
+                                call.response.status(HttpStatusCode.Created)
+                            }
+                            call.respond(it)
+                        }
+                        ?: run {
+                            call.respond(HttpStatusCode.NoContent)
+                        }
+                } catch (exception: Exception) {
+                    handleExceptionAPI(exception, call)
                 }
-                openAPI?.get(fullRoute) {
-                    operationId("list${modelTypeInfo.type.simpleName}")
-                    addTagsItem(modelTypeInfo.type.simpleName)
-                    description("Get all ${modelTypeInfo.type.simpleName}")
-                    parameters(getOpenAPIParameters(false))
+            }
+        }
+
+        val type = controllerRoute.function.returnType.classifier as KClass<*>
+        val description = when (controllerRoute.type) { // TODO: overriding
+            RouteType.list -> "Get all ${modelTypeInfo.type.simpleName}"
+            RouteType.get -> "Get a ${modelTypeInfo.type.simpleName} by id"
+            RouteType.create -> "Create a ${modelTypeInfo.type.simpleName}"
+            RouteType.update -> "Update a ${modelTypeInfo.type.simpleName} by id"
+            RouteType.delete -> "Delete a ${modelTypeInfo.type.simpleName} by id"
+            else -> null
+        }
+
+        openAPI?.route(method, fullRoute + path) {
+            operationId("${controllerRoute.type.value}${modelTypeInfo.type.simpleName}") // TODO: overriding
+            addTagsItem(modelTypeInfo.type.simpleName)
+            parameters(getOpenAPIParameters(path.contains("{$id}")))
+            description?.let { description(it) }
+
+            when (controllerRoute.type) {
+                RouteType.list -> {
                     response("200") {
                         description("List of ${modelTypeInfo.type.simpleName}")
                         mediaType("application/json") {
@@ -113,23 +145,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         }
                     }
                 }
-            }
 
-            RouteType.get -> {
-                root.get("$fullRoute/{$id}") {
-                    try {
-                        controllerRoute(call, this@APIChildModelRouter)
-                            ?.takeIf { it != Unit }
-                            ?.let { call.respond(it) }
-                    } catch (exception: Exception) {
-                        handleExceptionAPI(exception, call)
-                    }
-                }
-                openAPI?.get("$fullRoute/{$id}") {
-                    operationId("get${modelTypeInfo.type.simpleName}ById")
-                    addTagsItem(modelTypeInfo.type.simpleName)
-                    description("Get a ${modelTypeInfo.type.simpleName} by id")
-                    parameters(getOpenAPIParameters())
+                RouteType.get -> {
                     response("200") {
                         description("A ${modelTypeInfo.type.simpleName}")
                         mediaType("application/json") {
@@ -137,26 +154,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         }
                     }
                 }
-            }
 
-            RouteType.create -> {
-                root.post(fullRoute) {
-                    try {
-                        controllerRoute(call, this@APIChildModelRouter)
-                            ?.takeIf { it != Unit }
-                            ?.let {
-                                call.response.status(HttpStatusCode.Created)
-                                call.respond(it)
-                            }
-                    } catch (exception: Exception) {
-                        handleExceptionAPI(exception, call)
-                    }
-                }
-                openAPI?.post(fullRoute) {
-                    operationId("create${modelTypeInfo.type.simpleName}")
-                    addTagsItem(modelTypeInfo.type.simpleName)
-                    description("Create a ${modelTypeInfo.type.simpleName}")
-                    parameters(getOpenAPIParameters(false))
+                RouteType.create -> {
                     if (createPayloadTypeInfo.type != Unit::class) {
                         requestBody {
                             mediaType("application/json") {
@@ -177,23 +176,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         }
                     }
                 }
-            }
 
-            RouteType.update -> {
-                root.put("$fullRoute/{$id}") {
-                    try {
-                        controllerRoute(call, this@APIChildModelRouter)
-                            ?.takeIf { it != Unit }
-                            ?.let { call.respond(it) }
-                    } catch (exception: Exception) {
-                        handleExceptionAPI(exception, call)
-                    }
-                }
-                openAPI?.put("$fullRoute/{$id}") {
-                    operationId("update${modelTypeInfo.type.simpleName}ById")
-                    addTagsItem(modelTypeInfo.type.simpleName)
-                    description("Update a ${modelTypeInfo.type.simpleName} by id")
-                    parameters(getOpenAPIParameters())
+                RouteType.update -> {
                     if (updatePayloadTypeInfo.type != Unit::class) {
                         requestBody {
                             mediaType("application/json") {
@@ -214,39 +198,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         }
                     }
                 }
-            }
 
-            RouteType.delete -> {
-                root.delete("$fullRoute/{$id}") {
-                    try {
-                        controllerRoute(call, this@APIChildModelRouter)
-                        call.respond(HttpStatusCode.NoContent)
-                    } catch (exception: Exception) {
-                        handleExceptionAPI(exception, call)
-                    }
-                }
-                openAPI?.delete("$fullRoute/{$id}") {
-                    operationId("delete${modelTypeInfo.type.simpleName}ById")
-                    addTagsItem(modelTypeInfo.type.simpleName)
-                    description("Delete a ${modelTypeInfo.type.simpleName} by id")
-                    parameters(getOpenAPIParameters())
-                    response("204")
-                }
-            }
-
-            else -> root.route(
-                "$fullRoute/${controllerRoute.path}",
-                controllerRoute.method ?: HttpMethod.Get
-            ) {
-                handle {
-                    try {
-                        controllerRoute(call, this@APIChildModelRouter)
-                            ?.takeIf { it != Unit }
-                            ?.let { call.respond(it) }
-                    } catch (exception: Exception) {
-                        handleExceptionAPI(exception, call)
-                    }
-                }
+                RouteType.delete -> response("204")
             }
         }
     }

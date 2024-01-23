@@ -1,6 +1,6 @@
 package me.nathanfallet.ktorx.extensions
 
-import me.nathanfallet.ktorx.routers.base.RouteType
+import me.nathanfallet.ktorx.models.routes.RouteType
 
 val RouteType.Companion.login: RouteType
     get() = RouteType("login")

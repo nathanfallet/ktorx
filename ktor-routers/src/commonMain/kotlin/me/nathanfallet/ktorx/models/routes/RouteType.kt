@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.routers.base
+package me.nathanfallet.ktorx.models.routes
 
 data class RouteType(val value: String? = null) {
 

@@ -2,6 +2,7 @@ package me.nathanfallet.ktorx.controllers.auth
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.auth.ClientForUser
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.usecases.auth.*
@@ -22,14 +23,14 @@ abstract class AbstractAuthController<LoginPayload, RegisterPayload>(
     private val generateAuthTokenUseCase: IGenerateAuthTokenUseCase,
 ) : IAuthController<LoginPayload, RegisterPayload> {
 
-    open suspend fun login(call: ApplicationCall, payload: LoginPayload) {
+    open suspend fun login(call: ApplicationCall, @Payload payload: LoginPayload) {
         val user = loginUseCase(payload) ?: throw ControllerException(
             HttpStatusCode.Unauthorized, "auth_invalid_credentials"
         )
         setSessionForCallUseCase(call, createSessionForUserUseCase(user))
     }
 
-    open suspend fun register(call: ApplicationCall, payload: RegisterPayload) {
+    open suspend fun register(call: ApplicationCall, @Payload payload: RegisterPayload) {
         val user = registerUseCase(call, payload) ?: throw ControllerException(
             HttpStatusCode.InternalServerError, "error_internal"
         )
@@ -51,7 +52,7 @@ abstract class AbstractAuthController<LoginPayload, RegisterPayload>(
         return client.client.redirectUri.replace("{code}", code)
     }
 
-    open suspend fun token(call: ApplicationCall, request: AuthRequest): AuthToken {
+    open suspend fun token(call: ApplicationCall, @Payload request: AuthRequest): AuthToken {
         val client = getAuthCodeUseCase(request.code)?.takeIf {
             it.client.clientId == request.clientId && it.client.clientSecret == request.clientSecret
         } ?: throw ControllerException(

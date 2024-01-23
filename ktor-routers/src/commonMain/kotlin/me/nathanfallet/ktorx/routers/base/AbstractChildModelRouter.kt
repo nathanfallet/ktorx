@@ -8,13 +8,17 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
 import me.nathanfallet.ktorx.controllers.IChildModelController
-import me.nathanfallet.ktorx.models.annotations.*
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
+import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.typeOf
 
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
@@ -67,14 +71,14 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
             if (annotation.annotationClass.simpleName?.endsWith("Path") == true) Triple(
                 RouteType(annotation.annotationClass.simpleName!!.removeSuffix("Path").lowercase()),
                 annotation.annotationClass.members.firstOrNull { parameter -> parameter.name == "path" }
-                    ?.call(annotation) as? String ?: "",
+                    ?.call(annotation) as? String,
                 annotation.annotationClass.members.firstOrNull { parameter -> parameter.name == "method" }
                     ?.call(annotation) as? String
             ) else null
         }.singleOrNull() ?: return@mapNotNull null
         ControllerRoute(
             typeAnnotation.first,
-            typeAnnotation.second,
+            typeAnnotation.second?.takeIf { path -> path.isNotEmpty() },
             typeAnnotation.third?.let { method -> HttpMethod.parse(method.uppercase()) },
             it
         )
@@ -86,6 +90,44 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
 
     abstract fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?)
 
+    open suspend fun invokeControllerRoute(
+        call: ApplicationCall,
+        controllerRoute: ControllerRoute,
+        parameters: Map<String, Any?> = mapOf(),
+    ): Any? {
+        try {
+            return controllerRoute.function.callBy(controllerRoute.function.parameters.associateWith { parameter ->
+                if (parameter.kind == KParameter.Kind.INSTANCE) return@associateWith controller
+                if (parameter.type == typeOf<ApplicationCall>()) return@associateWith call
+                val annotations = parameter.annotations
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Id }?.let {
+                    return@associateWith ModelAnnotations.constructIdFromString(
+                        modelTypeInfo.type as KClass<Model>,
+                        call.parameters[id]!!
+                    )
+                }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Payload }?.let {
+                    val type = parameter.type.classifier as KClass<Any>
+                    if (type == Unit::class) return@associateWith Unit
+                    val payload = decodePayload(call, type)
+                    ModelAnnotations.validatePayload(payload, type)
+                    return@associateWith payload
+                }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.ParentModel }?.let {
+                    var target: IChildModelRouter<*, *, *, *, *, *> = this
+                    do {
+                        target =
+                            target.parentRouter ?: throw IllegalArgumentException("Illegal parent model: ${it.id}")
+                    } while (target.id != it.id)
+                    return@associateWith target.get(call)
+                }
+                parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
+            })
+        } catch (e: Exception) {
+            throw if (e is InvocationTargetException) e.targetException else e
+        }
+    }
+
     // Decode payloads
 
     abstract suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload
@@ -93,7 +135,9 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     // Default operations
 
     override suspend fun get(call: ApplicationCall): Model {
-        return controllerRoutes.singleOrNull { it.type == RouteType.get }?.invoke(call, this) as Model
+        return controllerRoutes.singleOrNull { it.type == RouteType.get }?.let {
+            invokeControllerRoute(call, it)
+        } as Model
     }
 
     override fun getOpenAPIParameters(self: Boolean): List<Parameter> {

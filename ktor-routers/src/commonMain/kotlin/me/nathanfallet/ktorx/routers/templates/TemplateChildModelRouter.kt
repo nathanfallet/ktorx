@@ -11,10 +11,10 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
-import me.nathanfallet.ktorx.routers.base.ControllerRoute
-import me.nathanfallet.ktorx.routers.base.RouteType
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
@@ -104,7 +104,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         mapping.template,
                         mapOf(
                             "route" to route,
-                            "items" to controllerRoute(call, this@TemplateChildModelRouter),
+                            "items" to invokeControllerRoute(call, controllerRoute),
                             "keys" to modelKeys
                         )
                     )
@@ -119,7 +119,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         mapping.template,
                         mapOf(
                             "route" to route,
-                            "item" to controllerRoute(call, this@TemplateChildModelRouter),
+                            "item" to invokeControllerRoute(call, controllerRoute),
                             "keys" to modelKeys
                         )
                     )
@@ -144,7 +144,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
                 root.post("$fullRoute/create") {
                     try {
-                        controllerRoute(call, this@TemplateChildModelRouter)
+                        invokeControllerRoute(call, controllerRoute)
                         call.respondRedirect("../$route")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -169,7 +169,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
                 root.post("$fullRoute/{$id}/update") {
                     try {
-                        controllerRoute(call, this@TemplateChildModelRouter)
+                        invokeControllerRoute(call, controllerRoute)
                         call.respondRedirect("../../$route")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -194,7 +194,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
                 root.post("$fullRoute/{$id}/delete") {
                     try {
-                        controllerRoute(call, this@TemplateChildModelRouter)
+                        invokeControllerRoute(call, controllerRoute)
                         call.respondRedirect("../../$route")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -212,7 +212,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                             mapping.template,
                             mapOf(
                                 "route" to route,
-                                "item" to controllerRoute(call, this@TemplateChildModelRouter),
+                                "item" to invokeControllerRoute(call, controllerRoute),
                                 "keys" to modelKeys
                             )
                         )

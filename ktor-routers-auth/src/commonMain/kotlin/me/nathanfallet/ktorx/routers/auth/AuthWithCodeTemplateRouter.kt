@@ -1,11 +1,8 @@
 package me.nathanfallet.ktorx.routers.auth
 
-import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthWithCodeController
@@ -13,10 +10,8 @@ import me.nathanfallet.ktorx.extensions.register
 import me.nathanfallet.ktorx.extensions.registerCode
 import me.nathanfallet.ktorx.extensions.registerCodeRedirect
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
-import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.ktorx.routers.base.ControllerRoute
-import me.nathanfallet.ktorx.routers.base.RouteType
-import me.nathanfallet.usecases.models.annotations.ModelAnnotations
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -58,14 +53,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 }
                 root.post("$fullRoute/register") {
                     try {
-                        val payload = ModelAnnotations.constructPayloadFromStringLists(
-                            registerPayloadTypeInfo.type as KClass<RegisterPayload>, call.receiveParameters().toMap()
-                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                        ModelAnnotations.validatePayload(
-                            payload,
-                            registerPayloadTypeInfo.type as KClass<RegisterPayload>
-                        )
-                        controllerRoute(call, this@AuthWithCodeTemplateRouter, mapOf("payload" to payload))
+                        invokeControllerRoute(call, controllerRoute)
                         call.respondTemplate(
                             mapping.template,
                             mapOf("success" to "auth_register_code_created")
@@ -80,8 +68,8 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 root.get("$fullRoute/register/{code}") {
                     try {
                         val code = call.parameters["code"]!!
-                        val codePayload = controllerRoute(
-                            call, this@AuthWithCodeTemplateRouter, mapOf("code" to code)
+                        val codePayload = invokeControllerRoute(
+                            call, controllerRoute, mapOf("code" to code)
                         ) as RegisterCodePayload
                         call.respondTemplate(
                             mapping.template,
@@ -98,20 +86,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                     try {
                         val code = call.parameters["code"]!!
                         register(call, code)
-                        val payload = ModelAnnotations.constructPayloadFromStringLists(
-                            registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>,
-                            call.receiveParameters().toMap()
-                        ) ?: throw ControllerException(HttpStatusCode.BadRequest, "error_body_invalid")
-                        ModelAnnotations.validatePayload(
-                            payload,
-                            registerCodePayloadTypeInfo.type as KClass<RegisterCodePayload>
-                        )
-                        controllerRoute(
-                            call, this@AuthWithCodeTemplateRouter, mapOf(
-                                "code" to code,
-                                "payload" to payload
-                            )
-                        )
+                        invokeControllerRoute(call, controllerRoute, mapOf("code" to code))
                         call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -124,9 +99,9 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
     }
 
     private suspend fun register(call: ApplicationCall, code: String): RegisterCodePayload {
-        return controllerRoutes.singleOrNull { it.type == RouteType.registerCode }?.invoke(
-            call, this, mapOf("code" to code)
-        ) as RegisterCodePayload
+        return controllerRoutes.singleOrNull { it.type == RouteType.registerCode }?.let {
+            invokeControllerRoute(call, it, mapOf("code" to code))
+        } as RegisterCodePayload
     }
 
 }
