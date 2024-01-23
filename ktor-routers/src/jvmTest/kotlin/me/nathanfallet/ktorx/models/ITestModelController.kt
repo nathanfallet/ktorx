@@ -3,13 +3,24 @@ package me.nathanfallet.ktorx.models
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.annotations.*
+import me.nathanfallet.ktorx.models.auth.TestUser
 
 interface ITestModelController : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
 
     @APIMapping
     @TemplateMapping(template = "basic")
-    @Path("/basic")
+    @Path("GET", "/basic")
     suspend fun basic(call: ApplicationCall): String
+
+    @APIMapping
+    @TemplateMapping(template = "basic")
+    @Path("GET", "/basic/map")
+    suspend fun basicMap(call: ApplicationCall): Map<String, String>
+
+    @APIMapping
+    @TemplateMapping(template = "basic")
+    @Path("GET", "/basic/model")
+    suspend fun basicModel(call: ApplicationCall): TestUser
 
     @APIMapping
     @TemplateMapping(template = "list")

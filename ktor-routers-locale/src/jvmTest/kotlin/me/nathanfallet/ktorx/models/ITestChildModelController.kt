@@ -9,8 +9,8 @@ interface ITestChildModelController :
 
     @APIMapping
     @TemplateMapping(template = "basic")
-    @Path("/basic")
-    fun basic(call: ApplicationCall): String
+    @Path("GET", "/basic")
+    fun basic(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel): String
 
     @APIMapping
     @TemplateMapping(template = "list")

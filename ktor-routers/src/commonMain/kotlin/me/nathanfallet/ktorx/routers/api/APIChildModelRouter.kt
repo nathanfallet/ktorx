@@ -232,7 +232,22 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 }
             }
 
-            else -> {}
+            else -> root.route(
+                "$fullRoute/${controllerRoute.path}",
+                controllerRoute.method ?: HttpMethod.Get
+            ) {
+                handle {
+                    try {
+                        controllerRoute(call, this@APIChildModelRouter)
+                            ?.takeIf { it != Unit }
+                            ?.let {
+                                call.respond(it)
+                            }
+                    } catch (exception: Exception) {
+                        handleExceptionAPI(exception, call)
+                    }
+                }
+            }
         }
     }
 

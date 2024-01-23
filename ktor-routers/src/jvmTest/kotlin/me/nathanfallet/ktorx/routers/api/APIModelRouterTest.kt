@@ -18,6 +18,7 @@ import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
+import me.nathanfallet.ktorx.models.auth.TestUser
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -53,6 +54,48 @@ class APIModelRouterTest {
         controller,
         ITestModelController::class
     )
+
+    @Test
+    fun testAPIBasicRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter(controller)
+        coEvery { controller.basic(any()) } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/testmodels/basic")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello world", response.body())
+    }
+
+    @Test
+    fun testAPIBasicMapRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter(controller)
+        coEvery { controller.basicMap(any()) } returns mapOf("key" to "Hello world")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/testmodels/basic/map")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(mapOf("key" to "Hello world"), response.body())
+    }
+
+    @Test
+    fun testAPIBasicModelRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter(controller)
+        coEvery { controller.basicModel(any()) } returns TestUser("userId")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/testmodels/basic/model")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(TestUser("userId"), response.body())
+    }
 
     @Test
     fun testAPIGetRoute() = testApplication {

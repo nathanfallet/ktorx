@@ -1,5 +1,6 @@
 package me.nathanfallet.ktorx.routers.base
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
@@ -11,8 +12,9 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.typeOf
 
 data class ControllerRoute(
-    val path: String,
     val type: RouteType,
+    val path: String,
+    val method: HttpMethod?,
     val function: KFunction<*>,
 ) {
 

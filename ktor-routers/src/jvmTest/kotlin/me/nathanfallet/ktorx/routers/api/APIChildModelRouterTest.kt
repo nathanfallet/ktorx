@@ -69,6 +69,22 @@ class APIChildModelRouterTest {
     }
 
     @Test
+    fun testAPIBasicRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val childController = mockk<ITestChildModelController>()
+        val router = createChildRouter(childController, createRouter(controller))
+        coEvery { controller.get(any(), 1) } returns mock
+        coEvery { childController.basic(any(), mock) } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/testmodels/1/testchildmodels/basic")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello world", response.body())
+    }
+
+    @Test
     fun testAPIGetRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<ITestModelController>()

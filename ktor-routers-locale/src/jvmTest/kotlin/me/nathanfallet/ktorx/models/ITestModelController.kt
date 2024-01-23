@@ -8,7 +8,7 @@ interface ITestModelController : IModelController<TestModel, Long, TestCreatePay
 
     @APIMapping
     @TemplateMapping(template = "basic")
-    @Path("/basic")
+    @Path("GET", "/basic")
     suspend fun basic(call: ApplicationCall): String
 
     @APIMapping

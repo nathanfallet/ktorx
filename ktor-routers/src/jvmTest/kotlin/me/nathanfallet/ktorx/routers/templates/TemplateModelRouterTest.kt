@@ -18,6 +18,7 @@ import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
+import me.nathanfallet.ktorx.models.auth.TestUser
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
@@ -63,6 +64,9 @@ class TemplateModelRouterTest {
                         model["route"] as String,
                         model["keys"] as? List<Keys>,
                         model["item"] as? TestModel,
+                        model["item"] as? String,
+                        model["item"] as? Map<String, String>,
+                        model["item"] as? TestUser,
                         model["items"] as? List<TestModel>,
                         model["code"] as? Int,
                         model["error"] as? String
@@ -73,6 +77,84 @@ class TemplateModelRouterTest {
         "error",
         "redirect={path}"
     )
+
+    @Test
+    fun testTemplateBasicRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.basic(any()) } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/testmodels/basic")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "basic",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    itemString = "Hello world",
+                )
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testTemplateBasicMapRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.basicMap(any()) } returns mapOf("key" to "Hello world")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/testmodels/basic/map")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "basic",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    itemMap = mapOf("key" to "Hello world"),
+                )
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testTemplateBasicModelRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.basicModel(any()) } returns TestUser("userId")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/testmodels/basic/model")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "basic",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    itemModel = TestUser("userId"),
+                )
+            ), response.body()
+        )
+    }
 
     @Test
     fun testTemplateGetRoute() = testApplication {

@@ -203,7 +203,25 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            else -> {}
+            else -> root.route(
+                "$fullRoute/${controllerRoute.path}",
+                controllerRoute.method ?: HttpMethod.Get
+            ) {
+                handle {
+                    try {
+                        call.respondTemplate(
+                            mapping.template,
+                            mapOf(
+                                "route" to route,
+                                "item" to controllerRoute(call, this@TemplateChildModelRouter),
+                                "keys" to modelKeys
+                            )
+                        )
+                    } catch (exception: Exception) {
+                        handleExceptionTemplate(exception, call, mapping.template)
+                    }
+                }
+            }
         }
     }
 

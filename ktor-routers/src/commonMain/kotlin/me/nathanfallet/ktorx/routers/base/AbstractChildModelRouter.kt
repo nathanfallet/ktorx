@@ -1,5 +1,6 @@
 package me.nathanfallet.ktorx.routers.base
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
@@ -64,18 +65,19 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     private val controllerRoutes = controllerClass.memberFunctions.mapNotNull {
         val typeAnnotation = it.annotations.mapNotNull { annotation ->
             when (annotation) {
-                is ListPath -> Pair(RouteType.LIST, annotation.path)
-                is CreatePath -> Pair(RouteType.CREATE, annotation.path)
-                is UpdatePath -> Pair(RouteType.UPDATE, annotation.path)
-                is GetPath -> Pair(RouteType.GET, annotation.path)
-                is DeletePath -> Pair(RouteType.DELETE, annotation.path)
-                is Path -> Pair(RouteType.UNIT, annotation.path)
+                is ListPath -> Triple(RouteType.LIST, annotation.path, null)
+                is CreatePath -> Triple(RouteType.CREATE, annotation.path, null)
+                is UpdatePath -> Triple(RouteType.UPDATE, annotation.path, null)
+                is GetPath -> Triple(RouteType.GET, annotation.path, null)
+                is DeletePath -> Triple(RouteType.DELETE, annotation.path, null)
+                is Path -> Triple(RouteType.UNIT, annotation.path, annotation.method)
                 else -> null
             }
         }.singleOrNull() ?: return@mapNotNull null
         ControllerRoute(
-            typeAnnotation.second,
             typeAnnotation.first,
+            typeAnnotation.second,
+            typeAnnotation.third?.let { method -> HttpMethod.parse(method.uppercase()) },
             it
         )
     }
