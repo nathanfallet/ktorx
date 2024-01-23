@@ -14,11 +14,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Schema
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IModelController
-import me.nathanfallet.ktorx.models.ITestModelController
-import me.nathanfallet.ktorx.models.TestCreatePayload
-import me.nathanfallet.ktorx.models.TestModel
-import me.nathanfallet.ktorx.models.TestUpdatePayload
-import me.nathanfallet.ktorx.models.auth.TestUser
+import me.nathanfallet.ktorx.models.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import kotlin.test.Test
 import kotlin.test.assertEquals

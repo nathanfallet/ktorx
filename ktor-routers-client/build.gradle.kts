@@ -70,10 +70,9 @@ kotlin {
                 api(libs.usecases)
             }
         }
-        val commonTest by getting {
+        val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("io.mockative:mockative:2.0.1")
                 implementation("io.ktor:ktor-client-mock:$ktorVersion")
             }
         }

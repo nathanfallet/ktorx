@@ -1,7 +1,15 @@
 package me.nathanfallet.ktorx.routers.base
 
-enum class RouteType {
+data class RouteType(val value: String? = null) {
 
-    UNIT, LIST, GET, CREATE, UPDATE, DELETE;
+    companion object {
+
+        val list = RouteType("list")
+        val get = RouteType("get")
+        val create = RouteType("create")
+        val update = RouteType("update")
+        val delete = RouteType("delete")
+
+    }
 
 }

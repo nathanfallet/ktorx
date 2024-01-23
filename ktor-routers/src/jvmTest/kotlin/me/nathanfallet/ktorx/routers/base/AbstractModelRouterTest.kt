@@ -12,10 +12,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.models.ITestModelController
-import me.nathanfallet.ktorx.models.TestCreatePayload
-import me.nathanfallet.ktorx.models.TestModel
-import me.nathanfallet.ktorx.models.TestUpdatePayload
+import me.nathanfallet.ktorx.models.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -43,6 +40,14 @@ class AbstractModelRouterTest {
     ): AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
         val controller = object : ITestModelController {
             override suspend fun basic(call: ApplicationCall): String {
+                throw NotImplementedError()
+            }
+
+            override suspend fun basicMap(call: ApplicationCall): Map<String, String> {
+                throw NotImplementedError()
+            }
+
+            override suspend fun basicModel(call: ApplicationCall): TestUser {
                 throw NotImplementedError()
             }
 

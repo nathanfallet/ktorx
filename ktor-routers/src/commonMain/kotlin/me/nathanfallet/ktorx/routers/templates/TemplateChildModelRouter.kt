@@ -9,6 +9,7 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
+import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
@@ -89,9 +90,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
         val mapping = controllerRoute.function.annotations
-            .firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.TemplateMapping } ?: return
+            .firstNotNullOfOrNull { it as? TemplateMapping } ?: return
         when (controllerRoute.type) {
-            RouteType.LIST -> root.get(fullRoute) {
+            RouteType.list -> root.get(fullRoute) {
                 try {
                     call.respondTemplate(
                         mapping.template,
@@ -106,7 +107,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.GET -> root.get("$fullRoute/{$id}") {
+            RouteType.get -> root.get("$fullRoute/{$id}") {
                 try {
                     call.respondTemplate(
                         mapping.template,
@@ -121,7 +122,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.CREATE -> {
+            RouteType.create -> {
                 root.get("$fullRoute/create") {
                     try {
                         call.respondTemplate(
@@ -149,7 +150,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.UPDATE -> {
+            RouteType.update -> {
                 root.get("$fullRoute/{$id}/update") {
                     try {
                         call.respondTemplate(
@@ -178,7 +179,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.DELETE -> {
+            RouteType.delete -> {
                 root.get("$fullRoute/{$id}/delete") {
                     try {
                         call.respondTemplate(

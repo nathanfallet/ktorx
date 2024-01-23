@@ -3,7 +3,6 @@ package me.nathanfallet.ktorx.models
 import io.ktor.server.application.*
 import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.annotations.*
-import me.nathanfallet.ktorx.models.auth.TestUser
 
 interface ITestModelController : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
 

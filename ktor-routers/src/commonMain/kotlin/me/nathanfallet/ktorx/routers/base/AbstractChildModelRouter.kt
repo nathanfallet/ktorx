@@ -64,15 +64,13 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
 
     private val controllerRoutes = controllerClass.memberFunctions.mapNotNull {
         val typeAnnotation = it.annotations.mapNotNull { annotation ->
-            when (annotation) {
-                is ListPath -> Triple(RouteType.LIST, annotation.path, null)
-                is CreatePath -> Triple(RouteType.CREATE, annotation.path, null)
-                is UpdatePath -> Triple(RouteType.UPDATE, annotation.path, null)
-                is GetPath -> Triple(RouteType.GET, annotation.path, null)
-                is DeletePath -> Triple(RouteType.DELETE, annotation.path, null)
-                is Path -> Triple(RouteType.UNIT, annotation.path, annotation.method)
-                else -> null
-            }
+            if (annotation.annotationClass.simpleName?.endsWith("Path") == true) Triple(
+                RouteType(annotation.annotationClass.simpleName!!.removeSuffix("Path").lowercase()),
+                annotation.annotationClass.members.firstOrNull { parameter -> parameter.name == "path" }
+                    ?.call(annotation) as? String ?: "",
+                annotation.annotationClass.members.firstOrNull { parameter -> parameter.name == "method" }
+                    ?.call(annotation) as? String
+            ) else null
         }.singleOrNull() ?: return@mapNotNull null
         ControllerRoute(
             typeAnnotation.first,
@@ -91,7 +89,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     // Default operations
 
     override suspend fun get(call: ApplicationCall): Model {
-        return controllerRoutes.singleOrNull { it.type == RouteType.GET }?.invoke(call, this) as Model
+        return controllerRoutes.singleOrNull { it.type == RouteType.get }?.invoke(call, this) as Model
     }
 
     override fun getOpenAPIParameters(self: Boolean): List<Parameter> {

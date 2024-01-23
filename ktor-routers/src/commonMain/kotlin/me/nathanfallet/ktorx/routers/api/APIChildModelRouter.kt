@@ -9,6 +9,7 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
+import me.nathanfallet.ktorx.models.annotations.APIMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
@@ -91,9 +92,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
         controllerRoute.function.annotations
-            .firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.APIMapping } ?: return
+            .firstNotNullOfOrNull { it as? APIMapping } ?: return
         when (controllerRoute.type) {
-            RouteType.LIST -> {
+            RouteType.list -> {
                 root.get(fullRoute) {
                     try {
                         call.respond(controllerRoute(call, this@APIChildModelRouter), listTypeInfo)
@@ -115,7 +116,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 }
             }
 
-            RouteType.GET -> {
+            RouteType.get -> {
                 root.get("$fullRoute/{$id}") {
                     try {
                         call.respond(controllerRoute(call, this@APIChildModelRouter), modelTypeInfo)
@@ -137,7 +138,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 }
             }
 
-            RouteType.CREATE -> {
+            RouteType.create -> {
                 root.post(fullRoute) {
                     try {
                         val payload = decodeAndValidatePayload<CreatePayload>(call, createPayloadTypeInfo)
@@ -175,7 +176,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 }
             }
 
-            RouteType.UPDATE -> {
+            RouteType.update -> {
                 root.put("$fullRoute/{$id}") {
                     try {
                         val payload = decodeAndValidatePayload<UpdatePayload>(call, updatePayloadTypeInfo)
@@ -214,7 +215,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 }
             }
 
-            RouteType.DELETE -> {
+            RouteType.delete -> {
                 root.delete("$fullRoute/{$id}") {
                     try {
                         controllerRoute(call, this@APIChildModelRouter)

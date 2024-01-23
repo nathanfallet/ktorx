@@ -1,7 +1,7 @@
 package me.nathanfallet.ktorx.models.templates
 
 import kotlinx.serialization.Serializable
-import me.nathanfallet.ktorx.models.auth.TestUser
+import me.nathanfallet.ktorx.models.TestUser
 
 @Serializable
 data class TemplateResponseData<Model, Keys>(

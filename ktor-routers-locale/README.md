@@ -1,6 +1,6 @@
 # ktor-routers-locale
 
-i18n extension for ktor.
+Locale extensions for ktor-routers.
 
 ## Installation
 
