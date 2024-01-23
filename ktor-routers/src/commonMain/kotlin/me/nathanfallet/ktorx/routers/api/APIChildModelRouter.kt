@@ -9,7 +9,6 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
-import me.nathanfallet.ktorx.models.api.APIMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
@@ -29,7 +28,6 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
-    val mapping: APIMapping = APIMapping(),
     route: String? = null,
     id: String? = null,
     prefix: String? = null,

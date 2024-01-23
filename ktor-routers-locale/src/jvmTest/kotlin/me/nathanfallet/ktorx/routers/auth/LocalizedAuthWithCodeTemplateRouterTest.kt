@@ -59,6 +59,8 @@ class LocalizedAuthWithCodeTemplateRouterTest {
                 )
             )
         },
+        null,
+        null,
         mockk(),
         IAuthWithCodeController::class,
         getLocaleForCallUseCase

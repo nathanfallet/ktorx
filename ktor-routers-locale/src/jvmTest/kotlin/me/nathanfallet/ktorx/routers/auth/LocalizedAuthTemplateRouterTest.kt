@@ -54,7 +54,6 @@ class LocalizedAuthTemplateRouterTest {
         AuthMapping(
             loginTemplate = "login",
             registerTemplate = "register",
-            redirectUnauthorizedToUrl = "/auth/login?redirect={path}"
         ),
         { template, model ->
             respond(
@@ -65,6 +64,8 @@ class LocalizedAuthTemplateRouterTest {
                 )
             )
         },
+        null,
+        "/auth/login?redirect={path}",
         controller,
         IAuthController::class,
         getLocaleForCallUseCase

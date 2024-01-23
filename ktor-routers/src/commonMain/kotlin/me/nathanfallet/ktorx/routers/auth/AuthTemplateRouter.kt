@@ -11,7 +11,6 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.auth.IAuthController
 import me.nathanfallet.ktorx.models.auth.AuthMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.templates.TemplateUnitRouter
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import kotlin.reflect.KClass
@@ -22,16 +21,16 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     val registerPayloadTypeInfo: TypeInfo,
     val authMapping: AuthMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
+    errorTemplate: String? = null,
+    redirectUnauthorizedToUrl: String? = null,
     override val controller: IAuthController<LoginPayload, RegisterPayload>,
     controllerClass: KClass<out IAuthController<*, *>>,
     route: String? = "auth",
     prefix: String? = null,
 ) : TemplateUnitRouter(
-    TemplateMapping(
-        errorTemplate = authMapping.errorTemplate,
-        redirectUnauthorizedToUrl = authMapping.redirectUnauthorizedToUrl
-    ),
     respondTemplate,
+    errorTemplate,
+    redirectUnauthorizedToUrl,
     controller,
     controllerClass,
     route,

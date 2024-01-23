@@ -5,7 +5,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.IChildModel
@@ -19,8 +18,9 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
-    mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
+    errorTemplate: String? = null,
+    redirectUnauthorizedToUrl: String? = null,
     private val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = null,
     id: String? = null,
@@ -33,8 +33,9 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     controller,
     parentRouter,
     controllerClass,
-    mapping,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
+    errorTemplate,
+    redirectUnauthorizedToUrl,
     route,
     id,
     prefix
@@ -43,7 +44,7 @@ open class LocalizedTemplateChildModelRouter<Model : IChildModel<Id, CreatePaylo
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
 
     override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
-        isUnauthorizedRedirectPath(call, mapping, getLocaleForCallUseCase)
+        isUnauthorizedRedirectPath(call, redirectUnauthorizedToUrl, getLocaleForCallUseCase)
 
     override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
         super.createRoutes(root, openAPI)

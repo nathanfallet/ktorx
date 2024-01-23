@@ -46,7 +46,6 @@ class AuthTemplateRouterTest {
             registerTemplate = "register",
             authorizeTemplate = "authorize",
             redirectTemplate = redirectTemplate,
-            redirectUnauthorizedToUrl = "/auth/login?redirect={path}"
         ),
         { template, model ->
             respond(
@@ -60,8 +59,10 @@ class AuthTemplateRouterTest {
                 )
             )
         },
+        null,
+        "/auth/login?redirect={path}",
         controller,
-        IAuthController::class
+        IAuthController::class,
     )
 
     @Test

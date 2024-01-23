@@ -14,7 +14,6 @@ import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.controllers.IModelController
 import me.nathanfallet.ktorx.models.*
-import me.nathanfallet.ktorx.models.api.APIMapping
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -41,7 +40,6 @@ class APIChildModelRouterTest {
     private fun createChildRouter(
         controller: IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long>,
         parentRouter: APIChildModelRouter<TestModel, Long, *, *, *, *>,
-        mapping: APIMapping = APIMapping(),
         route: String? = null,
         prefix: String? = null,
     ) = APIChildModelRouter(
@@ -52,7 +50,6 @@ class APIChildModelRouterTest {
         controller,
         parentRouter,
         ITestChildModelController::class,
-        mapping,
         route,
         null,
         prefix

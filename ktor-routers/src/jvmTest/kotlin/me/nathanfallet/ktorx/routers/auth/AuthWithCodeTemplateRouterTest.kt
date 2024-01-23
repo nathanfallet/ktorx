@@ -52,6 +52,8 @@ class AuthWithCodeTemplateRouterTest {
                 )
             )
         },
+        null,
+        "/auth/login?redirect={path}",
         controller,
         IAuthWithCodeController::class
     )

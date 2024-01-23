@@ -17,7 +17,6 @@ import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.ktorx.plugins.I18n
@@ -61,15 +60,6 @@ class LocalizedTemplateModelRouterTest {
             typeInfo<List<TestModel>>(),
             controller,
             ITestModelController::class,
-            TemplateMapping(
-                errorTemplate = "error",
-                listTemplate = "list",
-                getTemplate = "get",
-                createTemplate = "create",
-                updateTemplate = "update",
-                deleteTemplate = "delete",
-                redirectUnauthorizedToUrl = "redirect={path}"
-            ),
             { template, model ->
                 respond(
                     TemplateResponse(
@@ -85,6 +75,8 @@ class LocalizedTemplateModelRouterTest {
                     )
                 )
             },
+            "error",
+            "redirect={path}",
             getLocaleForCallUseCase
         )
     }

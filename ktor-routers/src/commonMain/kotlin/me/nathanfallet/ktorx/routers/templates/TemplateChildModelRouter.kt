@@ -10,7 +10,6 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.ktorx.routers.base.ControllerRoute
@@ -29,8 +28,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, ParentId, *, *, *, *>?,
     controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
-    val mapping: TemplateMapping,
     val respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
+    val errorTemplate: String? = null,
+    val redirectUnauthorizedToUrl: String? = null,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -54,7 +54,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     ) {
         when (exception) {
             is ControllerException -> {
-                mapping.redirectUnauthorizedToUrl?.takeIf {
+                redirectUnauthorizedToUrl?.takeIf {
                     exception.code == HttpStatusCode.Unauthorized && !isUnauthorizedRedirectPath(call)
                 }?.let { url ->
                     call.respondRedirect(url.replace("{path}", call.request.uri))
@@ -62,7 +62,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
                 call.response.status(exception.code)
                 call.respondTemplate(
-                    mapping.errorTemplate ?: fromTemplate,
+                    errorTemplate ?: fromTemplate,
                     mapOf(
                         "route" to route,
                         "code" to exception.code.value,
@@ -84,7 +84,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     }
 
     open fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean {
-        return mapping.redirectUnauthorizedToUrl?.startsWith(call.request.path()) == true
+        return redirectUnauthorizedToUrl?.startsWith(call.request.path()) == true
     }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {

@@ -3,7 +3,6 @@ package me.nathanfallet.ktorx.routers.templates
 import io.ktor.server.application.*
 import io.ktor.util.reflect.*
 import me.nathanfallet.ktorx.controllers.IModelController
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.routers.IModelRouter
 import me.nathanfallet.usecases.models.IModel
 import me.nathanfallet.usecases.models.UnitModel
@@ -16,8 +15,9 @@ open class TemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>,
     listTypeInfo: TypeInfo,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
     controllerClass: KClass<out IModelController<Model, Id, CreatePayload, UpdatePayload>>,
-    mapping: TemplateMapping,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
+    errorTemplate: String? = null,
+    redirectUnauthorizedToUrl: String? = null,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -29,8 +29,9 @@ open class TemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>,
     controller,
     null,
     controllerClass,
-    mapping,
     respondTemplate,
+    errorTemplate,
+    redirectUnauthorizedToUrl,
     route,
     id,
     prefix

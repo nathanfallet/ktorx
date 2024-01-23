@@ -4,7 +4,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.plugins.LocalizedRouteInterceptor
 import me.nathanfallet.ktorx.plugins.LocalizedRouteSelector
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
@@ -36,10 +35,10 @@ interface ILocalizedTemplateRouter {
 
     fun isUnauthorizedRedirectPath(
         call: ApplicationCall,
-        mapping: TemplateMapping,
+        redirectUnauthorizedToUrl: String?,
         getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     ): Boolean {
-        return mapping.redirectUnauthorizedToUrl?.let {
+        return redirectUnauthorizedToUrl?.let {
             "/${getLocaleForCallUseCase(call)}$it"
         }?.startsWith(call.request.path()) == true
     }
