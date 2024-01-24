@@ -8,8 +8,8 @@ plugins {
 publishing {
     publications.withType<MavenPublication> {
         pom {
-            name.set("ktor-databases")
-            description.set("Database extensions for Ktor")
+            name.set("ktor-database-sessions")
+            description.set("Sessions database extensions for Ktor.")
         }
     }
 }
