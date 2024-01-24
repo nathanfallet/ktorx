@@ -7,7 +7,7 @@ import me.nathanfallet.ktorx.models.annotations.*
 interface ITestChildModelController :
     IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long> {
 
-    @APIMapping
+    @APIMapping("basic", "Basic test")
     @TemplateMapping(template = "basic")
     @Path("GET", "/basic")
     fun basic(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel): String

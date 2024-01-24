@@ -66,6 +66,29 @@ class APIModelRouterTest {
     }
 
     @Test
+    fun testAPIBasicRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter(controller)
+        val openAPI = OpenAPI()
+        coEvery { controller.basic(any()) } returns "Hello world"
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.get("/api/testmodels/basic")
+        val get = openAPI.paths["/api/testmodels/basic"]?.get
+        assertEquals("basic", get?.operationId)
+        assertEquals(listOf("TestModel"), get?.tags)
+        assertEquals("Basic test", get?.description)
+        assertEquals(0, get?.parameters?.size)
+        assertEquals(1, get?.responses?.size)
+        assertEquals(
+            "#/components/schemas/${String::class.qualifiedName}",
+            get?.responses?.get("200")?.content?.get("application/json")?.schema?.`$ref`
+        )
+    }
+
+    @Test
     fun testAPIBasicMapRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<ITestModelController>()

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.APIMapping
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType
@@ -62,21 +63,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 call.respond(mapOf("error" to exception.key))
             }
 
-            is PropertyValidatorException -> {
-                handleExceptionAPI(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"
-                    ), call
-                )
-            }
+            is PropertyValidatorException -> handleExceptionAPI(
+                ControllerException(HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"), call
+            )
 
-            is ContentTransformationException -> {
-                handleExceptionAPI(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "error_body_invalid"
-                    ), call
-                )
-            }
+            is ContentTransformationException -> handleExceptionAPI(
+                ControllerException(HttpStatusCode.BadRequest, "error_body_invalid"), call
+            )
 
             else -> throw exception
         }
@@ -87,8 +80,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        controllerRoute.function.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
+        val apiMapping = controllerRoute.function.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
 
+        // Calculate route (path and method)
         val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
             RouteType.get, RouteType.update, RouteType.delete -> "{$id}"
             else -> ""
@@ -100,6 +94,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             else -> HttpMethod.Get
         }
 
+        // Route handling
         root.route(fullRoute + path, method) {
             handle {
                 try {
@@ -120,86 +115,55 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
         }
 
-        val type = controllerRoute.function.returnType.classifier as KClass<*>
-        val description = when (controllerRoute.type) { // TODO: overriding
-            RouteType.list -> "Get all ${modelTypeInfo.type.simpleName}"
-            RouteType.get -> "Get a ${modelTypeInfo.type.simpleName} by id"
-            RouteType.create -> "Create a ${modelTypeInfo.type.simpleName}"
-            RouteType.update -> "Update a ${modelTypeInfo.type.simpleName} by id"
-            RouteType.delete -> "Delete a ${modelTypeInfo.type.simpleName} by id"
-            else -> null
-        }
-
+        // API docs
         openAPI?.route(method, fullRoute + path) {
-            operationId("${controllerRoute.type.value}${modelTypeInfo.type.simpleName}") // TODO: overriding
+            val type = controllerRoute.function.returnType
+
+            // General metadata
+            operationId(
+                apiMapping.operationId.takeIf { it.isNotEmpty() }
+                    ?: "${controllerRoute.type.value}${modelTypeInfo.type.simpleName}"
+            )
             addTagsItem(modelTypeInfo.type.simpleName)
             parameters(getOpenAPIParameters(path.contains("{$id}")))
-            description?.let { description(it) }
+            (apiMapping.description.takeIf { it.isNotEmpty() } ?: when (controllerRoute.type) {
+                RouteType.list -> "Get all ${modelTypeInfo.type.simpleName}"
+                RouteType.get -> "Get a ${modelTypeInfo.type.simpleName} by id"
+                RouteType.create -> "Create a ${modelTypeInfo.type.simpleName}"
+                RouteType.update -> "Update a ${modelTypeInfo.type.simpleName} by id"
+                RouteType.delete -> "Delete a ${modelTypeInfo.type.simpleName} by id"
+                else -> null
+            })?.let { description(it) }
 
-            when (controllerRoute.type) {
-                RouteType.list -> {
-                    response("200") {
-                        description("List of ${modelTypeInfo.type.simpleName}")
-                        mediaType("application/json") {
-                            arraySchema(modelTypeInfo.type)
-                        }
+            // Body and response linked to payload
+            controllerRoute.function.parameters.singleOrNull {
+                it.annotations.any { annotation -> annotation is Payload }
+            }?.let {
+                requestBody {
+                    mediaType("application/json") {
+                        schema(it.type)
                     }
                 }
-
-                RouteType.get -> {
-                    response("200") {
-                        description("A ${modelTypeInfo.type.simpleName}")
-                        mediaType("application/json") {
-                            schema(modelTypeInfo.type)
-                        }
+                response("400") {
+                    description("Invalid body")
+                    mediaType("application/json") {
+                        errorSchema("error_body_invalid")
                     }
                 }
+            }
 
-                RouteType.create -> {
-                    if (createPayloadTypeInfo.type != Unit::class) {
-                        requestBody {
-                            mediaType("application/json") {
-                                schema(createPayloadTypeInfo.type)
-                            }
-                        }
-                    }
-                    response("201") {
-                        description("A ${modelTypeInfo.type.simpleName}")
-                        mediaType("application/json") {
-                            schema(modelTypeInfo.type)
-                        }
-                    }
-                    response("400") {
-                        description("Invalid body")
-                        mediaType("application/json") {
-                            errorSchema("error_body_invalid")
-                        }
+            // Default response (direct return type of the function)
+            response(
+                if (type == Unit::class) "204"
+                else if (controllerRoute.type == RouteType.create) "201"
+                else "200"
+            ) {
+                if (type != Unit::class) {
+                    description(type)
+                    mediaType("application/json") {
+                        schema(type)
                     }
                 }
-
-                RouteType.update -> {
-                    if (updatePayloadTypeInfo.type != Unit::class) {
-                        requestBody {
-                            mediaType("application/json") {
-                                schema(updatePayloadTypeInfo.type)
-                            }
-                        }
-                    }
-                    response("200") {
-                        description("A ${modelTypeInfo.type.simpleName}")
-                        mediaType("application/json") {
-                            schema(modelTypeInfo.type)
-                        }
-                    }
-                    response("400") {
-                        description("Invalid body")
-                        mediaType("application/json") {
-                            errorSchema("error_body_invalid")
-                        }
-                    }
-                }
-
-                RouteType.delete -> response("204")
             }
         }
     }

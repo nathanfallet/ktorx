@@ -6,7 +6,7 @@ import me.nathanfallet.ktorx.models.annotations.*
 
 interface ITestModelController : IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
 
-    @APIMapping
+    @APIMapping("basic", "Basic test")
     @TemplateMapping(template = "basic")
     @Path("GET", "/basic")
     suspend fun basic(call: ApplicationCall): String
