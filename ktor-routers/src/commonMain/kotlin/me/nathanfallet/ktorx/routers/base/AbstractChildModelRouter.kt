@@ -1,29 +1,39 @@
 package me.nathanfallet.ktorx.routers.base
 
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
+import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
 import me.nathanfallet.ktorx.controllers.IChildModelController
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
-import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
+import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.typeOf
 
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     final override val modelTypeInfo: TypeInfo,
     final override val createPayloadTypeInfo: TypeInfo,
     final override val updatePayloadTypeInfo: TypeInfo,
-    final override val listTypeInfo: TypeInfo,
     override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     final override val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
+    controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
 ) : IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId> {
+
+    // Parameters linked to routing
 
     final override val route = route ?: (modelTypeInfo.type.simpleName!!.lowercase() + "s")
     final override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
@@ -41,6 +51,8 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
 
     val fullRoute = this.prefix + routeIncludingParent
 
+    // Keys for model
+
     val modelKeys = ModelAnnotations.modelKeys(modelTypeInfo.type as KClass<Model>)
     val createPayloadKeys = ModelAnnotations.createPayloadKeys(
         modelTypeInfo.type as KClass<Model>,
@@ -51,44 +63,80 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         updatePayloadTypeInfo.type as KClass<UpdatePayload>
     )
 
+    // Route calculation
+
+    val controllerRoutes = controllerClass.memberFunctions.mapNotNull {
+        val typeAnnotation = it.annotations.mapNotNull { annotation ->
+            if (annotation.annotationClass.simpleName?.endsWith("Path") == true) Triple(
+                RouteType(annotation.annotationClass.simpleName!!.removeSuffix("Path").lowercase()),
+                annotation.annotationClass.members.firstOrNull { parameter -> parameter.name == "path" }
+                    ?.call(annotation) as? String,
+                annotation.annotationClass.members.firstOrNull { parameter -> parameter.name == "method" }
+                    ?.call(annotation) as? String
+            ) else null
+        }.singleOrNull() ?: return@mapNotNull null
+        ControllerRoute(
+            typeAnnotation.first,
+            typeAnnotation.second?.takeIf { path -> path.isNotEmpty() },
+            typeAnnotation.third?.let { method -> HttpMethod.parse(method.uppercase()) },
+            it
+        )
+    }
+
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
+        controllerRoutes.forEach { createControllerRoute(root, it, openAPI) }
+    }
+
+    abstract fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?)
+
+    open suspend fun invokeControllerRoute(
+        call: ApplicationCall,
+        controllerRoute: ControllerRoute,
+        parameters: Map<String, Any?> = mapOf(),
+    ): Any? {
+        try {
+            return controllerRoute.function.callBy(controllerRoute.function.parameters.associateWith { parameter ->
+                if (parameter.kind == KParameter.Kind.INSTANCE) return@associateWith controller
+                if (parameter.type == typeOf<ApplicationCall>()) return@associateWith call
+                val annotations = parameter.annotations
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Id }?.let {
+                    return@associateWith ModelAnnotations.constructIdFromString(
+                        modelTypeInfo.type as KClass<Model>,
+                        call.parameters[id]!!
+                    )
+                }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Payload }?.let {
+                    val type = parameter.type.classifier as KClass<Any>
+                    if (type == Unit::class) return@associateWith Unit
+                    val payload = decodePayload(call, type)
+                    ModelAnnotations.validatePayload(payload, type)
+                    return@associateWith payload
+                }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.ParentModel }?.let {
+                    var target: IChildModelRouter<*, *, *, *, *, *> = this
+                    do {
+                        target =
+                            target.parentRouter ?: throw IllegalArgumentException("Illegal parent model: ${it.id}")
+                    } while (target.id != it.id)
+                    return@associateWith target.get(call)
+                }
+                parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
+            })
+        } catch (e: Exception) {
+            throw if (e is InvocationTargetException) e.targetException else e
+        }
+    }
+
+    // Decode payloads
+
+    abstract suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload
+
+    // Default operations
+
     override suspend fun get(call: ApplicationCall): Model {
-        return controller.get(
-            call,
-            parentRouter?.get(call) ?: UnitModel as ParentModel,
-            ModelAnnotations.constructIdFromString(modelTypeInfo.type as KClass<Model>, call.parameters[id]!!)
-        )
-    }
-
-    open suspend fun getAll(call: ApplicationCall): List<Model> {
-        return controller.list(
-            call,
-            parentRouter?.get(call) ?: UnitModel as ParentModel
-        )
-    }
-
-    open suspend fun create(call: ApplicationCall, payload: CreatePayload): Model {
-        return controller.create(
-            call,
-            parentRouter?.get(call) ?: UnitModel as ParentModel,
-            payload
-        )
-    }
-
-    open suspend fun update(call: ApplicationCall, payload: UpdatePayload): Model {
-        return controller.update(
-            call,
-            parentRouter?.get(call) ?: UnitModel as ParentModel,
-            ModelAnnotations.constructIdFromString(modelTypeInfo.type as KClass<Model>, call.parameters[id]!!),
-            payload
-        )
-    }
-
-    open suspend fun delete(call: ApplicationCall) {
-        return controller.delete(
-            call,
-            parentRouter?.get(call) ?: UnitModel as ParentModel,
-            ModelAnnotations.constructIdFromString(modelTypeInfo.type as KClass<Model>, call.parameters[id]!!)
-        )
+        return controllerRoutes.singleOrNull { it.type == RouteType.get }?.let {
+            invokeControllerRoute(call, it)
+        } as Model
     }
 
     override fun getOpenAPIParameters(self: Boolean): List<Parameter> {

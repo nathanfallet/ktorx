@@ -13,7 +13,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import java.util.*
@@ -41,9 +40,12 @@ class LocalizedTemplateUnitRouterTest {
     }
 
     private fun createRouter(getLocaleForCallUseCase: IGetLocaleForCallUseCase): LocalizedTemplateUnitRouter {
-        return object : LocalizedTemplateUnitRouter(TemplateMapping(""), { template, model ->
-            respond(template + ":" + model.map { it.key + ":" + it.value }.joinToString(","))
-        }, getLocaleForCallUseCase) {
+        return object : LocalizedTemplateUnitRouter(
+            { template, model ->
+                respond(template + ":" + model.map { it.key + ":" + it.value }.joinToString(","))
+            },
+            getLocaleForCallUseCase = getLocaleForCallUseCase
+        ) {
             override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
                 root.get("/test") {
                     call.respondTemplate("test", mapOf())

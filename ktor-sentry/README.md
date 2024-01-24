@@ -4,10 +4,10 @@ A Sentry plugin for Ktor
 
 ## Installation
 
-Add dependency to your `build.gradle` or `pom.xml`:
+Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
-```groovy
-compile 'me.nathanfallet.ktorx:ktor-sentry:1.9.2'
+```kotlin
+api("me.nathanfallet.ktorx:ktor-sentry:2.0.0")
 ```
 
 ```xml
@@ -16,7 +16,7 @@ compile 'me.nathanfallet.ktorx:ktor-sentry:1.9.2'
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-sentry-jvm</artifactId>
-        <version>1.9.2</version>
+        <version>2.0.0</version>
     </dependency>
 </dependencies>
 ```

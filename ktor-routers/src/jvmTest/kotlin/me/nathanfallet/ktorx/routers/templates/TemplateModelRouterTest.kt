@@ -14,14 +14,10 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IModelController
-import me.nathanfallet.ktorx.models.TestCreatePayload
-import me.nathanfallet.ktorx.models.TestModel
-import me.nathanfallet.ktorx.models.TestUpdatePayload
+import me.nathanfallet.ktorx.models.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
-import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelKey
 import me.nathanfallet.usecases.models.annotations.PayloadKey
 import kotlin.test.Test
@@ -54,17 +50,8 @@ class TemplateModelRouterTest {
         typeInfo<TestModel>(),
         typeInfo<TestCreatePayload>(),
         typeInfo<TestUpdatePayload>(),
-        typeInfo<List<TestModel>>(),
         controller,
-        TemplateMapping(
-            errorTemplate = "error",
-            listTemplate = "list",
-            getTemplate = "get",
-            createTemplate = "create",
-            updateTemplate = "update",
-            deleteTemplate = "delete",
-            redirectUnauthorizedToUrl = "redirect={path}"
-        ),
+        ITestModelController::class,
         { template, model ->
             respond(
                 TemplateResponse(
@@ -72,6 +59,9 @@ class TemplateModelRouterTest {
                         model["route"] as String,
                         model["keys"] as? List<Keys>,
                         model["item"] as? TestModel,
+                        model["item"] as? String,
+                        model["item"] as? Map<String, String>,
+                        model["item"] as? TestUser,
                         model["items"] as? List<TestModel>,
                         model["code"] as? Int,
                         model["error"] as? String
@@ -79,14 +69,94 @@ class TemplateModelRouterTest {
                 )
             )
         },
+        "error",
+        "redirect={path}"
     )
+
+    @Test
+    fun testTemplateBasicRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.basic(any()) } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/testmodels/basic")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "basic",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    itemString = "Hello world",
+                )
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testTemplateBasicMapRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.basicMap(any()) } returns mapOf("key" to "Hello world")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/testmodels/basic/map")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "basic",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    itemMap = mapOf("key" to "Hello world"),
+                )
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testTemplateBasicModelRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.basicModel(any()) } returns TestUser("userId")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/testmodels/basic/model")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "basic",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    itemModel = TestUser("userId"),
+                )
+            ), response.body()
+        )
+    }
 
     @Test
     fun testTemplateGetRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         routing {
             router.createRoutes(this)
         }
@@ -110,9 +180,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.list(any(), UnitModel) } throws ControllerException(
+        coEvery { controller.list(any()) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -136,9 +206,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetRouteUnauthorized() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.list(any(), UnitModel) } throws ControllerException(
+        coEvery { controller.list(any()) } throws ControllerException(
             HttpStatusCode.Unauthorized,
             "error_mock"
         )
@@ -174,9 +244,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplatePostCreateRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<PayloadKey>(controller)
-        coEvery { controller.create(any(), UnitModel, createMock) } returns mock
+        coEvery { controller.create(any(), createMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -189,7 +259,7 @@ class TemplateModelRouterTest {
             )
         }
         assertEquals(HttpStatusCode.Found, response.status)
-        coVerify { controller.create(any(), UnitModel, createMock) }
+        coVerify { controller.create(any(), createMock) }
     }
 
     @Test
@@ -251,9 +321,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetIdRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -277,9 +347,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetIdRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } throws ControllerException(
+        coEvery { controller.get(any(), 1) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -303,9 +373,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetIdUpdateRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<PayloadKey>(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -328,9 +398,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetIdUpdateRouteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<PayloadKey>(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } throws ControllerException(
+        coEvery { controller.get(any(), 1) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -354,9 +424,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplatePostIdUpdateRoute() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<PayloadKey>(controller)
-        coEvery { controller.update(any(), UnitModel, 1, updateMock) } returns mock
+        coEvery { controller.update(any(), 1, updateMock) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -369,7 +439,7 @@ class TemplateModelRouterTest {
             )
         }
         assertEquals(HttpStatusCode.Found, response.status)
-        coVerify { controller.update(any(), UnitModel, 1, updateMock) }
+        coVerify { controller.update(any(), 1, updateMock) }
     }
 
     @Test
@@ -403,9 +473,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetIdRouteDelete() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } returns mock
+        coEvery { controller.get(any(), 1) } returns mock
         routing {
             router.createRoutes(this)
         }
@@ -429,9 +499,9 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplateGetIdRouteDeleteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.get(any(), UnitModel, 1) } throws ControllerException(
+        coEvery { controller.get(any(), 1) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )
@@ -455,23 +525,23 @@ class TemplateModelRouterTest {
     @Test
     fun testTemplatePostIdRouteDelete() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.delete(any(), UnitModel, 1) } returns Unit
+        coEvery { controller.delete(any(), 1) } returns Unit
         routing {
             router.createRoutes(this)
         }
         val response = client.post("/testmodels/1/delete")
         assertEquals(HttpStatusCode.Found, response.status)
-        coVerify { controller.delete(any(), UnitModel, 1) }
+        coVerify { controller.delete(any(), 1) }
     }
 
     @Test
     fun testTemplatePostIdRouteDeleteControllerException() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.delete(any(), UnitModel, 1) } throws ControllerException(
+        coEvery { controller.delete(any(), 1) } throws ControllerException(
             HttpStatusCode.NotFound,
             "error_mock"
         )

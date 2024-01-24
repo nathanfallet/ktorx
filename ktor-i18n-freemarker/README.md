@@ -4,11 +4,11 @@ An i18n plugin for Ktor Freemarker
 
 ## Installation
 
-Add dependency to your `build.gradle` or `pom.xml`:
+Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
-```groovy
-compile 'me.nathanfallet.ktorx:ktor-i18n-freemarker:1.9.2'
-compile 'io.ktor:ktor-server-freemarker:2.3.6'
+```kotlin
+api("me.nathanfallet.ktorx:ktor-i18n-freemarker:2.0.0")
+api("io.ktor:ktor-server-freemarker:2.3.7")
 ```
 
 ```xml
@@ -17,12 +17,12 @@ compile 'io.ktor:ktor-server-freemarker:2.3.6'
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-i18n-freemarker-jvm</artifactId>
-        <version>1.9.2</version>
+        <version>2.0.0</version>
     </dependency>
     <dependency>
         <groupId>io.ktor</groupId>
         <artifactId>ktor-server-freemarker-jvm</artifactId>
-        <version>2.3.6</version>
+        <version>2.3.7</version>
     </dependency>
 </dependencies>
 ```

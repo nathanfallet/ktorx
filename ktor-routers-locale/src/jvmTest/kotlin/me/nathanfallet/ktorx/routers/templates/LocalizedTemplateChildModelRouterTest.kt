@@ -13,10 +13,10 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.ktorx.plugins.I18n
@@ -58,18 +58,9 @@ class LocalizedTemplateChildModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
-            typeInfo<List<TestModel>>(),
             controller,
+            ITestModelController::class,
             null,
-            TemplateMapping(
-                errorTemplate = "error",
-                listTemplate = "list",
-                getTemplate = "get",
-                createTemplate = "create",
-                updateTemplate = "update",
-                deleteTemplate = "delete",
-                redirectUnauthorizedToUrl = "redirect={path}"
-            ),
             { template, model ->
                 respond(
                     TemplateResponse(
@@ -85,6 +76,8 @@ class LocalizedTemplateChildModelRouterTest {
                     )
                 )
             },
+            "error",
+            "redirect={path}",
             getLocaleForCallUseCase
         )
     }
@@ -104,10 +97,10 @@ class LocalizedTemplateChildModelRouterTest {
     @Test
     fun testLocaleEnglish() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
+        val controller = mockk<ITestModelController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.list(any(), UnitModel) } returns listOf(mock)
+        coEvery { controller.list(any()) } returns listOf(mock)
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)

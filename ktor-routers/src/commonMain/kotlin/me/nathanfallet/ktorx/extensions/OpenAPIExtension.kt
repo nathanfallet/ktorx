@@ -1,5 +1,6 @@
 package me.nathanfallet.ktorx.extensions
 
+import io.ktor.http.*
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
@@ -50,20 +51,20 @@ fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
 }
 
 fun OpenAPI.schema(type: KType): Schema<Any> {
-    return if (type.isSubtypeOf(typeOf<List<*>>())) {
-        Schema<List<*>>().type("array").items(
-            schema(type.arguments.firstOrNull()?.type ?: typeOf<Any>())
-        )
-    } else if (components?.schemas?.containsKey(type.toString()) == true) {
+    return if (type.isSubtypeOf(typeOf<List<*>>())) Schema<List<*>>().type("array").items(
+        schema(type.arguments.firstOrNull()?.type ?: typeOf<Any>())
+    ) else if (components?.schemas?.containsKey(type.toString()) == true)
         Schema<Any>().`$ref`("#/components/schemas/$type")
-    } else {
-        Schema<Any>().type(type.toString())
-    }
+    else Schema<Any>().type(type.toString())
 }
 
 fun OpenAPI.path(path: String, build: PathItem.() -> Unit): OpenAPI = path(
     path, (paths?.get(path) ?: PathItem()).apply(build)
 )
+
+fun OpenAPI.route(method: HttpMethod, path: String, build: Operation.() -> Unit) = path(path) {
+    javaClass.methods.firstOrNull { it.name == method.value.lowercase() }?.invoke(this, Operation().apply(build))
+}
 
 fun OpenAPI.get(path: String, build: Operation.() -> Unit) = path(path) {
     get(Operation().apply(build))
@@ -101,13 +102,19 @@ fun ApiResponse.mediaType(name: String, build: MediaType.() -> Unit): ApiRespons
     (content ?: Content()).addMediaType(name, MediaType().apply(build))
 )
 
-fun <Model : Any> MediaType.schema(modelClass: KClass<Model>): MediaType = schema(
-    Schema<Model>().`$ref`("#/components/schemas/${modelClass.qualifiedName}")
+fun ApiResponse.description(type: KType): ApiResponse = description(
+    if (type.isSubtypeOf(typeOf<List<*>>())) "List of ${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}"
+    else "A $type"
 )
 
-fun <Model : Any> MediaType.arraySchema(modelClass: KClass<Model>): MediaType = schema(
-    Schema<List<Model>>().type("array")
-        .items(Schema<Model>().`$ref`("#/components/schemas/${modelClass.qualifiedName}"))
+fun MediaType.schema(type: KType): MediaType = schema(
+    if (type.isSubtypeOf(typeOf<List<*>>())) Schema<List<*>>().type("array").items(
+        Schema<Any>().`$ref`("#/components/schemas/${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}")
+    ) else Schema<Any>().`$ref`("#/components/schemas/$type")
+)
+
+fun <Model : Any> MediaType.schema(modelClass: KClass<Model>): MediaType = schema(
+    Schema<Model>().`$ref`("#/components/schemas/${modelClass.qualifiedName}")
 )
 
 fun MediaType.errorSchema(key: String): MediaType = schema(

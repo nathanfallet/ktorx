@@ -9,12 +9,14 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
-import me.nathanfallet.ktorx.models.api.APIMapping
+import me.nathanfallet.ktorx.models.annotations.APIMapping
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
+import me.nathanfallet.ktorx.models.routes.ControllerRoute
+import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
-import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
@@ -23,10 +25,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
     updatePayloadTypeInfo: TypeInfo,
-    listTypeInfo: TypeInfo,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
-    val mapping: APIMapping = APIMapping(),
+    controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -34,9 +35,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     modelTypeInfo,
     createPayloadTypeInfo,
     updatePayloadTypeInfo,
-    listTypeInfo,
     controller,
     parentRouter,
+    controllerClass,
     route,
     id,
     prefix ?: "/api"
@@ -44,11 +45,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
 
     override fun createRoutes(root: Route, openAPI: OpenAPI?) {
         createSchema(openAPI)
-        createAPIGetRoute(root, openAPI)
-        createAPIGetIdRoute(root, openAPI)
-        createAPIPostRoute(root, openAPI)
-        createAPIPutIdRoute(root, openAPI)
-        createAPIDeleteIdRoute(root, openAPI)
+        super.createRoutes(root, openAPI)
     }
 
     open fun createSchema(openAPI: OpenAPI?) {
@@ -64,174 +61,108 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 call.respond(mapOf("error" to exception.key))
             }
 
-            is PropertyValidatorException -> {
-                handleExceptionAPI(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"
-                    ), call
-                )
-            }
+            is PropertyValidatorException -> handleExceptionAPI(
+                ControllerException(HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"), call
+            )
 
-            is ContentTransformationException -> {
-                handleExceptionAPI(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "error_body_invalid"
-                    ), call
-                )
-            }
+            is ContentTransformationException -> handleExceptionAPI(
+                ControllerException(HttpStatusCode.BadRequest, "error_body_invalid"), call
+            )
 
             else -> throw exception
         }
     }
 
-    open suspend fun <Payload : Any> decodeAndValidatePayload(call: ApplicationCall, typeInfo: TypeInfo): Payload {
-        if (typeInfo.type == Unit::class) return Unit as Payload
-        val payload: Payload = call.receive(typeInfo)
-        ModelAnnotations.validatePayload(payload, typeInfo.type as KClass<Payload>)
-        return payload
+    override suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload {
+        return call.receive(type)
     }
 
-    open fun createAPIGetRoute(root: Route, openAPI: OpenAPI?) {
-        if (!mapping.listEnabled) return
-        root.get(fullRoute) {
-            try {
-                call.respond(getAll(call), listTypeInfo)
-            } catch (exception: Exception) {
-                handleExceptionAPI(exception, call)
-            }
+    override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
+        val apiMapping = controllerRoute.function.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
+
+        // Calculate route (path and method)
+        val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
+            RouteType.get, RouteType.update, RouteType.delete -> "{$id}"
+            else -> ""
+        }).removePrefix("/")).removeSuffix("/")
+        val method = controllerRoute.method ?: when (controllerRoute.type) {
+            RouteType.create -> HttpMethod.Post
+            RouteType.update -> HttpMethod.Put
+            RouteType.delete -> HttpMethod.Delete
+            else -> HttpMethod.Get
         }
-        openAPI?.get(fullRoute) {
-            operationId("list${modelTypeInfo.type.simpleName}")
-            addTagsItem(modelTypeInfo.type.simpleName)
-            description("Get all ${modelTypeInfo.type.simpleName}")
-            parameters(getOpenAPIParameters(false))
-            response("200") {
-                description("List of ${modelTypeInfo.type.simpleName}")
-                mediaType("application/json") {
-                    arraySchema(modelTypeInfo.type)
+
+        // Route handling
+        root.route(fullRoute + path, method) {
+            handle {
+                try {
+                    invokeControllerRoute(call, controllerRoute)
+                        ?.takeIf { it != Unit }
+                        ?.let {
+                            if (controllerRoute.type == RouteType.create) {
+                                call.response.status(HttpStatusCode.Created)
+                            }
+                            call.respond(it)
+                        }
+                        ?: run {
+                            call.respond(HttpStatusCode.NoContent)
+                        }
+                } catch (exception: Exception) {
+                    handleExceptionAPI(exception, call)
                 }
             }
         }
-    }
 
-    open fun createAPIGetIdRoute(root: Route, openAPI: OpenAPI?) {
-        if (!mapping.getEnabled) return
-        root.get("$fullRoute/{$id}") {
-            try {
-                call.respond(get(call), modelTypeInfo)
-            } catch (exception: Exception) {
-                handleExceptionAPI(exception, call)
-            }
-        }
-        openAPI?.get("$fullRoute/{$id}") {
-            operationId("get${modelTypeInfo.type.simpleName}ById")
-            addTagsItem(modelTypeInfo.type.simpleName)
-            description("Get a ${modelTypeInfo.type.simpleName} by id")
-            parameters(getOpenAPIParameters())
-            response("200") {
-                description("A ${modelTypeInfo.type.simpleName}")
-                mediaType("application/json") {
-                    schema(modelTypeInfo.type)
-                }
-            }
-        }
-    }
+        // API docs
+        openAPI?.route(method, fullRoute + path) {
+            val type = controllerRoute.function.returnType
 
-    open fun createAPIPostRoute(root: Route, openAPI: OpenAPI?) {
-        if (!mapping.createEnabled) return
-        root.post(fullRoute) {
-            try {
-                val payload = decodeAndValidatePayload<CreatePayload>(call, createPayloadTypeInfo)
-                val response = create(call, payload)
-                call.response.status(HttpStatusCode.Created)
-                call.respond(response, modelTypeInfo)
-            } catch (exception: Exception) {
-                handleExceptionAPI(exception, call)
-            }
-        }
-        openAPI?.post(fullRoute) {
-            operationId("create${modelTypeInfo.type.simpleName}")
+            // General metadata
+            operationId(
+                apiMapping.operationId.takeIf { it.isNotEmpty() }
+                    ?: "${controllerRoute.type.value}${modelTypeInfo.type.simpleName}"
+            )
             addTagsItem(modelTypeInfo.type.simpleName)
-            description("Create a ${modelTypeInfo.type.simpleName}")
-            parameters(getOpenAPIParameters(false))
-            if (createPayloadTypeInfo.type != Unit::class) {
+            parameters(getOpenAPIParameters(path.contains("{$id}")))
+            (apiMapping.description.takeIf { it.isNotEmpty() } ?: when (controllerRoute.type) {
+                RouteType.list -> "Get all ${modelTypeInfo.type.simpleName}"
+                RouteType.get -> "Get a ${modelTypeInfo.type.simpleName} by id"
+                RouteType.create -> "Create a ${modelTypeInfo.type.simpleName}"
+                RouteType.update -> "Update a ${modelTypeInfo.type.simpleName} by id"
+                RouteType.delete -> "Delete a ${modelTypeInfo.type.simpleName} by id"
+                else -> null
+            })?.let { description(it) }
+
+            // Body and response linked to payload
+            controllerRoute.function.parameters.singleOrNull {
+                it.annotations.any { annotation -> annotation is Payload }
+            }?.let {
                 requestBody {
                     mediaType("application/json") {
-                        schema(createPayloadTypeInfo.type)
+                        schema(it.type)
+                    }
+                }
+                response("400") {
+                    description("Invalid body")
+                    mediaType("application/json") {
+                        errorSchema("error_body_invalid")
                     }
                 }
             }
-            response("201") {
-                description("A ${modelTypeInfo.type.simpleName}")
-                mediaType("application/json") {
-                    schema(modelTypeInfo.type)
-                }
-            }
-            response("400") {
-                description("Invalid body")
-                mediaType("application/json") {
-                    errorSchema("error_body_invalid")
-                }
-            }
-        }
-    }
 
-    open fun createAPIPutIdRoute(root: Route, openAPI: OpenAPI?) {
-        if (!mapping.updateEnabled) return
-        root.put("$fullRoute/{$id}") {
-            try {
-                val payload = decodeAndValidatePayload<UpdatePayload>(call, updatePayloadTypeInfo)
-                call.respond(
-                    update(call, payload),
-                    modelTypeInfo
-                )
-            } catch (exception: Exception) {
-                handleExceptionAPI(exception, call)
-            }
-        }
-        openAPI?.put("$fullRoute/{$id}") {
-            operationId("update${modelTypeInfo.type.simpleName}ById")
-            addTagsItem(modelTypeInfo.type.simpleName)
-            description("Update a ${modelTypeInfo.type.simpleName} by id")
-            parameters(getOpenAPIParameters())
-            if (updatePayloadTypeInfo.type != Unit::class) {
-                requestBody {
+            // Default response (direct return type of the function)
+            response(
+                if (type == Unit::class) "204"
+                else if (controllerRoute.type == RouteType.create) "201"
+                else "200"
+            ) {
+                if (type != Unit::class) {
+                    description(type)
                     mediaType("application/json") {
-                        schema(updatePayloadTypeInfo.type)
+                        schema(type)
                     }
                 }
             }
-            response("200") {
-                description("A ${modelTypeInfo.type.simpleName}")
-                mediaType("application/json") {
-                    schema(modelTypeInfo.type)
-                }
-            }
-            response("400") {
-                description("Invalid body")
-                mediaType("application/json") {
-                    errorSchema("error_body_invalid")
-                }
-            }
-        }
-    }
-
-    open fun createAPIDeleteIdRoute(root: Route, openAPI: OpenAPI?) {
-        if (!mapping.deleteEnabled) return
-        root.delete("$fullRoute/{$id}") {
-            try {
-                delete(call)
-                call.respond(HttpStatusCode.NoContent)
-            } catch (exception: Exception) {
-                handleExceptionAPI(exception, call)
-            }
-        }
-        openAPI?.delete("$fullRoute/{$id}") {
-            operationId("delete${modelTypeInfo.type.simpleName}ById")
-            addTagsItem(modelTypeInfo.type.simpleName)
-            description("Delete a ${modelTypeInfo.type.simpleName} by id")
-            parameters(getOpenAPIParameters())
-            response("204")
         }
     }
 

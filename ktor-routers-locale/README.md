@@ -1,13 +1,13 @@
 # ktor-routers-locale
 
-i18n extension for ktor.
+Locale extensions for ktor-routers.
 
 ## Installation
 
-Add dependency to your `build.gradle` or `pom.xml`:
+Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
-```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers-locale:1.9.2'
+```kotlin
+api("me.nathanfallet.ktorx:ktor-routers-locale:2.0.0")
 ```
 
 ```xml
@@ -15,7 +15,7 @@ compile 'me.nathanfallet.ktorx:ktor-routers-locale:1.9.2'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-locale-jvm</artifactId>
-    <version>1.9.2</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 

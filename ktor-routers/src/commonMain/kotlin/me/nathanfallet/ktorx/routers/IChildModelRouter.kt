@@ -12,7 +12,6 @@ interface IChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload
     val modelTypeInfo: TypeInfo
     val createPayloadTypeInfo: TypeInfo
     val updatePayloadTypeInfo: TypeInfo
-    val listTypeInfo: TypeInfo
 
     val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>
     val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?

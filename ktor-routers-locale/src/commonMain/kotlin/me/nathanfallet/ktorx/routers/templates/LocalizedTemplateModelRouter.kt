@@ -5,18 +5,19 @@ import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IModelController
-import me.nathanfallet.ktorx.models.templates.TemplateMapping
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import me.nathanfallet.usecases.models.IModel
+import kotlin.reflect.KClass
 
 open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
     updatePayloadTypeInfo: TypeInfo,
-    listTypeInfo: TypeInfo,
     controller: IModelController<Model, Id, CreatePayload, UpdatePayload>,
-    mapping: TemplateMapping,
-    respondTemplate: suspend ApplicationCall.(String, Map<String, Any>) -> Unit,
+    controllerClass: KClass<out IModelController<Model, Id, CreatePayload, UpdatePayload>>,
+    respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
+    errorTemplate: String? = null,
+    redirectUnauthorizedToUrl: String? = null,
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     route: String? = null,
     id: String? = null,
@@ -25,10 +26,11 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
     modelTypeInfo,
     createPayloadTypeInfo,
     updatePayloadTypeInfo,
-    listTypeInfo,
     controller,
-    mapping,
+    controllerClass,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
+    errorTemplate,
+    redirectUnauthorizedToUrl,
     route,
     id,
     prefix
@@ -37,7 +39,7 @@ open class LocalizedTemplateModelRouter<Model : IModel<Id, CreatePayload, Update
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
 
     override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
-        isUnauthorizedRedirectPath(call, mapping, getLocaleForCallUseCase)
+        isUnauthorizedRedirectPath(call, redirectUnauthorizedToUrl, getLocaleForCallUseCase)
 
     override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
         super.createRoutes(root, openAPI)

@@ -4,10 +4,10 @@ Generic routers for Ktor projects.
 
 ## Installation
 
-Add dependency to your `build.gradle` or `pom.xml`:
+Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
-```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers:1.9.2'
+```kotlin
+api("me.nathanfallet.ktorx:ktor-routers:2.0.0")
 ```
 
 ```xml
@@ -15,7 +15,7 @@ compile 'me.nathanfallet.ktorx:ktor-routers:1.9.2'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-jvm</artifactId>
-    <version>1.9.2</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -64,8 +64,8 @@ class MyRouter(
     typeInfo<MyModel>(),
     typeInfo<CreateMyModelPayload>(),
     typeInfo<UpdateMyModelPayload>(),
-    typeInfo<List<MyModel>>(),
-    controller
+    controller,
+    MyController::class
 )
 ```
 
@@ -83,8 +83,36 @@ class PostRouter(
     typeInfo<Post>(),
     typeInfo<CreatePostPayload>(),
     typeInfo<UpdatePostPayload>(),
-    typeInfo<List<Post>>(),
     controller,
-    userRouter
+    userRouter,
+    PostController::class
 )
+```
+
+Now it's time to write some routes in our controller.
+
+```kotlin
+@APIMapping // Will map your method in the API router
+@TemplateMapping("template.ftl") // Will map your method in the Template router and render with `template.ftl`
+@Path(path = "/path/to/route") // Route will be available at `/path/to/route`, prefixed with the router path (depending on model)
+suspend fun myMethod(): Output {
+    // ...
+    return Output()
+}
+```
+
+For routes related to CRUD operations on models, you can replace `@Path`
+with `@ListPath`, `@GetPath`, `@CreatePath`, `@UpdatePath` or `@DeletePath`.
+In that case, the path parameter of the annotation is optional and will be inferred automatically depending on the
+router you choose to use (API or Template).
+
+Here is an exemple for the `@UpdatePath` annotation, to show `@Id` and `@Payload` annotations as well:
+
+```kotlin
+@APIMapping
+@TemplateMapping("update.ftl")
+@UpdatePath
+suspend fun update(@Id id: Long, @Payload payload: UpdateMyModelPayload): MyModel {
+    // e.g. Call your usecases and return the updated model
+}
 ```
