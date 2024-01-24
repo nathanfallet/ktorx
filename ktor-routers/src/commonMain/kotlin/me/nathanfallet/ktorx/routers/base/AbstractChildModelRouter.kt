@@ -25,7 +25,6 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     final override val modelTypeInfo: TypeInfo,
     final override val createPayloadTypeInfo: TypeInfo,
     final override val updatePayloadTypeInfo: TypeInfo,
-    final override val listTypeInfo: TypeInfo,
     override val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
     final override val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,

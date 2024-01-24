@@ -18,7 +18,6 @@ open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdateP
     routers.first().modelTypeInfo,
     routers.first().createPayloadTypeInfo,
     routers.first().updatePayloadTypeInfo,
-    routers.first().listTypeInfo,
     routers.first().controller,
     parentRouter,
     controllerClass,

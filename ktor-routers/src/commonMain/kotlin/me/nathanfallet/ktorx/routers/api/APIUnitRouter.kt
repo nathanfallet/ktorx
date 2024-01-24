@@ -16,7 +16,6 @@ open class APIUnitRouter(
     typeInfo<UnitModel>(),
     typeInfo<Unit>(),
     typeInfo<Unit>(),
-    typeInfo<List<UnitModel>>(),
     controller,
     controllerClass,
     route = route,

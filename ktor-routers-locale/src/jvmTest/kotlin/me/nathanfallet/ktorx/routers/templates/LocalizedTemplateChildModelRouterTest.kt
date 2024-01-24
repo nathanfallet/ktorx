@@ -58,7 +58,6 @@ class LocalizedTemplateChildModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
-            typeInfo<List<TestModel>>(),
             controller,
             ITestModelController::class,
             null,

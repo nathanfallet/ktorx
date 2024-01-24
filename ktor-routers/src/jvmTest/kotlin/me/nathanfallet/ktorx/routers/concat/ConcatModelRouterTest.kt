@@ -43,7 +43,6 @@ class ConcatModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
-            typeInfo<List<TestModel>>(),
             mockk(),
             ITestModelController::class
         )
@@ -60,7 +59,6 @@ class ConcatModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
-            typeInfo<List<TestModel>>(),
             mockk(),
             ITestModelController::class
         )
@@ -79,7 +77,6 @@ class ConcatModelRouterTest {
                     typeInfo<TestModel>(),
                     typeInfo<TestCreatePayload>(),
                     typeInfo<TestUpdatePayload>(),
-                    typeInfo<List<TestModel>>(),
                     controller,
                     ITestModelController::class
                 )

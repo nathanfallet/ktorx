@@ -50,7 +50,6 @@ class TemplateModelRouterTest {
         typeInfo<TestModel>(),
         typeInfo<TestCreatePayload>(),
         typeInfo<TestUpdatePayload>(),
-        typeInfo<List<TestModel>>(),
         controller,
         ITestModelController::class,
         { template, model ->

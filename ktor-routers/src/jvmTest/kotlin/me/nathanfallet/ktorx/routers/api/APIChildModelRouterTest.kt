@@ -46,7 +46,6 @@ class APIChildModelRouterTest {
         typeInfo<TestChildModel>(),
         typeInfo<TestCreatePayload>(),
         typeInfo<TestUpdatePayload>(),
-        typeInfo<List<TestChildModel>>(),
         controller,
         parentRouter,
         ITestChildModelController::class,
@@ -62,7 +61,6 @@ class APIChildModelRouterTest {
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),
             typeInfo<TestUpdatePayload>(),
-            typeInfo<List<TestModel>>(),
             controller,
             ITestModelController::class
         )
