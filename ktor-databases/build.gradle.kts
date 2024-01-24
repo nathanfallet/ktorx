@@ -27,18 +27,13 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    val exposedVersion = "0.46.0"
-
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("org.jetbrains.exposed:exposed-core:$exposedVersion")
-                api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-                api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
-
                 api(libs.coroutines)
                 api(libs.bundles.ktor.server.api)
                 api(libs.usecases)
+                api(libs.surexposed)
             }
         }
         val jvmTest by getting {

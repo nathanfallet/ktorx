@@ -1,8 +1,8 @@
 package me.nathanfallet.ktorx.database.sessions
 
-import me.nathanfallet.ktorx.database.IDatabase
 import me.nathanfallet.ktorx.models.sessions.Session
 import me.nathanfallet.ktorx.repositories.sessions.ISessionsRepository
+import me.nathanfallet.surexposed.database.IDatabase
 import me.nathanfallet.usecases.context.IContext
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq

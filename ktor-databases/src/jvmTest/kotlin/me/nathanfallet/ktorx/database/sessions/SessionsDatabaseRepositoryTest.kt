@@ -2,7 +2,7 @@ package me.nathanfallet.ktorx.database.sessions
 
 import kotlinx.coroutines.runBlocking
 import me.nathanfallet.ktorx.database.DatabaseTest
-import me.nathanfallet.ktorx.database.IDatabase
+import me.nathanfallet.surexposed.database.IDatabase
 import org.jetbrains.exposed.sql.selectAll
 import kotlin.test.Test
 import kotlin.test.assertEquals

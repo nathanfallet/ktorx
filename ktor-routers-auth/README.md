@@ -4,10 +4,10 @@ Generic auth routers for Ktor projects.
 
 ## Installation
 
-Add dependency to your `build.gradle` or `pom.xml`:
+Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
-```groovy
-compile 'me.nathanfallet.ktorx:ktor-routers-auth:1.9.2'
+```kotlin
+api("me.nathanfallet.ktorx:ktor-routers-auth:2.0.0")
 ```
 
 ```xml
@@ -15,7 +15,7 @@ compile 'me.nathanfallet.ktorx:ktor-routers-auth:1.9.2'
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-auth-jvm</artifactId>
-    <version>1.9.2</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
