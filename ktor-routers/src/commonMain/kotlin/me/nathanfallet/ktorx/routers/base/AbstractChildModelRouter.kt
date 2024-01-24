@@ -16,6 +16,7 @@ import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.typeOf
@@ -95,7 +96,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         parameters: Map<String, Any?> = mapOf(),
     ): Any? {
         try {
-            return controllerRoute.function.callBy(controllerRoute.function.parameters.associateWith { parameter ->
+            return controllerRoute.function.callSuspendBy(controllerRoute.function.parameters.associateWith { parameter ->
                 if (parameter.kind == KParameter.Kind.INSTANCE) return@associateWith controller
                 if (parameter.type == typeOf<ApplicationCall>()) return@associateWith call
                 val annotations = parameter.annotations
