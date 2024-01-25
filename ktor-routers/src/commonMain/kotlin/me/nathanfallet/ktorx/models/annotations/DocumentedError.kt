@@ -1,5 +1,6 @@
 package me.nathanfallet.ktorx.models.annotations
 
+@Repeatable
 @Target(AnnotationTarget.FUNCTION)
 annotation class DocumentedError(
     val code: Int,

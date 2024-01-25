@@ -70,13 +70,11 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 )
             }
 
-            is PropertyValidatorException -> {
-                handleExceptionTemplate(
-                    ControllerException(
-                        HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"
-                    ), call, fromTemplate
-                )
-            }
+            is PropertyValidatorException -> handleExceptionTemplate(
+                ControllerException(
+                    HttpStatusCode.BadRequest, "${route}_${exception.key}_${exception.reason}"
+                ), call, fromTemplate
+            )
 
             else -> throw exception
         }
