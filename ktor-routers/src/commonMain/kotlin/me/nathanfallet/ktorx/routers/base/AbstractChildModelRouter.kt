@@ -116,9 +116,9 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
                 annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.ParentModel }?.let {
                     var target: IChildModelRouter<*, *, *, *, *, *> = this
                     do {
-                        target =
-                            target.parentRouter ?: throw IllegalArgumentException("Illegal parent model: ${it.id}")
-                    } while (target.id != it.id)
+                        target = target.parentRouter
+                            ?: throw IllegalArgumentException("Illegal parent model: ${parameter.type}")
+                    } while (target.modelTypeInfo.kotlinType != parameter.type)
                     return@associateWith target.get(call)
                 }
                 parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")

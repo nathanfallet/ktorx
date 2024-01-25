@@ -10,33 +10,29 @@ interface ITestChildModelController :
     @APIMapping
     @TemplateMapping(template = "basic")
     @Path("GET", "/basic")
-    fun basic(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel): String
+    fun basic(call: ApplicationCall, @ParentModel parent: TestModel): String
 
     @APIMapping
     @TemplateMapping(template = "list")
     @ListModelPath
-    fun list(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel): List<TestChildModel>
+    fun list(call: ApplicationCall, @ParentModel parent: TestModel): List<TestChildModel>
 
     @APIMapping
     @TemplateMapping(template = "create")
     @CreateModelPath
-    fun create(
-        call: ApplicationCall,
-        @ParentModel("testmodelId") parent: TestModel,
-        payload: TestCreatePayload,
-    ): TestChildModel
+    fun create(call: ApplicationCall, @ParentModel parent: TestModel, payload: TestCreatePayload): TestChildModel
 
     @APIMapping
     @TemplateMapping(template = "get")
     @GetModelPath
-    fun get(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel, @Id id: Long): TestChildModel
+    fun get(call: ApplicationCall, @ParentModel parent: TestModel, @Id id: Long): TestChildModel
 
     @APIMapping
     @TemplateMapping(template = "update")
     @UpdateModelPath
     fun update(
         call: ApplicationCall,
-        @ParentModel("testmodelId") parent: TestModel,
+        @ParentModel parent: TestModel,
         @Id id: Long,
         payload: TestUpdatePayload,
     ): TestChildModel
@@ -44,6 +40,6 @@ interface ITestChildModelController :
     @APIMapping
     @TemplateMapping(template = "delete")
     @DeleteModelPath
-    fun delete(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel, @Id id: Long)
+    fun delete(call: ApplicationCall, @ParentModel parent: TestModel, @Id id: Long)
 
 }
