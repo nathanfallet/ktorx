@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.extensions.info
 import me.nathanfallet.ktorx.extensions.schema
 import me.nathanfallet.ktorx.models.TestModel
+import kotlin.reflect.typeOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -19,7 +20,7 @@ class OpenAPIRouterTest {
             description = "Test description"
             version = "1.0.0"
         }
-        openAPI.schema(TestModel::class)
+        openAPI.schema(typeOf<TestModel>())
         val router = OpenAPIRouter()
         routing {
             router.createRoutes(this, openAPI)

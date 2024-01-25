@@ -26,37 +26,36 @@ fun OpenAPI.info(build: Info.() -> Unit): OpenAPI = info(
 )
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
-    if (components?.schemas?.containsKey(modelClass.qualifiedName) == true) return this
-    val properties = modelClass.serializer().descriptor.elementNames.associateWith { name ->
-        modelClass.memberProperties.first { it.name == name }
-    }
-    return schema(
-        modelClass.qualifiedName,
-        Schema<Model>()
-            .type("object")
-            .properties(properties.mapValues {
-                schema(it.value.returnType).apply {
-                    it.value.annotations.firstNotNullOfOrNull { annotation ->
-                        annotation as? me.nathanfallet.usecases.models.annotations.Schema
-                    }?.let { annotation ->
-                        description = annotation.name
-                        example = annotation.example
-                    }
-                }
-            })
-            .required(properties.filter {
-                it.value.returnType.isMarkedNullable.not()
-            }.keys.toList())
-    )
-}
-
 fun OpenAPI.schema(type: KType): Schema<Any> {
-    return if (type.isSubtypeOf(typeOf<List<*>>())) Schema<List<*>>().type("array").items(
+    if (type.isSubtypeOf(typeOf<List<*>>())) return Schema<List<*>>().type("array").items(
         schema(type.arguments.firstOrNull()?.type ?: typeOf<Any>())
-    ) else if (components?.schemas?.containsKey(type.toString()) == true)
-        Schema<Any>().`$ref`("#/components/schemas/$type")
-    else Schema<Any>().type(type.toString())
+    )
+    if (type.isSubtypeOf(typeOf<Map<*, *>>())) return Schema<Map<*, *>>().type("object")
+    if (components?.schemas?.containsKey(type.toString()) != true) {
+        val klass = type.classifier as KClass<*>
+        val properties = klass.serializer().descriptor.elementNames.associateWith { name ->
+            klass.memberProperties.first { it.name == name }
+        }
+        schema(
+            type.toString(),
+            Schema<Any>()
+                .type("object")
+                .properties(properties.mapValues {
+                    schema(it.value.returnType).apply {
+                        it.value.annotations.firstNotNullOfOrNull { annotation ->
+                            annotation as? me.nathanfallet.usecases.models.annotations.Schema
+                        }?.let { annotation ->
+                            description = annotation.name
+                            example = annotation.example
+                        }
+                    }
+                })
+                .required(properties.filter {
+                    it.value.returnType.isMarkedNullable.not()
+                }.keys.toList())
+        )
+    }
+    return Schema<Any>().`$ref`("#/components/schemas/$type")
 }
 
 fun OpenAPI.path(path: String, build: PathItem.() -> Unit): OpenAPI = path(

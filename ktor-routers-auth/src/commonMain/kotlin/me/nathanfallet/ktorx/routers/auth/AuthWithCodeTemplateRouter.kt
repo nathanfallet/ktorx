@@ -14,7 +14,6 @@ import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType
 import kotlin.reflect.KClass
 
-@Suppress("UNCHECKED_CAST")
 open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any, RegisterCodePayload : Any>(
     loginPayloadTypeInfo: TypeInfo,
     registerPayloadTypeInfo: TypeInfo,
@@ -41,8 +40,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
 ) {
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        val mapping = controllerRoute.function.annotations
-            .firstNotNullOfOrNull { it as? TemplateMapping } ?: return
+        val mapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? TemplateMapping } ?: return
         when (controllerRoute.type) {
             RouteType.register -> {
                 root.get("$fullRoute/register") {
@@ -68,9 +66,7 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 root.get("$fullRoute/register/{code}") {
                     try {
                         val code = call.parameters["code"]!!
-                        val codePayload = invokeControllerRoute(
-                            call, controllerRoute, mapOf("code" to code)
-                        ) as RegisterCodePayload
+                        val codePayload = invokeControllerRoute(call, controllerRoute, mapOf("code" to code))
                         call.respondTemplate(
                             mapping.template,
                             mapOf("codePayload" to codePayload)
@@ -98,10 +94,10 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
         }
     }
 
-    private suspend fun register(call: ApplicationCall, code: String): RegisterCodePayload {
+    private suspend fun register(call: ApplicationCall, code: String): Any? {
         return controllerRoutes.singleOrNull { it.type == RouteType.registerCode }?.let {
             invokeControllerRoute(call, it, mapOf("code" to code))
-        } as RegisterCodePayload
+        }
     }
 
 }

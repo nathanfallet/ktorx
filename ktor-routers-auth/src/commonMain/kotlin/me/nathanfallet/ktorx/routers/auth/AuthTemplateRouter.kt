@@ -39,8 +39,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
 ) {
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        val mapping = controllerRoute.function.annotations
-            .firstNotNullOfOrNull { it as? TemplateMapping } ?: return
+        val mapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? TemplateMapping } ?: return
         when (controllerRoute.type) {
             RouteType.login -> {
                 root.get("$fullRoute/login") {

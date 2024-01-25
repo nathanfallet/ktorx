@@ -66,7 +66,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        val apiMapping = controllerRoute.function.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
+        val apiMapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
 
         // Calculate route (path and method)
         val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
@@ -103,9 +103,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
 
         // API docs
         openAPI?.route(method, fullRoute + path) {
-            val type = controllerRoute.function.returnType
+            val type = controllerRoute.returnType
             val isUnitType = type == Unit::class || type == UnitModel::class
-            val documentedType = controllerRoute.function.annotations.firstNotNullOfOrNull {
+            val documentedType = controllerRoute.annotations.firstNotNullOfOrNull {
                 it as? DocumentedType
             }?.type ?: type.underlyingType?.classifier as? KClass<*>
             val documentedTypeName = documentedType?.simpleName ?: documentedType.toString()
@@ -128,13 +128,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 else -> null
             })?.let { description(it) }
             addTagsItem(
-                controllerRoute.function.annotations.firstNotNullOfOrNull { it as? DocumentedTag }?.name
+                controllerRoute.annotations.firstNotNullOfOrNull { it as? DocumentedTag }?.name
                     ?: modelTypeInfo.type.simpleName
             )
             parameters(getOpenAPIParameters(path.contains("{$id}")))
 
             // Body and response linked to payload
-            controllerRoute.function.parameters.singleOrNull {
+            controllerRoute.parameters.singleOrNull {
                 it.annotations.any { annotation -> annotation is Payload }
             }?.let {
                 openAPI.schema(it.type)
@@ -166,7 +166,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             }
 
             // Additional responses
-            controllerRoute.function.annotations.filterIsInstance<DocumentedError>().forEach {
+            controllerRoute.annotations.filterIsInstance<DocumentedError>().forEach {
                 response(it.code.toString()) {
                     description(it.description.takeIf { d -> d.isNotEmpty() } ?: it.key)
                     mediaType("application/json") {

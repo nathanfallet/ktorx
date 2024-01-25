@@ -40,7 +40,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     final override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
     final override val prefix = prefix ?: ""
 
-    final override val routeIncludingParent = (parentRouter?.let {
+    final override val routeIncludingParent = ((parentRouter?.let {
         val parentRoute = it
             .routeIncludingParent
             .trim('/')
@@ -48,7 +48,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
             ?.let { r -> "/$r" } ?: ""
         val parentId = it.id.takeIf(String::isNotEmpty)?.let { i -> "/{$i}" } ?: ""
         parentRoute + parentId
-    } ?: "") + "/" + this.route
+    } ?: "") + "/" + this.route.trim('/')).removeSuffix("/")
 
     val fullRoute = this.prefix + routeIncludingParent
 
@@ -80,7 +80,10 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
             typeAnnotation.first,
             typeAnnotation.second?.takeIf { path -> path.isNotEmpty() },
             typeAnnotation.third?.let { method -> HttpMethod.parse(method.uppercase()) },
-            it
+            it.annotations,
+            it.parameters,
+            it.returnType,
+            it::callSuspendBy
         )
     }
 
@@ -96,7 +99,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
         parameters: Map<String, Any?> = mapOf(),
     ): Any? {
         try {
-            return controllerRoute.function.callSuspendBy(controllerRoute.function.parameters.associateWith { parameter ->
+            return controllerRoute.handler(controllerRoute.parameters.associateWith { parameter ->
                 if (parameter.kind == KParameter.Kind.INSTANCE) return@associateWith controller
                 if (parameter.type == typeOf<ApplicationCall>()) return@associateWith call
                 val annotations = parameter.annotations
@@ -123,8 +126,8 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
                 }
                 parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
             })
-        } catch (e: Exception) {
-            throw if (e is InvocationTargetException) e.targetException else e
+        } catch (e: InvocationTargetException) {
+            throw e.targetException
         }
     }
 

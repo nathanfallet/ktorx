@@ -20,7 +20,6 @@ import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
-@Suppress("UNCHECKED_CAST")
 open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
@@ -91,10 +90,19 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     }
 
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        val mapping = controllerRoute.function.annotations
-            .firstNotNullOfOrNull { it as? TemplateMapping } ?: return
+        val mapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? TemplateMapping } ?: return
+
+        // Calculate route (path and method)
+        val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
+            RouteType.getModel -> "{$id}"
+            RouteType.createModel -> "create"
+            RouteType.updateModel -> "{$id}/update"
+            RouteType.deleteModel -> "{$id}/delete"
+            else -> ""
+        }).removePrefix("/")).removeSuffix("/")
+
         when (controllerRoute.type) {
-            RouteType.listModel -> root.get(fullRoute) {
+            RouteType.listModel -> root.get(fullRoute + path) {
                 try {
                     call.respondTemplate(
                         mapping.template,
@@ -109,7 +117,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.getModel -> root.get("$fullRoute/{$id}") {
+            RouteType.getModel -> root.get(fullRoute + path) {
                 try {
                     call.respondTemplate(
                         mapping.template,
@@ -125,7 +133,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             }
 
             RouteType.createModel -> {
-                root.get("$fullRoute/create") {
+                root.get(fullRoute + path) {
                     try {
                         call.respondTemplate(
                             mapping.template,
@@ -138,7 +146,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         handleExceptionTemplate(exception, call, mapping.template)
                     }
                 }
-                root.post("$fullRoute/create") {
+                root.post(fullRoute + path) {
                     try {
                         invokeControllerRoute(call, controllerRoute)
                         call.respondRedirect("../$route")
@@ -149,7 +157,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             }
 
             RouteType.updateModel -> {
-                root.get("$fullRoute/{$id}/update") {
+                root.get(fullRoute + path) {
                     try {
                         call.respondTemplate(
                             mapping.template,
@@ -163,7 +171,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         handleExceptionTemplate(exception, call, mapping.template)
                     }
                 }
-                root.post("$fullRoute/{$id}/update") {
+                root.post(fullRoute + path) {
                     try {
                         invokeControllerRoute(call, controllerRoute)
                         call.respondRedirect("../../$route")
@@ -174,7 +182,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             }
 
             RouteType.deleteModel -> {
-                root.get("$fullRoute/{$id}/delete") {
+                root.get(fullRoute + path) {
                     try {
                         call.respondTemplate(
                             mapping.template,
@@ -188,7 +196,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         handleExceptionTemplate(exception, call, mapping.template)
                     }
                 }
-                root.post("$fullRoute/{$id}/delete") {
+                root.post(fullRoute + path) {
                     try {
                         invokeControllerRoute(call, controllerRoute)
                         call.respondRedirect("../../$route")
@@ -199,7 +207,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             }
 
             else -> root.route(
-                "$fullRoute/${controllerRoute.path}",
+                fullRoute + path,
                 controllerRoute.method ?: HttpMethod.Get
             ) {
                 handle {
