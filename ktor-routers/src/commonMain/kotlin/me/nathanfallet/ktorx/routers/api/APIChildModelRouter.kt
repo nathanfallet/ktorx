@@ -9,16 +9,14 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
-import me.nathanfallet.ktorx.models.annotations.APIMapping
-import me.nathanfallet.ktorx.models.annotations.DocumentedError
-import me.nathanfallet.ktorx.models.annotations.DocumentedType
-import me.nathanfallet.ktorx.models.annotations.Payload
+import me.nathanfallet.ktorx.models.annotations.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
+import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
@@ -43,17 +41,6 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     id,
     prefix ?: "/api"
 ) {
-
-    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
-        createSchema(openAPI)
-        super.createRoutes(root, openAPI)
-    }
-
-    open fun createSchema(openAPI: OpenAPI?) {
-        openAPI?.schema(modelTypeInfo.type)
-        openAPI?.schema(createPayloadTypeInfo.type)
-        openAPI?.schema(updatePayloadTypeInfo.type)
-    }
 
     open suspend fun handleExceptionAPI(exception: Exception, call: ApplicationCall) {
         when (exception) {
@@ -117,6 +104,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         // API docs
         openAPI?.route(method, fullRoute + path) {
             val type = controllerRoute.function.returnType
+            val isUnitType = type == Unit::class || type == UnitModel::class
             val documentedType = controllerRoute.function.annotations.firstNotNullOfOrNull {
                 it as? DocumentedType
             }?.type ?: type.underlyingType?.classifier as? KClass<*>
@@ -139,13 +127,17 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 RouteType.deleteModel -> "Delete a $documentedTypeName by id"
                 else -> null
             })?.let { description(it) }
-            addTagsItem(modelTypeInfo.type.simpleName)
+            addTagsItem(
+                controllerRoute.function.annotations.firstNotNullOfOrNull { it as? DocumentedTag }?.name
+                    ?: modelTypeInfo.type.simpleName
+            )
             parameters(getOpenAPIParameters(path.contains("{$id}")))
 
             // Body and response linked to payload
             controllerRoute.function.parameters.singleOrNull {
                 it.annotations.any { annotation -> annotation is Payload }
             }?.let {
+                openAPI.schema(it.type)
                 requestBody {
                     mediaType("application/json") {
                         schema(it.type)
@@ -161,11 +153,12 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
 
             // Default response (direct return type of the function)
             response(
-                if (type == Unit::class) "204"
+                if (isUnitType) "204"
                 else if (controllerRoute.type == RouteType.createModel) "201"
                 else "200"
             ) {
-                if (type == Unit::class) return@response
+                if (isUnitType) return@response
+                openAPI.schema(type)
                 description(type)
                 mediaType("application/json") {
                     schema(type)

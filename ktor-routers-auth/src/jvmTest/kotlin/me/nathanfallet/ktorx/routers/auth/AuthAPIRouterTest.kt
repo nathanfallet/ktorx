@@ -10,9 +10,9 @@ import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.media.Schema
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.models.auth.TestAuthController
+import me.nathanfallet.ktorx.routers.api.APIUnitRouter
 import me.nathanfallet.usecases.auth.AuthRequest
 import me.nathanfallet.usecases.auth.AuthToken
 import kotlin.test.Test
@@ -35,7 +35,7 @@ class AuthAPIRouterTest {
 
     private fun createRouter(
         controller: TestAuthController,
-    ) = AuthAPIRouter(controller, TestAuthController::class)
+    ) = APIUnitRouter(controller, TestAuthController::class, "auth")
 
     @Test
     fun testPostTokenRoute() = testApplication {
@@ -94,14 +94,10 @@ class AuthAPIRouterTest {
             "#/components/schemas/${AuthRequest::class.qualifiedName}",
             post?.requestBody?.content?.get("application/json")?.schema?.`$ref`
         )
-        assertEquals(2, post?.responses?.size)
+        assertEquals(3, post?.responses?.size)
         assertEquals(
             "#/components/schemas/${AuthToken::class.qualifiedName}",
             post?.responses?.get("201")?.content?.get("application/json")?.schema?.`$ref`
-        )
-        assertEquals(
-            Schema<String>().type("string").example("error_body_invalid"),
-            post?.responses?.get("400")?.content?.get("application/json")?.schema?.properties?.get("error")
         )
     }
 

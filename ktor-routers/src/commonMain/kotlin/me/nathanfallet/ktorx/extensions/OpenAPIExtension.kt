@@ -27,6 +27,7 @@ fun OpenAPI.info(build: Info.() -> Unit): OpenAPI = info(
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 fun <Model : Any> OpenAPI.schema(modelClass: KClass<Model>): OpenAPI {
+    if (components?.schemas?.containsKey(modelClass.qualifiedName) == true) return this
     val properties = modelClass.serializer().descriptor.elementNames.associateWith { name ->
         modelClass.memberProperties.first { it.name == name }
     }
@@ -66,26 +67,6 @@ fun OpenAPI.route(method: HttpMethod, path: String, build: Operation.() -> Unit)
     javaClass.methods.firstOrNull { it.name == method.value.lowercase() }?.invoke(this, Operation().apply(build))
 }
 
-fun OpenAPI.get(path: String, build: Operation.() -> Unit) = path(path) {
-    get(Operation().apply(build))
-}
-
-fun OpenAPI.post(path: String, build: Operation.() -> Unit) = path(path) {
-    post(Operation().apply(build))
-}
-
-fun OpenAPI.put(path: String, build: Operation.() -> Unit) = path(path) {
-    put(Operation().apply(build))
-}
-
-fun OpenAPI.patch(path: String, build: Operation.() -> Unit) = path(path) {
-    patch(Operation().apply(build))
-}
-
-fun OpenAPI.delete(path: String, build: Operation.() -> Unit) = path(path) {
-    delete(Operation().apply(build))
-}
-
 fun Operation.requestBody(build: RequestBody.() -> Unit): Operation = requestBody(
     (requestBody ?: RequestBody()).apply(build)
 )
@@ -111,10 +92,6 @@ fun MediaType.schema(type: KType): MediaType = schema(
     if (type.isSubtypeOf(typeOf<List<*>>())) Schema<List<*>>().type("array").items(
         Schema<Any>().`$ref`("#/components/schemas/${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}")
     ) else Schema<Any>().`$ref`("#/components/schemas/$type")
-)
-
-fun <Model : Any> MediaType.schema(modelClass: KClass<Model>): MediaType = schema(
-    Schema<Model>().`$ref`("#/components/schemas/${modelClass.qualifiedName}")
 )
 
 fun MediaType.errorSchema(key: String): MediaType = schema(

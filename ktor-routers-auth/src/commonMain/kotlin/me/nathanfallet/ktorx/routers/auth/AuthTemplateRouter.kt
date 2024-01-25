@@ -17,7 +17,6 @@ import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.templates.TemplateUnitRouter
 import kotlin.reflect.KClass
 
-@Suppress("UNCHECKED_CAST")
 open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     val loginPayloadTypeInfo: TypeInfo,
     val registerPayloadTypeInfo: TypeInfo,
