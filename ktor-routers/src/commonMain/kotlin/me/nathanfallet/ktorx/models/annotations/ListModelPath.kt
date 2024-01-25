@@ -1,6 +1,6 @@
 package me.nathanfallet.ktorx.models.annotations
 
 @Target(AnnotationTarget.FUNCTION)
-annotation class ListPath(
+annotation class ListModelPath(
     val path: String = "",
 )

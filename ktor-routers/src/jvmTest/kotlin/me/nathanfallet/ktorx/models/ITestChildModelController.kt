@@ -14,12 +14,12 @@ interface ITestChildModelController :
 
     @APIMapping
     @TemplateMapping(template = "list")
-    @ListPath
+    @ListModelPath
     fun list(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel): List<TestChildModel>
 
     @APIMapping
     @TemplateMapping(template = "create")
-    @CreatePath
+    @CreateModelPath
     fun create(
         call: ApplicationCall,
         @ParentModel("testmodelId") parent: TestModel,
@@ -28,12 +28,12 @@ interface ITestChildModelController :
 
     @APIMapping
     @TemplateMapping(template = "get")
-    @GetPath
+    @GetModelPath
     fun get(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel, @Id id: Long): TestChildModel
 
     @APIMapping
     @TemplateMapping(template = "update")
-    @UpdatePath
+    @UpdateModelPath
     fun update(
         call: ApplicationCall,
         @ParentModel("testmodelId") parent: TestModel,
@@ -43,7 +43,8 @@ interface ITestChildModelController :
 
     @APIMapping
     @TemplateMapping(template = "delete")
-    @DeletePath
+    @DeleteModelPath
+    @DocumentedType(TestModel::class)
     fun delete(call: ApplicationCall, @ParentModel("testmodelId") parent: TestModel, @Id id: Long)
 
 }

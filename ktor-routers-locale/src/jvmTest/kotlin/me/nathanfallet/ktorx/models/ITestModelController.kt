@@ -13,27 +13,27 @@ interface ITestModelController : IModelController<TestModel, Long, TestCreatePay
 
     @APIMapping
     @TemplateMapping(template = "list")
-    @ListPath
+    @ListModelPath
     suspend fun list(call: ApplicationCall): List<TestModel>
 
     @APIMapping
     @TemplateMapping(template = "create")
-    @CreatePath
+    @CreateModelPath
     suspend fun create(call: ApplicationCall, payload: TestCreatePayload): TestModel
 
     @APIMapping
     @TemplateMapping(template = "get")
-    @GetPath
+    @GetModelPath
     suspend fun get(call: ApplicationCall, @Id id: Long): TestModel
 
     @APIMapping
     @TemplateMapping(template = "update")
-    @UpdatePath
+    @UpdateModelPath
     suspend fun update(call: ApplicationCall, @Id id: Long, payload: TestUpdatePayload): TestModel
 
     @APIMapping
     @TemplateMapping(template = "delete")
-    @DeletePath
+    @DeleteModelPath
     suspend fun delete(call: ApplicationCall, @Id id: Long)
 
 }

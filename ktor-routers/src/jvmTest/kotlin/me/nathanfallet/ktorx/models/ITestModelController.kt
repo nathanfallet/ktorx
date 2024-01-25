@@ -23,27 +23,29 @@ interface ITestModelController : IModelController<TestModel, Long, TestCreatePay
 
     @APIMapping
     @TemplateMapping(template = "list")
-    @ListPath
+    @ListModelPath
     suspend fun list(call: ApplicationCall): List<TestModel>
 
     @APIMapping
     @TemplateMapping(template = "create")
-    @CreatePath
+    @CreateModelPath
     suspend fun create(call: ApplicationCall, @Payload payload: TestCreatePayload): TestModel
 
     @APIMapping
     @TemplateMapping(template = "get")
-    @GetPath
+    @GetModelPath
+    @DocumentedError(404, "testmodels_not_found", "Test model not found")
     suspend fun get(call: ApplicationCall, @Id id: Long): TestModel
 
     @APIMapping
     @TemplateMapping(template = "update")
-    @UpdatePath
+    @UpdateModelPath
     suspend fun update(call: ApplicationCall, @Id id: Long, @Payload payload: TestUpdatePayload): TestModel
 
     @APIMapping
     @TemplateMapping(template = "delete")
-    @DeletePath
+    @DeleteModelPath
+    @DocumentedType(TestModel::class)
     suspend fun delete(call: ApplicationCall, @Id id: Long)
 
 }

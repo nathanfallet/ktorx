@@ -10,6 +10,8 @@ import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.APIMapping
+import me.nathanfallet.ktorx.models.annotations.DocumentedError
+import me.nathanfallet.ktorx.models.annotations.DocumentedType
 import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
@@ -82,13 +84,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
 
         // Calculate route (path and method)
         val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
-            RouteType.get, RouteType.update, RouteType.delete -> "{$id}"
+            RouteType.getModel, RouteType.updateModel, RouteType.deleteModel -> "{$id}"
             else -> ""
         }).removePrefix("/")).removeSuffix("/")
         val method = controllerRoute.method ?: when (controllerRoute.type) {
-            RouteType.create -> HttpMethod.Post
-            RouteType.update -> HttpMethod.Put
-            RouteType.delete -> HttpMethod.Delete
+            RouteType.createModel -> HttpMethod.Post
+            RouteType.updateModel -> HttpMethod.Put
+            RouteType.deleteModel -> HttpMethod.Delete
             else -> HttpMethod.Get
         }
 
@@ -99,7 +101,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                     invokeControllerRoute(call, controllerRoute)
                         ?.takeIf { it != Unit }
                         ?.let {
-                            if (controllerRoute.type == RouteType.create) {
+                            if (controllerRoute.type == RouteType.createModel) {
                                 call.response.status(HttpStatusCode.Created)
                             }
                             call.respond(it)
@@ -116,22 +118,30 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         // API docs
         openAPI?.route(method, fullRoute + path) {
             val type = controllerRoute.function.returnType
+            val documentedType = controllerRoute.function.annotations.firstNotNullOfOrNull {
+                it as? DocumentedType
+            }?.type ?: type.underlyingType?.classifier as? KClass<*>
+            val documentedTypeName = documentedType?.simpleName ?: documentedType.toString()
 
             // General metadata
-            operationId(
-                apiMapping.operationId.takeIf { it.isNotEmpty() }
-                    ?: "${controllerRoute.type.value}${modelTypeInfo.type.simpleName}"
-            )
-            addTagsItem(modelTypeInfo.type.simpleName)
-            parameters(getOpenAPIParameters(path.contains("{$id}")))
+            (apiMapping.operationId.takeIf { it.isNotEmpty() } ?: when (controllerRoute.type) {
+                RouteType.listModel -> "list$documentedTypeName"
+                RouteType.getModel -> "get$documentedTypeName"
+                RouteType.createModel -> "create$documentedTypeName"
+                RouteType.updateModel -> "update$documentedTypeName"
+                RouteType.deleteModel -> "delete$documentedTypeName"
+                else -> null
+            })?.let { operationId(it) }
             (apiMapping.description.takeIf { it.isNotEmpty() } ?: when (controllerRoute.type) {
-                RouteType.list -> "Get all ${modelTypeInfo.type.simpleName}"
-                RouteType.get -> "Get a ${modelTypeInfo.type.simpleName} by id"
-                RouteType.create -> "Create a ${modelTypeInfo.type.simpleName}"
-                RouteType.update -> "Update a ${modelTypeInfo.type.simpleName} by id"
-                RouteType.delete -> "Delete a ${modelTypeInfo.type.simpleName} by id"
+                RouteType.listModel -> "Get all $documentedTypeName"
+                RouteType.getModel -> "Get a $documentedTypeName by id"
+                RouteType.createModel -> "Create a $documentedTypeName"
+                RouteType.updateModel -> "Update a $documentedTypeName by id"
+                RouteType.deleteModel -> "Delete a $documentedTypeName by id"
                 else -> null
             })?.let { description(it) }
+            addTagsItem(modelTypeInfo.type.simpleName)
+            parameters(getOpenAPIParameters(path.contains("{$id}")))
 
             // Body and response linked to payload
             controllerRoute.function.parameters.singleOrNull {
@@ -153,13 +163,22 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             // Default response (direct return type of the function)
             response(
                 if (type == Unit::class) "204"
-                else if (controllerRoute.type == RouteType.create) "201"
+                else if (controllerRoute.type == RouteType.createModel) "201"
                 else "200"
             ) {
-                if (type != Unit::class) {
-                    description(type)
+                if (type == Unit::class) return@response
+                description(type)
+                mediaType("application/json") {
+                    schema(type)
+                }
+            }
+
+            // Additional responses
+            controllerRoute.function.annotations.filterIsInstance<DocumentedError>().forEach {
+                response(it.code.toString()) {
+                    description(it.description.takeIf { d -> d.isNotEmpty() } ?: it.key)
                     mediaType("application/json") {
-                        schema(type)
+                        errorSchema(it.key)
                     }
                 }
             }

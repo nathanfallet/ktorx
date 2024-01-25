@@ -217,10 +217,14 @@ class APIModelRouterTest {
         assertEquals("Get a TestModel by id", get?.description)
         assertEquals(1, get?.parameters?.size)
         assertEquals("testmodelId", get?.parameters?.firstOrNull()?.name)
-        assertEquals(1, get?.responses?.size)
+        assertEquals(2, get?.responses?.size)
         assertEquals(
             "#/components/schemas/${TestModel::class.qualifiedName}",
             get?.responses?.get("200")?.content?.get("application/json")?.schema?.`$ref`
+        )
+        assertEquals(
+            Schema<String>().type("string").example("testmodels_not_found"),
+            get?.responses?.get("404")?.content?.get("application/json")?.schema?.properties?.get("error")
         )
     }
 

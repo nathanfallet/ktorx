@@ -135,7 +135,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     // Default operations
 
     override suspend fun get(call: ApplicationCall): Model {
-        return controllerRoutes.singleOrNull { it.type == RouteType.get }?.let {
+        return controllerRoutes.singleOrNull { it.type == RouteType.getModel }?.let {
             invokeControllerRoute(call, it)
         } as Model
     }

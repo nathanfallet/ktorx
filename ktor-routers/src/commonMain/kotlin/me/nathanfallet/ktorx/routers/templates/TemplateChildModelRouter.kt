@@ -96,7 +96,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         val mapping = controllerRoute.function.annotations
             .firstNotNullOfOrNull { it as? TemplateMapping } ?: return
         when (controllerRoute.type) {
-            RouteType.list -> root.get(fullRoute) {
+            RouteType.listModel -> root.get(fullRoute) {
                 try {
                     call.respondTemplate(
                         mapping.template,
@@ -111,7 +111,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.get -> root.get("$fullRoute/{$id}") {
+            RouteType.getModel -> root.get("$fullRoute/{$id}") {
                 try {
                     call.respondTemplate(
                         mapping.template,
@@ -126,7 +126,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.create -> {
+            RouteType.createModel -> {
                 root.get("$fullRoute/create") {
                     try {
                         call.respondTemplate(
@@ -150,7 +150,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.update -> {
+            RouteType.updateModel -> {
                 root.get("$fullRoute/{$id}/update") {
                     try {
                         call.respondTemplate(
@@ -175,7 +175,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 }
             }
 
-            RouteType.delete -> {
+            RouteType.deleteModel -> {
                 root.get("$fullRoute/{$id}/delete") {
                     try {
                         call.respondTemplate(

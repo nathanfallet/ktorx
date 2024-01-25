@@ -1,6 +1,6 @@
 package me.nathanfallet.ktorx.models.annotations
 
 @Target(AnnotationTarget.FUNCTION)
-annotation class DeletePath(
+annotation class UpdateModelPath(
     val path: String = "",
 )
