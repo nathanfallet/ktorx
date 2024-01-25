@@ -16,7 +16,7 @@ import me.nathanfallet.usecases.auth.AuthToken
 import kotlin.reflect.KClass
 
 open class AuthAPIRouter(
-    override val controller: IAuthController<*, *>,
+    controller: IAuthController<*, *>,
     controllerClass: KClass<out IAuthController<*, *>>,
     route: String? = "auth",
     prefix: String? = null,

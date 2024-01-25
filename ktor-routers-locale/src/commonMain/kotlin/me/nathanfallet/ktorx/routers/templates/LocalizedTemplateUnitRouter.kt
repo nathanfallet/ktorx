@@ -15,12 +15,16 @@ open class LocalizedTemplateUnitRouter(
     controller: IUnitController = UnitController,
     controllerClass: KClass<out IUnitController> = UnitController::class,
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
+    route: String? = null,
+    prefix: String? = null,
 ) : TemplateUnitRouter(
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     errorTemplate,
     redirectUnauthorizedToUrl,
     controller,
     controllerClass,
+    route,
+    prefix
 ), ILocalizedTemplateRouter {
 
     final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)

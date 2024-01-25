@@ -21,8 +21,8 @@ abstract class AbstractModelRouter<Model : IModel<Id, CreatePayload, UpdatePaylo
     createPayloadTypeInfo,
     updatePayloadTypeInfo,
     controller,
-    null,
     controllerClass,
+    null,
     route,
     id,
     prefix

@@ -25,7 +25,7 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
     val redirectTemplate: String? = null,
-    override val controller: IAuthController<LoginPayload, RegisterPayload>,
+    controller: IAuthController<LoginPayload, RegisterPayload>,
     controllerClass: KClass<out IAuthController<*, *>>,
     route: String? = "auth",
     prefix: String? = null,

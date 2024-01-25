@@ -5,6 +5,7 @@ import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.parameters.Parameter
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.usecases.models.IChildModel
+import kotlin.reflect.KClass
 
 interface IChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId> :
     IRouter {
@@ -14,6 +15,7 @@ interface IChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload
     val updatePayloadTypeInfo: TypeInfo
 
     val controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>
+    val controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>
     val parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?
 
     val route: String

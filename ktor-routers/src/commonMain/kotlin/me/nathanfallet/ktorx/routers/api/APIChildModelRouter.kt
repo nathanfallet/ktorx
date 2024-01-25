@@ -22,14 +22,13 @@ import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
-@Suppress("UNCHECKED_CAST")
 open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
     updatePayloadTypeInfo: TypeInfo,
     controller: IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
-    parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     controllerClass: KClass<out IChildModelController<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
+    parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
     route: String? = null,
     id: String? = null,
     prefix: String? = null,
@@ -38,8 +37,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
     createPayloadTypeInfo,
     updatePayloadTypeInfo,
     controller,
-    parentRouter,
     controllerClass,
+    parentRouter,
     route,
     id,
     prefix ?: "/api"

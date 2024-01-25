@@ -74,9 +74,9 @@ class LocalizedTemplateModelRouterTest {
                     )
                 )
             },
+            getLocaleForCallUseCase,
             "error",
-            "redirect={path}",
-            getLocaleForCallUseCase
+            "redirect={path}"
         )
     }
 

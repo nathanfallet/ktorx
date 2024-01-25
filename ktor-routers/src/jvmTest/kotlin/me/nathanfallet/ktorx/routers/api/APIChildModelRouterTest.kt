@@ -47,8 +47,8 @@ class APIChildModelRouterTest {
         typeInfo<TestCreatePayload>(),
         typeInfo<TestUpdatePayload>(),
         controller,
-        parentRouter,
         ITestChildModelController::class,
+        parentRouter,
         route,
         null,
         prefix
