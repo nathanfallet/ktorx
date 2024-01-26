@@ -23,10 +23,12 @@ open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdateP
     routers.first().prefix
 ) {
 
+    override fun createRoutes(root: Route, openAPI: OpenAPI?) {
+        routers.forEach { it.createRoutes(root, openAPI) }
+    }
+
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        routers.mapNotNull { it as? AbstractChildModelRouter<*, *, *, *, *, *> }.forEach {
-            it.createControllerRoute(root, controllerRoute, openAPI)
-        }
+        throw UnsupportedOperationException("Cannot create controller route from concat router")
     }
 
     override suspend fun <Payload : Any> decodePayload(call: ApplicationCall, type: KClass<Payload>): Payload {
