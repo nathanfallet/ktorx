@@ -48,4 +48,8 @@ interface ITestModelController : IModelController<TestModel, Long, TestCreatePay
     @DocumentedType(TestModel::class)
     suspend fun delete(call: ApplicationCall, @Id id: Long)
 
+    @APIMapping
+    @Path("GET", "/recursive")
+    suspend fun recursive(call: ApplicationCall): TestRecursiveModel
+
 }

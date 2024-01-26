@@ -485,4 +485,19 @@ class APIModelRouterTest {
         )
     }
 
+    @Test
+    fun testAPIGetRecursiveRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestModelController>()
+        val router = createRouter(controller)
+        val recursiveModel = TestRecursiveModel("name", listOf(TestRecursiveModel("child")))
+        coEvery { controller.recursive(any()) } returns recursiveModel
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/testmodels/recursive")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(recursiveModel, response.body())
+    }
+
 }

@@ -41,7 +41,8 @@ fun OpenAPI.schema(type: KType): Schema<Any> {
             Schema<Any>()
                 .type("object")
                 .properties(properties.mapValues {
-                    schema(it.value.returnType).apply {
+                    (if (it.value.returnType.underlyingType == type) Schema<Any>().`$ref`("#/components/schemas/$type")
+                    else schema(it.value.returnType)).apply {
                         it.value.annotations.firstNotNullOfOrNull { annotation ->
                             annotation as? me.nathanfallet.usecases.models.annotations.Schema
                         }?.let { annotation ->
