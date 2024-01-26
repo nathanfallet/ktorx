@@ -9,6 +9,8 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
+import me.nathanfallet.ktorx.models.annotations.Id
+import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
@@ -20,6 +22,7 @@ import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     modelTypeInfo: TypeInfo,
     createPayloadTypeInfo: TypeInfo,
@@ -92,7 +95,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
         val mapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? TemplateMapping } ?: return
 
-        // Calculate route (path and method)
+        // Calculate route (path, keys, ...)
         val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
             RouteType.getModel -> "{$id}"
             RouteType.createModel -> "create"
@@ -100,129 +103,48 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             RouteType.deleteModel -> "{$id}/delete"
             else -> ""
         }).removePrefix("/")).removeSuffix("/")
+        val keys = when (controllerRoute.type) {
+            RouteType.createModel -> createPayloadKeys
+            RouteType.updateModel -> updatePayloadKeys
+            else -> modelKeys
+        }
+        val isForm = when (controllerRoute.type) {
+            RouteType.createModel, RouteType.updateModel, RouteType.deleteModel -> true
+            else -> false
+        }
+        val hasPayload = controllerRoute.parameters.any { parameter ->
+            parameter.annotations.any { it is Payload }
+        }
 
-        when (controllerRoute.type) {
-            RouteType.listModel -> root.get(fullRoute + path) {
+        root.route(
+            fullRoute + path,
+            controllerRoute.method ?: HttpMethod.Get
+        ) {
+            handle {
                 try {
+                    val item = if (isForm && path.contains("{$id}")) get(call)
+                    else if (!hasPayload) invokeControllerRoute(call, controllerRoute)
+                    else null
+                    val itemMap = if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
+                    else item as? Map<String, *> ?: mapOf("item" to item)
                     call.respondTemplate(
                         mapping.template,
-                        mapOf(
-                            "route" to route,
-                            "items" to invokeControllerRoute(call, controllerRoute),
-                            "keys" to modelKeys
-                        )
+                        mapOf("route" to route, "keys" to keys) + itemMap
                     )
                 } catch (exception: Exception) {
                     handleExceptionTemplate(exception, call, mapping.template)
                 }
             }
-
-            RouteType.getModel -> root.get(fullRoute + path) {
+        }
+        if (isForm) {
+            root.post(fullRoute + path) {
                 try {
-                    call.respondTemplate(
-                        mapping.template,
-                        mapOf(
-                            "route" to route,
-                            "item" to invokeControllerRoute(call, controllerRoute),
-                            "keys" to modelKeys
-                        )
+                    invokeControllerRoute(call, controllerRoute)
+                    call.respondRedirect(
+                        "../".repeat(path.count { it == '/' } + 1) + route
                     )
                 } catch (exception: Exception) {
                     handleExceptionTemplate(exception, call, mapping.template)
-                }
-            }
-
-            RouteType.createModel -> {
-                root.get(fullRoute + path) {
-                    try {
-                        call.respondTemplate(
-                            mapping.template,
-                            mapOf(
-                                "route" to route,
-                                "keys" to createPayloadKeys
-                            )
-                        )
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
-                }
-                root.post(fullRoute + path) {
-                    try {
-                        invokeControllerRoute(call, controllerRoute)
-                        call.respondRedirect("../$route")
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
-                }
-            }
-
-            RouteType.updateModel -> {
-                root.get(fullRoute + path) {
-                    try {
-                        call.respondTemplate(
-                            mapping.template,
-                            mapOf(
-                                "route" to route,
-                                "item" to get(call),
-                                "keys" to updatePayloadKeys
-                            )
-                        )
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
-                }
-                root.post(fullRoute + path) {
-                    try {
-                        invokeControllerRoute(call, controllerRoute)
-                        call.respondRedirect("../../$route")
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
-                }
-            }
-
-            RouteType.deleteModel -> {
-                root.get(fullRoute + path) {
-                    try {
-                        call.respondTemplate(
-                            mapping.template,
-                            mapOf(
-                                "route" to route,
-                                "item" to get(call),
-                                "keys" to modelKeys
-                            )
-                        )
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
-                }
-                root.post(fullRoute + path) {
-                    try {
-                        invokeControllerRoute(call, controllerRoute)
-                        call.respondRedirect("../../$route")
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
-                }
-            }
-
-            else -> root.route(
-                fullRoute + path,
-                controllerRoute.method ?: HttpMethod.Get
-            ) {
-                handle {
-                    try {
-                        call.respondTemplate(
-                            mapping.template,
-                            mapOf(
-                                "route" to route,
-                                "item" to invokeControllerRoute(call, controllerRoute),
-                                "keys" to modelKeys
-                            )
-                        )
-                    } catch (exception: Exception) {
-                        handleExceptionTemplate(exception, call, mapping.template)
-                    }
                 }
             }
         }

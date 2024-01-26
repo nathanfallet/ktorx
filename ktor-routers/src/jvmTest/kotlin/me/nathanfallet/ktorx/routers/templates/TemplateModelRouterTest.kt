@@ -60,7 +60,7 @@ class TemplateModelRouterTest {
                         model["keys"] as? List<Keys>,
                         model["item"] as? TestModel,
                         model["item"] as? String,
-                        model["item"] as? Map<String, String>,
+                        model["map"] as? String,
                         model["item"] as? TestUser,
                         model["items"] as? List<TestModel>,
                         model["code"] as? Int,
@@ -104,7 +104,7 @@ class TemplateModelRouterTest {
         val client = installApp(this)
         val controller = mockk<ITestModelController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.basicMap(any()) } returns mapOf("key" to "Hello world")
+        coEvery { controller.basicMap(any()) } returns mapOf("map" to "Hello world")
         routing {
             router.createRoutes(this)
         }
@@ -119,7 +119,7 @@ class TemplateModelRouterTest {
                         ModelKey("id", "id", ""),
                         ModelKey("string", "string", "")
                     ),
-                    itemMap = mapOf("key" to "Hello world"),
+                    itemMap = "Hello world",
                 )
             ), response.body()
         )
