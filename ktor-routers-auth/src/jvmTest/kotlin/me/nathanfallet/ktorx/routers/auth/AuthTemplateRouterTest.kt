@@ -41,6 +41,8 @@ class AuthTemplateRouterTest {
     ) = AuthTemplateRouter(
         typeInfo<TestLoginPayload>(),
         typeInfo<TestRegisterPayload>(),
+        controller,
+        TestAuthController::class,
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -53,11 +55,8 @@ class AuthTemplateRouterTest {
                 )
             )
         },
-        null,
-        "/auth/login?redirect={path}",
-        redirectTemplate,
-        controller,
-        TestAuthController::class,
+        redirectUnauthorizedToUrl = "/auth/login?redirect={path}",
+        redirectTemplate = redirectTemplate,
     )
 
     @Test

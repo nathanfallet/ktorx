@@ -40,6 +40,8 @@ class AuthWithCodeTemplateRouterTest {
         typeInfo<TestLoginPayload>(),
         typeInfo<TestCodePayload>(),
         typeInfo<TestRegisterPayload>(),
+        controller,
+        TestAuthWithCodeController::class,
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -49,11 +51,7 @@ class AuthWithCodeTemplateRouterTest {
                 )
             )
         },
-        null,
-        "/auth/login?redirect={path}",
-        null,
-        controller,
-        TestAuthWithCodeController::class
+        redirectUnauthorizedToUrl = "/auth/login?redirect={path}"
     )
 
     @Test

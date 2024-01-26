@@ -51,6 +51,8 @@ class LocalizedAuthTemplateRouterTest {
     ) = LocalizedAuthTemplateRouter(
         typeInfo<TestLoginPayload>(),
         typeInfo<TestRegisterPayload>(),
+        controller,
+        TestAuthController::class,
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -60,12 +62,8 @@ class LocalizedAuthTemplateRouterTest {
                 )
             )
         },
-        null,
-        "/auth/login?redirect={path}",
-        null,
-        controller,
-        TestAuthController::class,
-        getLocaleForCallUseCase
+        getLocaleForCallUseCase,
+        redirectUnauthorizedToUrl = "/auth/login?redirect={path}"
     )
 
     @Test

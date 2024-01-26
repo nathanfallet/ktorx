@@ -20,21 +20,21 @@ import kotlin.reflect.KClass
 open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
     val loginPayloadTypeInfo: TypeInfo,
     val registerPayloadTypeInfo: TypeInfo,
+    controller: IAuthController<LoginPayload, RegisterPayload>,
+    controllerClass: KClass<out IAuthController<*, *>>,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
     val redirectTemplate: String? = null,
-    controller: IAuthController<LoginPayload, RegisterPayload>,
-    controllerClass: KClass<out IAuthController<*, *>>,
-    route: String? = "auth",
+    route: String? = null,
     prefix: String? = null,
 ) : TemplateUnitRouter(
+    controller,
+    controllerClass,
     respondTemplate,
     errorTemplate,
     redirectUnauthorizedToUrl,
-    controller,
-    controllerClass,
-    route,
+    route ?: "auth",
     prefix
 ) {
 

@@ -1,28 +1,39 @@
-package me.nathanfallet.ktorx.routers.templates
+package me.nathanfallet.ktorx.routers.admin
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IUnitController
 import me.nathanfallet.ktorx.controllers.base.UnitController
+import me.nathanfallet.ktorx.routers.templates.ILocalizedTemplateRouter
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
 import kotlin.reflect.KClass
 
-open class LocalizedTemplateUnitRouter(
+open class LocalizedAdminUnitRouter(
     controller: IUnitController = UnitController,
     controllerClass: KClass<out IUnitController> = UnitController::class,
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
+    listTemplate: String? = null,
+    getTemplate: String? = null,
+    createTemplate: String? = null,
+    updateTemplate: String? = null,
+    deleteTemplate: String? = null,
     route: String? = null,
     prefix: String? = null,
-) : TemplateUnitRouter(
+) : AdminUnitRouter(
     controller,
     controllerClass,
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     errorTemplate,
     redirectUnauthorizedToUrl,
+    listTemplate,
+    getTemplate,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate,
     route,
     prefix
 ), ILocalizedTemplateRouter {

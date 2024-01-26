@@ -45,6 +45,8 @@ class LocalizedAuthWithCodeTemplateRouterTest {
         typeInfo<TestLoginPayload>(),
         typeInfo<TestCodePayload>(),
         typeInfo<TestRegisterPayload>(),
+        mockk(),
+        TestAuthWithCodeController::class,
         { template, model ->
             respond(
                 AuthTemplateResponse(
@@ -54,11 +56,6 @@ class LocalizedAuthWithCodeTemplateRouterTest {
                 )
             )
         },
-        null,
-        null,
-        null,
-        mockk(),
-        TestAuthWithCodeController::class,
         getLocaleForCallUseCase
     )
 

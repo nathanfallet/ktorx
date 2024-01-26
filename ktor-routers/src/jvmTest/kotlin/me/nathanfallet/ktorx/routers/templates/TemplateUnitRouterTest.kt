@@ -32,7 +32,7 @@ class TemplateUnitRouterTest {
     @Test
     fun testUnitPage() = testApplication {
         val client = installApp(this)
-        val router = object : TemplateUnitRouter({ template, _ ->
+        val router = object : TemplateUnitRouter(respondTemplate = { template, _ ->
             respond(template)
         }) {
             override fun createRoutes(root: Route, openAPI: OpenAPI?) {

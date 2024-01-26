@@ -41,7 +41,7 @@ class LocalizedTemplateUnitRouterTest {
 
     private fun createRouter(getLocaleForCallUseCase: IGetLocaleForCallUseCase): LocalizedTemplateUnitRouter {
         return object : LocalizedTemplateUnitRouter(
-            { template, model ->
+            respondTemplate = { template, model ->
                 respond(template + ":" + model.map { it.key + ":" + it.value }.joinToString(","))
             },
             getLocaleForCallUseCase = getLocaleForCallUseCase
