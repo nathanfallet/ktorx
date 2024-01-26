@@ -25,6 +25,6 @@ open class TemplateUnitRouter(
     respondTemplate,
     errorTemplate,
     redirectUnauthorizedToUrl,
-    route = route,
+    route = route ?: "",
     prefix = prefix
 ), IUnitRouter

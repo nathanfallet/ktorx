@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.routers.templates
+package me.nathanfallet.ktorx.routers.admin
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -8,13 +8,15 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.controllers.IUnitController
-import me.nathanfallet.ktorx.models.ITestUnitController
+import me.nathanfallet.ktorx.controllers.IModelController
+import me.nathanfallet.ktorx.models.ITestModelController
+import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
+import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.ktorx.plugins.I18n
@@ -24,7 +26,9 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class LocalizedTemplateUnitRouterTest {
+class LocalizedAdminModelRouterTest {
+
+    private val mock = TestModel(1, "string")
 
     private fun installApp(application: ApplicationTestBuilder): HttpClient {
         application.install(I18n) {
@@ -33,25 +37,28 @@ class LocalizedTemplateUnitRouterTest {
         }
         application.application {
             install(io.ktor.server.plugins.contentnegotiation.ContentNegotiation) {
-                json(Json)
+                json(kotlinx.serialization.json.Json)
             }
         }
         return application.createClient {
             followRedirects = false
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                json(Json)
+                json(kotlinx.serialization.json.Json)
             }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified Keys> createRouter(
-        controller: IUnitController,
+        controller: IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>,
         getLocaleForCallUseCase: IGetLocaleForCallUseCase,
-    ): LocalizedTemplateUnitRouter {
-        return LocalizedTemplateUnitRouter(
+    ): LocalizedAdminModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
+        return LocalizedAdminModelRouter(
+            typeInfo<TestModel>(),
+            typeInfo<TestCreatePayload>(),
+            typeInfo<TestUpdatePayload>(),
             controller,
-            ITestUnitController::class,
+            ITestModelController::class,
             { template, model ->
                 respond(
                     TemplateResponse(
@@ -69,46 +76,52 @@ class LocalizedTemplateUnitRouterTest {
                     )
                 )
             },
-            getLocaleForCallUseCase
+            getLocaleForCallUseCase,
+            "error",
+            "redirect={path}",
+            "list",
+            "get",
+            "create",
+            "update",
+            "delete"
         )
     }
 
     @Test
     fun testRedirect() = testApplication {
         val client = installApp(this)
-        val controller = mockk<ITestUnitController>()
-        val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
-        val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.hello() } returns "Hello world"
-        every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
+        val router = createRouter<ModelKey>(mockk(), mockk())
         routing {
             router.createRoutes(this)
         }
-        val response = client.get("/hello")
+        val response = client.get("/admin/testmodels")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
     @Test
     fun testLocaleEnglish() = testApplication {
         val client = installApp(this)
-        val controller = mockk<ITestUnitController>()
+        val controller = mockk<ITestModelController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.hello() } returns "Hello world"
+        coEvery { controller.list(any()) } returns listOf(mock)
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)
         }
-        val response = client.get("/en/hello")
+        val response = client.get("/en/admin/testmodels")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(
             TemplateResponse(
-                "hello.ftl",
-                TemplateResponseData<TestModel, ModelKey>(
+                "list",
+                TemplateResponseData(
                     "en",
-                    "",
-                    keys = listOf(),
-                    itemString = "Hello world",
+                    "testmodels",
+                    keys = listOf(
+                        ModelKey("id", "id", ""),
+                        ModelKey("string", "string", "")
+                    ),
+                    items = listOf(mock),
                 )
             ), response.body()
         )

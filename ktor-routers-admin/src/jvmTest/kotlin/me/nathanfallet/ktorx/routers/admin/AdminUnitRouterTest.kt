@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.routers.templates
+package me.nathanfallet.ktorx.routers.admin
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -21,7 +21,7 @@ import me.nathanfallet.usecases.models.annotations.ModelKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class TemplateUnitRouterTest {
+class AdminUnitRouterTest {
 
     private fun installApp(application: ApplicationTestBuilder): HttpClient {
         application.application {
@@ -40,7 +40,7 @@ class TemplateUnitRouterTest {
     private inline fun <reified Keys> createRouter(
         controller: IUnitController,
         route: String? = null,
-    ) = TemplateUnitRouter(
+    ) = AdminUnitRouter(
         controller,
         ITestUnitController::class,
         { template, model ->
@@ -70,19 +70,18 @@ class TemplateUnitRouterTest {
         val client = installApp(this)
         val controller = mockk<ITestUnitController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.hello() } returns "Hello world"
+        coEvery { controller.dashboard() } returns Unit
         routing {
             router.createRoutes(this)
         }
-        val response = client.get("/hello")
+        val response = client.get("/admin")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(
             TemplateResponse(
                 "hello.ftl",
                 TemplateResponseData<TestModel, ModelKey>(
                     "",
-                    keys = listOf(),
-                    itemString = "Hello world",
+                    keys = listOf()
                 )
             ), response.body()
         )
@@ -93,19 +92,18 @@ class TemplateUnitRouterTest {
         val client = installApp(this)
         val controller = mockk<ITestUnitController>()
         val router = createRouter<ModelKey>(controller, "test")
-        coEvery { controller.hello() } returns "Hello world"
+        coEvery { controller.dashboard() } returns Unit
         routing {
             router.createRoutes(this)
         }
-        val response = client.get("/test/hello")
+        val response = client.get("/admin/test")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(
             TemplateResponse(
                 "hello.ftl",
                 TemplateResponseData<TestModel, ModelKey>(
                     "test",
-                    keys = listOf(),
-                    itemString = "Hello world",
+                    keys = listOf()
                 )
             ), response.body()
         )

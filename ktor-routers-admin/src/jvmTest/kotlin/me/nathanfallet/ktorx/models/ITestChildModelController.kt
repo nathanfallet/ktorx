@@ -7,7 +7,7 @@ import me.nathanfallet.ktorx.models.annotations.*
 interface ITestChildModelController :
     IChildModelController<TestChildModel, Long, TestCreatePayload, TestUpdatePayload, TestModel, Long> {
 
-    @APIMapping
+    @APIMapping("basic", "Basic test")
     @TemplateMapping(template = "basic")
     @Path("GET", "/basic")
     fun basic(call: ApplicationCall, @ParentModel parent: TestModel): String
@@ -20,7 +20,11 @@ interface ITestChildModelController :
     @APIMapping
     @TemplateMapping(template = "create")
     @CreateModelPath
-    fun create(call: ApplicationCall, @ParentModel parent: TestModel, payload: TestCreatePayload): TestChildModel
+    fun create(
+        call: ApplicationCall,
+        @ParentModel parent: TestModel,
+        @Payload payload: TestCreatePayload,
+    ): TestChildModel
 
     @APIMapping
     @TemplateMapping(template = "get")
@@ -34,12 +38,13 @@ interface ITestChildModelController :
         call: ApplicationCall,
         @ParentModel parent: TestModel,
         @Id id: Long,
-        payload: TestUpdatePayload,
+        @Payload payload: TestUpdatePayload,
     ): TestChildModel
 
     @APIMapping
     @TemplateMapping(template = "delete")
     @DeleteModelPath
+    @DocumentedType(TestModel::class)
     fun delete(call: ApplicationCall, @ParentModel parent: TestModel, @Id id: Long)
 
 }

@@ -67,6 +67,8 @@ class LocalizedTemplateModelRouterTest {
                             model["route"] as String,
                             model["keys"] as? List<Keys>,
                             model["item"] as? TestModel,
+                            model["item"] as? String,
+                            model["map"] as? String,
                             model["items"] as? List<TestModel>,
                             model["code"] as? Int,
                             model["error"] as? String

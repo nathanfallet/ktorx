@@ -16,11 +16,6 @@ open class LocalizedAdminUnitRouter(
     val getLocaleForCallUseCase: IGetLocaleForCallUseCase,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
-    listTemplate: String? = null,
-    getTemplate: String? = null,
-    createTemplate: String? = null,
-    updateTemplate: String? = null,
-    deleteTemplate: String? = null,
     route: String? = null,
     prefix: String? = null,
 ) : AdminUnitRouter(
@@ -29,22 +24,17 @@ open class LocalizedAdminUnitRouter(
     ILocalizedTemplateRouter.wrapRespondTemplate(respondTemplate, getLocaleForCallUseCase),
     errorTemplate,
     redirectUnauthorizedToUrl,
-    listTemplate,
-    getTemplate,
-    createTemplate,
-    updateTemplate,
-    deleteTemplate,
     route,
     prefix
 ), ILocalizedTemplateRouter {
 
-    final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
+    final override fun createRoutes(root: Route, openAPI: OpenAPI?) =
+        localizeRoutes(root, openAPI)
 
     override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
         isUnauthorizedRedirectPath(call, redirectUnauthorizedToUrl, getLocaleForCallUseCase)
 
-    override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
+    override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) =
         super.createRoutes(root, openAPI)
-    }
 
 }

@@ -10,9 +10,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
+import io.mockk.coEvery
+import io.mockk.mockk
 import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
-import me.nathanfallet.ktorx.models.*
+import me.nathanfallet.ktorx.models.ITestModelController
+import me.nathanfallet.ktorx.models.TestCreatePayload
+import me.nathanfallet.ktorx.models.TestModel
+import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import kotlin.reflect.KClass
 import kotlin.test.Test
@@ -40,39 +45,8 @@ class AbstractModelRouterTest {
         id: String?,
         prefix: String?,
     ): AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload> {
-        val controller = object : ITestModelController {
-            override suspend fun basic(call: ApplicationCall): String {
-                throw NotImplementedError()
-            }
-
-            override suspend fun basicMap(call: ApplicationCall): Map<String, String> {
-                throw NotImplementedError()
-            }
-
-            override suspend fun basicModel(call: ApplicationCall): TestUser {
-                throw NotImplementedError()
-            }
-
-            override suspend fun list(call: ApplicationCall): List<TestModel> {
-                return emptyList()
-            }
-
-            override suspend fun get(call: ApplicationCall, id: Long): TestModel {
-                throw NotImplementedError()
-            }
-
-            override suspend fun create(call: ApplicationCall, payload: TestCreatePayload): TestModel {
-                throw NotImplementedError()
-            }
-
-            override suspend fun update(call: ApplicationCall, id: Long, payload: TestUpdatePayload): TestModel {
-                throw NotImplementedError()
-            }
-
-            override suspend fun delete(call: ApplicationCall, id: Long) {
-                throw NotImplementedError()
-            }
-        }
+        val controller = mockk<ITestModelController>()
+        coEvery { controller.list(any()) } returns emptyList()
         return object : AbstractModelRouter<TestModel, Long, TestCreatePayload, TestUpdatePayload>(
             typeInfo<TestModel>(),
             typeInfo<TestCreatePayload>(),

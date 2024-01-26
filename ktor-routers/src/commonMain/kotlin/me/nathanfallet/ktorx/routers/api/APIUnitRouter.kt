@@ -18,6 +18,6 @@ open class APIUnitRouter(
     typeInfo<Unit>(),
     controller,
     controllerClass,
-    route = route,
+    route = route ?: "",
     prefix = prefix
 ), IUnitRouter

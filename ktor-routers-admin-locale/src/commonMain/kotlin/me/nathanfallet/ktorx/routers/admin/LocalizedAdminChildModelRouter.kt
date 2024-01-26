@@ -50,13 +50,13 @@ open class LocalizedAdminChildModelRouter<Model : IChildModel<Id, CreatePayload,
     prefix
 ), ILocalizedTemplateRouter {
 
-    final override fun createRoutes(root: Route, openAPI: OpenAPI?) = localizeRoutes(root, openAPI)
+    final override fun createRoutes(root: Route, openAPI: OpenAPI?) =
+        localizeRoutes(root, openAPI)
 
     override fun isUnauthorizedRedirectPath(call: ApplicationCall): Boolean =
         isUnauthorizedRedirectPath(call, redirectUnauthorizedToUrl, getLocaleForCallUseCase)
 
-    override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) {
+    override fun createLocalizedRoutes(root: Route, openAPI: OpenAPI?) =
         super.createRoutes(root, openAPI)
-    }
 
 }

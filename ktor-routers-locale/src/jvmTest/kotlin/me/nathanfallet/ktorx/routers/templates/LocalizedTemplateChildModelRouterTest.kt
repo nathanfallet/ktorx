@@ -69,6 +69,8 @@ class LocalizedTemplateChildModelRouterTest {
                             model["route"] as String,
                             model["keys"] as? List<Keys>,
                             model["item"] as? TestModel,
+                            model["item"] as? String,
+                            model["map"] as? String,
                             model["items"] as? List<TestModel>,
                             model["code"] as? Int,
                             model["error"] as? String
@@ -85,8 +87,7 @@ class LocalizedTemplateChildModelRouterTest {
     @Test
     fun testRedirect() = testApplication {
         val client = installApp(this)
-        val controller = mockk<IModelController<TestModel, Long, TestCreatePayload, TestUpdatePayload>>()
-        val router = createRouter<ModelKey>(controller, mockk())
+        val router = createRouter<ModelKey>(mockk(), mockk())
         routing {
             router.createRoutes(this)
         }

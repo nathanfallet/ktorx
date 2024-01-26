@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.routers.templates
+package me.nathanfallet.ktorx.routers.admin
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -24,7 +24,7 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class LocalizedTemplateUnitRouterTest {
+class LocalizedAdminUnitRouterTest {
 
     private fun installApp(application: ApplicationTestBuilder): HttpClient {
         application.install(I18n) {
@@ -48,8 +48,8 @@ class LocalizedTemplateUnitRouterTest {
     private inline fun <reified Keys> createRouter(
         controller: IUnitController,
         getLocaleForCallUseCase: IGetLocaleForCallUseCase,
-    ): LocalizedTemplateUnitRouter {
-        return LocalizedTemplateUnitRouter(
+    ): LocalizedAdminUnitRouter {
+        return LocalizedAdminUnitRouter(
             controller,
             ITestUnitController::class,
             { template, model ->
@@ -79,12 +79,12 @@ class LocalizedTemplateUnitRouterTest {
         val controller = mockk<ITestUnitController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.hello() } returns "Hello world"
+        coEvery { controller.dashboard() } returns Unit
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)
         }
-        val response = client.get("/hello")
+        val response = client.get("/admin")
         assertEquals(HttpStatusCode.Found, response.status)
     }
 
@@ -94,12 +94,12 @@ class LocalizedTemplateUnitRouterTest {
         val controller = mockk<ITestUnitController>()
         val getLocaleForCallUseCase = mockk<IGetLocaleForCallUseCase>()
         val router = createRouter<ModelKey>(controller, getLocaleForCallUseCase)
-        coEvery { controller.hello() } returns "Hello world"
+        coEvery { controller.dashboard() } returns Unit
         every { getLocaleForCallUseCase(any()) } returns Locale.ENGLISH
         routing {
             router.createRoutes(this)
         }
-        val response = client.get("/en/hello")
+        val response = client.get("/en/admin")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(
             TemplateResponse(
@@ -107,8 +107,7 @@ class LocalizedTemplateUnitRouterTest {
                 TemplateResponseData<TestModel, ModelKey>(
                     "en",
                     "",
-                    keys = listOf(),
-                    itemString = "Hello world",
+                    keys = listOf()
                 )
             ), response.body()
         )

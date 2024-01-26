@@ -14,11 +14,6 @@ open class AdminUnitRouter(
     respondTemplate: suspend ApplicationCall.(String, Map<String, Any?>) -> Unit,
     errorTemplate: String? = null,
     redirectUnauthorizedToUrl: String? = null,
-    listTemplate: String? = null,
-    getTemplate: String? = null,
-    createTemplate: String? = null,
-    updateTemplate: String? = null,
-    deleteTemplate: String? = null,
     route: String? = null,
     prefix: String? = null,
 ) : AdminModelRouter<UnitModel, Unit, Unit, Unit>(
@@ -30,11 +25,6 @@ open class AdminUnitRouter(
     respondTemplate,
     errorTemplate,
     redirectUnauthorizedToUrl,
-    listTemplate,
-    getTemplate,
-    createTemplate,
-    updateTemplate,
-    deleteTemplate,
-    route = route,
+    route = route ?: "",
     prefix = prefix
 ), IUnitRouter
