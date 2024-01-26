@@ -4,5 +4,5 @@ import me.nathanfallet.ktorx.routers.IUnitRouter
 import me.nathanfallet.usecases.models.UnitModel
 
 open class ConcatUnitRouter(
-    routers: List<IUnitRouter>,
-) : ConcatModelRouter<UnitModel, Unit, Unit, Unit>(routers)
+    vararg routers: IUnitRouter,
+) : ConcatModelRouter<UnitModel, Unit, Unit, Unit>(*routers), IUnitRouter

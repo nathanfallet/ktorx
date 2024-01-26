@@ -10,15 +10,14 @@ import me.nathanfallet.usecases.models.IChildModel
 import kotlin.reflect.KClass
 
 open class ConcatChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
-    val routers: List<IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>>,
-    parentRouter: IChildModelRouter<ParentModel, *, *, *, *, *>?,
+    vararg val routers: IChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>,
 ) : AbstractChildModelRouter<Model, Id, CreatePayload, UpdatePayload, ParentModel, ParentId>(
     routers.first().modelTypeInfo,
     routers.first().createPayloadTypeInfo,
     routers.first().updatePayloadTypeInfo,
     routers.first().controller,
     routers.first().controllerClass,
-    parentRouter,
+    routers.first().parentRouter,
     routers.first().route,
     routers.first().id,
     routers.first().prefix

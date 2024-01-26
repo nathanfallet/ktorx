@@ -46,7 +46,7 @@ class ConcatModelRouterTest {
             mockk(),
             ITestModelController::class
         )
-        val router = ConcatModelRouter(listOf(apiRouter))
+        val router = ConcatModelRouter(apiRouter)
         assertEquals(apiRouter, router.routerOf())
         assertFailsWith(NoSuchElementException::class) {
             router.routerOf<ConcatModelRouter<*, *, *, *>>()
@@ -62,7 +62,7 @@ class ConcatModelRouterTest {
             mockk(),
             ITestModelController::class
         )
-        val router = ConcatModelRouter(listOf(apiRouter))
+        val router = ConcatModelRouter(apiRouter)
         assertEquals(apiRouter, router.routerOfOrNull())
         assertEquals(null as ConcatModelRouter<*, *, *, *>?, router.routerOfOrNull())
     }
@@ -72,14 +72,12 @@ class ConcatModelRouterTest {
         val client = installApp(this)
         val controller = mockk<ITestModelController>()
         val router = ConcatModelRouter(
-            listOf(
-                APIModelRouter(
-                    typeInfo<TestModel>(),
-                    typeInfo<TestCreatePayload>(),
-                    typeInfo<TestUpdatePayload>(),
-                    controller,
-                    ITestModelController::class
-                )
+            APIModelRouter(
+                typeInfo<TestModel>(),
+                typeInfo<TestCreatePayload>(),
+                typeInfo<TestUpdatePayload>(),
+                controller,
+                ITestModelController::class
             )
         )
         coEvery { controller.list(any()) } returns listOf(mock)
