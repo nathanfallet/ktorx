@@ -5,7 +5,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
-import me.nathanfallet.ktorx.models.admin.AdminTemplateMapping
+import me.nathanfallet.ktorx.models.annotations.AdminTemplateMapping
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType

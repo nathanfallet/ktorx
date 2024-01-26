@@ -1,4 +1,4 @@
-package me.nathanfallet.ktorx.models.admin
+package me.nathanfallet.ktorx.models.annotations
 
 @Target(AnnotationTarget.FUNCTION)
 annotation class AdminTemplateMapping(
