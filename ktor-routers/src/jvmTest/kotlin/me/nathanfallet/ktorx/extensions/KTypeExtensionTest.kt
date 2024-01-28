@@ -16,4 +16,9 @@ class KTypeExtensionTest {
         assertEquals(typeOf<String>(), typeOf<List<String>>().underlyingType)
     }
 
+    @Test
+    fun returnsTypeFromArray() {
+        assertEquals(typeOf<String>(), typeOf<Array<String>>().underlyingType)
+    }
+
 }

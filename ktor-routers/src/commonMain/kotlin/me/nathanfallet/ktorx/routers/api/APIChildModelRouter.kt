@@ -137,10 +137,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             controllerRoute.parameters.singleOrNull {
                 it.annotations.any { annotation -> annotation is Payload }
             }?.let {
-                openAPI.schema(it.type)
                 requestBody {
                     mediaType("application/json") {
-                        schema(it.type)
+                        schema(it.type, openAPI)
                     }
                 }
                 response("400") {
@@ -158,10 +157,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 else "200"
             ) {
                 if (isUnitType) return@response
-                openAPI.schema(type)
                 description(type)
                 mediaType("application/json") {
-                    schema(type)
+                    schema(type, openAPI)
                 }
             }
 
