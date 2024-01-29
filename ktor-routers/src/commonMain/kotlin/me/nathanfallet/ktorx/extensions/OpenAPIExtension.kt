@@ -20,6 +20,19 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.typeOf
 
+private fun refSchema(type: KType): Schema<Any> {
+    var loop = Pair(type, Schema<Any>().`$ref`("#/components/schemas/${type.underlyingType}"))
+    while (loop.first.isList) {
+        loop = Pair(
+            loop.first.arguments.firstOrNull()?.type ?: typeOf<Any>(),
+            Schema<List<*>>().type("array").items(loop.second).apply {
+                nullable = loop.first.isMarkedNullable
+            }
+        )
+    }
+    return loop.second
+}
+
 fun OpenAPI.info(build: Info.() -> Unit): OpenAPI = info(
     (info ?: Info()).apply(build)
 )
@@ -33,33 +46,24 @@ fun OpenAPI.schema(type: KType): Schema<Any> {
     if (type.isSubtypeOf(typeOf<Map<*, *>>())) return Schema<Map<*, *>>().type("object")
 
     // Process type
+    val typeKey = type.toString().removeSuffix("?")
     val klass = type.classifier as KClass<*>
-    if (klass.isData && components?.schemas?.containsKey(type.toString()) != true) {
+    if (klass.isData && components?.schemas?.containsKey(typeKey) != true) {
         val properties = serializer(type).descriptor.elementNames.mapNotNull { name ->
             klass.memberProperties.firstOrNull { it.name == name }?.let { property ->
                 name to property
             }
         }.associate { it.first to it.second }
         schema(
-            type.toString(),
+            typeKey,
             Schema<Any>()
                 .type("object")
                 .properties(properties.mapValues {
                     val actualSchema =
-                        if (it.value.returnType.underlyingType == type) {
-                            var loop = Pair(
-                                it.value.returnType,
-                                Schema<Any>().`$ref`("#/components/schemas/$type")
-                            )
-                            while (loop.first.isList) {
-                                loop = Pair(
-                                    loop.first.arguments.firstOrNull()?.type ?: typeOf<Any>(),
-                                    Schema<List<*>>().type("array").items(loop.second)
-                                )
-                            }
-                            loop.second
-                        } else schema(it.value.returnType)
+                        if (it.value.returnType.underlyingType == type) refSchema(it.value.returnType)
+                        else schema(it.value.returnType)
                     actualSchema.apply {
+                        nullable = it.value.returnType.isMarkedNullable
                         it.value.annotations.firstNotNullOfOrNull { annotation ->
                             annotation as? me.nathanfallet.usecases.models.annotations.Schema
                         }?.let { annotation ->
@@ -74,7 +78,7 @@ fun OpenAPI.schema(type: KType): Schema<Any> {
         )
     }
 
-    return Schema<Any>().type(type.toString())
+    return Schema<Any>().type(typeKey)
 }
 
 fun OpenAPI.path(path: String, build: PathItem.() -> Unit): OpenAPI = path(
@@ -108,11 +112,7 @@ fun ApiResponse.description(type: KType): ApiResponse = description(
 
 fun MediaType.schema(type: KType, openAPI: OpenAPI): MediaType {
     openAPI.schema(type)
-    return schema(
-        if (type.isSubtypeOf(typeOf<List<*>>())) Schema<List<*>>().type("array").items(
-            Schema<Any>().`$ref`("#/components/schemas/${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}")
-        ) else Schema<Any>().`$ref`("#/components/schemas/$type")
-    )
+    return schema(refSchema(type))
 }
 
 fun MediaType.errorSchema(key: String): MediaType = schema(
