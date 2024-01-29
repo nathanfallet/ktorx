@@ -110,8 +110,11 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 it as? DocumentedType
             }?.type ?: type.underlyingType?.classifier as? KClass<*>
             val documentedTypeName = documentedType?.simpleName ?: documentedType.toString()
+            val documentedTag = controllerRoute.annotations.firstNotNullOfOrNull { it as? DocumentedTag }?.name
+                ?: modelTypeInfo.type.simpleName
 
             // General metadata
+            addTagsItem(documentedTag)
             (apiMapping.operationId.takeIf { it.isNotEmpty() } ?: when (controllerRoute.type) {
                 RouteType.listModel -> "list$documentedTypeName"
                 RouteType.getModel -> "get$documentedTypeName"
@@ -128,10 +131,6 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 RouteType.deleteModel -> "Delete a $documentedTypeName by id"
                 else -> null
             })?.let { description(it) }
-            addTagsItem(
-                controllerRoute.annotations.firstNotNullOfOrNull { it as? DocumentedTag }?.name
-                    ?: modelTypeInfo.type.simpleName
-            )
             parameters(getOpenAPIParameters(path.contains("{$id}")))
 
             // Body and response linked to payload

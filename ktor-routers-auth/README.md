@@ -43,7 +43,7 @@ interface MyAuthController : IAuthController<LoginPayload, RegisterPayload> {
     @AuthorizeRedirectPath
     suspend fun authorize(call: ApplicationCall, client: ClientForUser): String
 
-    @APIMapping("createToken", "Create a token")
+    @APIMapping
     @CreateModelPath("/token")
     @DocumentedTag("Auth")
     @DocumentedError(400, "auth_invalid_code")
