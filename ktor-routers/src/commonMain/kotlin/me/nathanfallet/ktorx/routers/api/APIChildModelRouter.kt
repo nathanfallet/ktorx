@@ -19,6 +19,7 @@ import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
+import kotlin.reflect.typeOf
 
 open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentModel : IChildModel<ParentId, *, *, *>, ParentId>(
     modelTypeInfo: TypeInfo,
@@ -104,7 +105,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         // API docs
         openAPI?.route(method, fullRoute + path) {
             val type = controllerRoute.returnType
-            val isUnitType = type == Unit::class || type == UnitModel::class
+            val isUnitType = type == typeOf<Unit>() || type == typeOf<UnitModel>()
             val documentedType = controllerRoute.annotations.firstNotNullOfOrNull {
                 it as? DocumentedType
             }?.type ?: type.underlyingType?.classifier as? KClass<*>
@@ -137,10 +138,9 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
             controllerRoute.parameters.singleOrNull {
                 it.annotations.any { annotation -> annotation is Payload }
             }?.let {
-                openAPI.schema(it.type)
                 requestBody {
                     mediaType("application/json") {
-                        schema(it.type)
+                        schema(it.type, openAPI)
                     }
                 }
                 response("400") {
@@ -157,11 +157,13 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 else if (controllerRoute.type == RouteType.createModel) "201"
                 else "200"
             ) {
-                if (isUnitType) return@response
-                openAPI.schema(type)
+                if (isUnitType) {
+                    description("No content")
+                    return@response
+                }
                 description(type)
                 mediaType("application/json") {
-                    schema(type)
+                    schema(type, openAPI)
                 }
             }
 

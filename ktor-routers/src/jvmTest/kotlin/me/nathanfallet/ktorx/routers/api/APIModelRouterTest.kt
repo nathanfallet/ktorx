@@ -479,10 +479,8 @@ class APIModelRouterTest {
         assertEquals(1, delete?.parameters?.size)
         assertEquals("testmodelId", delete?.parameters?.firstOrNull()?.name)
         assertEquals(1, delete?.responses?.size)
-        assertEquals(
-            null,
-            delete?.responses?.get("204")?.content
-        )
+        assertEquals("No content", delete?.responses?.get("204")?.description)
+        assertEquals(null, delete?.responses?.get("204")?.content)
     }
 
     @Test

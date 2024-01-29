@@ -8,5 +8,5 @@ data class TestRecursiveModel(
     @Schema("Name", "abc")
     val name: String,
     @Schema("Children", "[]")
-    val children: List<TestRecursiveModel> = emptyList(),
+    val children: List<TestRecursiveModel>? = null,
 )

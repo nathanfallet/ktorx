@@ -12,7 +12,6 @@ import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
@@ -21,28 +20,50 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.typeOf
 
+private fun refSchema(type: KType): Schema<Any> {
+    var loop = Pair(type, Schema<Any>().`$ref`("#/components/schemas/${type.underlyingType}"))
+    while (loop.first.isList) {
+        loop = Pair(
+            loop.first.arguments.firstOrNull()?.type ?: typeOf<Any>(),
+            Schema<List<*>>().type("array").items(loop.second).apply {
+                nullable = loop.first.isMarkedNullable
+            }
+        )
+    }
+    return loop.second
+}
+
 fun OpenAPI.info(build: Info.() -> Unit): OpenAPI = info(
     (info ?: Info()).apply(build)
 )
 
-@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+@OptIn(ExperimentalSerializationApi::class)
 fun OpenAPI.schema(type: KType): Schema<Any> {
-    if (type.isSubtypeOf(typeOf<List<*>>())) return Schema<List<*>>().type("array").items(
+    // List and maps
+    if (type.isList) return Schema<List<*>>().type("array").items(
         schema(type.arguments.firstOrNull()?.type ?: typeOf<Any>())
     )
     if (type.isSubtypeOf(typeOf<Map<*, *>>())) return Schema<Map<*, *>>().type("object")
-    if (components?.schemas?.containsKey(type.toString()) != true) {
-        val klass = type.classifier as KClass<*>
-        val properties = klass.serializer().descriptor.elementNames.associateWith { name ->
-            klass.memberProperties.first { it.name == name }
-        }
+
+    // Process type
+    val typeKey = type.toString().removeSuffix("?")
+    val klass = type.classifier as KClass<*>
+    if (klass.isData && components?.schemas?.containsKey(typeKey) != true) {
+        val properties = serializer(type).descriptor.elementNames.mapNotNull { name ->
+            klass.memberProperties.firstOrNull { it.name == name }?.let { property ->
+                name to property
+            }
+        }.associate { it.first to it.second }
         schema(
-            type.toString(),
+            typeKey,
             Schema<Any>()
                 .type("object")
                 .properties(properties.mapValues {
-                    (if (it.value.returnType.underlyingType == type) Schema<Any>().`$ref`("#/components/schemas/$type")
-                    else schema(it.value.returnType)).apply {
+                    val actualSchema =
+                        if (it.value.returnType.underlyingType == type) refSchema(it.value.returnType)
+                        else schema(it.value.returnType)
+                    actualSchema.apply {
+                        nullable = it.value.returnType.isMarkedNullable
                         it.value.annotations.firstNotNullOfOrNull { annotation ->
                             annotation as? me.nathanfallet.usecases.models.annotations.Schema
                         }?.let { annotation ->
@@ -56,7 +77,8 @@ fun OpenAPI.schema(type: KType): Schema<Any> {
                 }.keys.toList())
         )
     }
-    return Schema<Any>().`$ref`("#/components/schemas/$type")
+
+    return Schema<Any>().type(typeKey)
 }
 
 fun OpenAPI.path(path: String, build: PathItem.() -> Unit): OpenAPI = path(
@@ -84,15 +106,14 @@ fun ApiResponse.mediaType(name: String, build: MediaType.() -> Unit): ApiRespons
 )
 
 fun ApiResponse.description(type: KType): ApiResponse = description(
-    if (type.isSubtypeOf(typeOf<List<*>>())) "List of ${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}"
+    if (type.isList) "List of ${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}"
     else "A $type"
 )
 
-fun MediaType.schema(type: KType): MediaType = schema(
-    if (type.isSubtypeOf(typeOf<List<*>>())) Schema<List<*>>().type("array").items(
-        Schema<Any>().`$ref`("#/components/schemas/${type.arguments.firstOrNull()?.type ?: typeOf<Any>()}")
-    ) else Schema<Any>().`$ref`("#/components/schemas/$type")
-)
+fun MediaType.schema(type: KType, openAPI: OpenAPI): MediaType {
+    openAPI.schema(type)
+    return schema(refSchema(type))
+}
 
 fun MediaType.errorSchema(key: String): MediaType = schema(
     Schema<Map<String, String>>().type("object").properties(
