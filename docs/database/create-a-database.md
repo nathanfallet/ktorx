@@ -71,8 +71,8 @@ val databaseModule = module {
 }
 
 modules(
+    // Existing modules...
     databaseModule,
-    // Other modules...
 )
 ```
 
