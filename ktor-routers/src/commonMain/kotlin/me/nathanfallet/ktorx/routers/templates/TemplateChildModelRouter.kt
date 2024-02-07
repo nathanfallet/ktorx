@@ -141,7 +141,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                 try {
                     invokeControllerRoute(call, controllerRoute)
                     call.respondRedirect(
-                        "../".repeat(path.count { it == '/' } + 1) + route
+                        "../".repeat(path.count { it == '/' }) + route
                     )
                 } catch (exception: Exception) {
                     handleExceptionTemplate(exception, call, mapping.template)
