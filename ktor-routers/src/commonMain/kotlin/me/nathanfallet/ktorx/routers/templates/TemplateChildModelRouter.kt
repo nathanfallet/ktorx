@@ -125,8 +125,9 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     val item = if (isForm && path.contains("{$id}")) get(call)
                     else if (!hasPayload) invokeControllerRoute(call, controllerRoute)
                     else null
-                    val itemMap = if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
-                    else item as? Map<String, *> ?: mapOf("item" to item)
+                    val itemMap = item as? Map<String, *>
+                        ?: if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
+                           else mapOf("item" to item)
                     call.respondTemplate(
                         mapping.template,
                         mapOf("route" to route, "keys" to keys) + itemMap
