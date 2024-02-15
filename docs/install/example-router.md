@@ -42,7 +42,9 @@ class HelloController : IHelloController {
 In the `resources`, we will create a `templates` folder and add a `hello.ftl` file with the following content:
 
 ```html
-Hello ${hello}!
+<p id="hello-p">
+    Hello ${hello}!
+</p>
 ```
 
 And the final step is the router itself. We will create a `HelloRouter.kt` file in the same package, and provide both
@@ -69,6 +71,21 @@ class HelloRouter(
 
 The `ConcatUnitRouter` is a router that concatenates multiple routers together.
 
+For the API response to be available, we need to add the serialization plugin to Ktor. Create a new file in
+the `plugins`
+package called `Serialization.kt` and add the following code:
+
+```kotlin
+fun Application.configureSerialization() {
+    install(ContentNegotiation) {
+        json(Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        })
+    }
+}
+```
+
 For the `respondTemplate` to be available, we will add freemarker, which is the templating engine, to our dependencies
 in the `build.gradle.kts` file:
 
@@ -87,13 +104,14 @@ fun Application.configureTemplating() {
 }
 ```
 
-As always, don't forget to call this function in your `Application.kt` file:
+As always, don't forget to call those functions in your `Application.kt` file:
 
 ```kotlin
 fun Application.module() {
     // Existing code...
 
-    configureTemplating() // Add this
+    configureSerialization() // Add this
+    configureTemplating() // And this
 }
 ```
 
@@ -142,5 +160,6 @@ fun Application.module() {
 You can now start your application and go to [http://localhost:8080](http://localhost:8080) (templating router)
 and [http://localhost:8080/api](http://localhost:8080/api) (API router) to see the result.
 
-If you're ready to go further, we can continue by [creating our models](../models/create-a-model.md) to make more
-complex routers.
+Before continuing, it's important to write some unit tests to ensure that everything is working as expected. You can
+check [testing the example router](testing-example-router.md) to see how to write tests for your application, controller
+and router.

@@ -39,6 +39,8 @@ class Database(
 }
 ```
 
+This allows us to connect to a MySQL database (for running) or an H2 in-memory database (for testing).
+
 If not declared yet, add the database configuration to your `application.conf` file:
 
 ```hocon
@@ -52,6 +54,21 @@ database {
     name = ${?DB_NAME}
     user = ${?DB_USER}
     password = ${?DB_PASSWORD}
+}
+```
+
+This configuration allows us to use environment variables to override the default configuration. We can use the default
+values for development and testing, and override them in production with real database credentials.
+
+For unit tests, we can use the H2 in-memory database, so we will add this `application.test.conf` configuration:
+
+```hocon
+database {
+    protocol = "h2"
+    host = ""
+    name = "tasks"
+    user = ""
+    password = ""
 }
 ```
 
@@ -75,5 +92,7 @@ modules(
     databaseModule,
 )
 ```
+
+That way, we can inject our database into our repositories later.
 
 Now, it's time to [create our first repository](create-a-repository.md) to interact with our database.
