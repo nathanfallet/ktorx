@@ -1,5 +1,13 @@
 # Create a model
 
+Creating a model allows us to represent our data inside our application. Then, we use this model to make operations on
+our data, like creating, reading, updating, and deleting.
+
+A model is a data class representing our data, with two payload for creating and updating the data.
+
+In this example, we are going to create a `Task` model for a todo app with a `CreateTaskPayload` and
+an `UpdateTaskPayload` to create and update those tasks.
+
 In the `models` package, create your first model as defined in the [usecases](https://github.com/nathanfallet/usecases)
 library.
 

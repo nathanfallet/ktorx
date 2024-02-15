@@ -1,5 +1,8 @@
 # Create a repository
 
+A repository is a class that allows us to interact with our database. It's the place where we will write our SQL queries
+and map the results to our models.
+
 Inside the `repositories` package, create your first repository interface:
 
 ```kotlin
@@ -38,7 +41,7 @@ object Tasks : Table() {
 Then, implement it in a new file in the `database` package:
 
 ```kotlin
-class TasksRepository(
+class TasksDatabaseRepository(
     private val database: IDatabase,
 ) : ITasksRepository {
 
@@ -82,3 +85,18 @@ class TasksRepository(
 
 }
 ```
+
+Finally, to make our repository available in our application, we need to declare it in our `Koin.kt` file:
+
+```kotlin
+val repositoryModule = module {
+    single<ITasksRepository> { TasksDatabaseRepository(get()) }
+}
+
+modules(
+    // Existing modules...
+    repositoryModule,
+)
+```
+
+Finally, we can [test our repository](testing-repository.md).

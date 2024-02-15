@@ -15,3 +15,8 @@
 
 - [Setup our database](database/create-a-database.md)
 - [Create our first repository](database/create-a-repository.md)
+- [Testing a repository](database/testing-repository.md)
+
+## Logic & use cases
+
+- [Add logic between repositories and controllers](usecases/add-logic.md)
