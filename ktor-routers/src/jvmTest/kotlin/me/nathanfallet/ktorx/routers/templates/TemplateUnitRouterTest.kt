@@ -15,6 +15,7 @@ import me.nathanfallet.ktorx.controllers.IUnitController
 import me.nathanfallet.ktorx.models.ITestUnitController
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUser
+import me.nathanfallet.ktorx.models.exceptions.ControllerRedirect
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.usecases.models.annotations.ModelKey
@@ -30,6 +31,7 @@ class TemplateUnitRouterTest {
             }
         }
         return application.createClient {
+            followRedirects = false
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 json(Json)
             }
@@ -86,6 +88,32 @@ class TemplateUnitRouterTest {
                 )
             ), response.body()
         )
+    }
+
+    @Test
+    fun testTemplateBasicRouteRedirect() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.hello() } throws ControllerRedirect("/redirect")
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/hello")
+        assertEquals(HttpStatusCode.Found, response.status)
+    }
+
+    @Test
+    fun testTemplateBasicRouteRedirectPermanent() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.hello() } throws ControllerRedirect("/redirect", true)
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/hello")
+        assertEquals(HttpStatusCode.MovedPermanently, response.status)
     }
 
     @Test
