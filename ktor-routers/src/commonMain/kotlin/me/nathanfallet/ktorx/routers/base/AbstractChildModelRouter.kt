@@ -109,6 +109,20 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
                         call.parameters[id]!!
                     )
                 }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.PathParameter }
+                    ?.let {
+                        return@associateWith ModelAnnotations.constructPrimitiveFromString(
+                            parameter.type,
+                            parameter.name?.let { call.parameters[it] }
+                        )
+                    }
+                annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.QueryParameter }
+                    ?.let {
+                        return@associateWith ModelAnnotations.constructPrimitiveFromString(
+                            parameter.type,
+                            parameter.name?.let { call.request.queryParameters[it] }
+                        )
+                    }
                 annotations.firstNotNullOfOrNull { it as? me.nathanfallet.ktorx.models.annotations.Payload }?.let {
                     val type = parameter.type.classifier as KClass<Any>
                     if (type == Unit::class) return@associateWith Unit

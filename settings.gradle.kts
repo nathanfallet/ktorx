@@ -13,9 +13,9 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             library("coroutines", "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-            library("usecases", "me.nathanfallet.usecases:usecases:1.5.5")
-            library("i18n", "me.nathanfallet.i18n:i18n:1.0.9")
-            library("surexposed", "me.nathanfallet.surexposed:surexposed:1.0.0")
+            library("usecases", "me.nathanfallet.usecases:usecases:1.5.6")
+            library("i18n", "me.nathanfallet.i18n:i18n:1.0.10")
+            library("surexposed", "me.nathanfallet.surexposed:surexposed:1.0.1")
 
             version("ktor", "2.3.7")
             library("ktor-serialization-kotlinx-json", "io.ktor", "ktor-serialization-kotlinx-json").versionRef("ktor")

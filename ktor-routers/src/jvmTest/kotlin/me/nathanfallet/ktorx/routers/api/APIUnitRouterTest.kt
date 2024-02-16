@@ -47,6 +47,40 @@ class APIUnitRouterTest {
     }
 
     @Test
+    fun testAPIQueryParameterRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = APIUnitRouter(
+            controller,
+            ITestUnitController::class
+        )
+        coEvery { controller.helloQuery("world") } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/hello/query?name=world")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello world", response.body())
+    }
+
+    @Test
+    fun testAPIPathParameterRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = APIUnitRouter(
+            controller,
+            ITestUnitController::class
+        )
+        coEvery { controller.helloPath("world") } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.get("/api/hello/path/world")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello world", response.body())
+    }
+
+    @Test
     fun testAPIBasicRouteCustomRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<ITestUnitController>()
