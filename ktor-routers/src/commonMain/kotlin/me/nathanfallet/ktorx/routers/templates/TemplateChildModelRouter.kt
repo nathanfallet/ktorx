@@ -9,10 +9,10 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
 import me.nathanfallet.ktorx.controllers.IChildModelController
-import me.nathanfallet.ktorx.models.annotations.Id
 import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
+import me.nathanfallet.ktorx.models.exceptions.ControllerRedirect
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
@@ -54,6 +54,8 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         fromTemplate: String,
     ) {
         when (exception) {
+            is ControllerRedirect -> call.respondRedirect(exception.url, exception.permanent)
+            
             is ControllerException -> {
                 redirectUnauthorizedToUrl?.takeIf {
                     exception.code == HttpStatusCode.Unauthorized && !isUnauthorizedRedirectPath(call)
@@ -127,7 +129,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                     else null
                     val itemMap = item as? Map<String, *>
                         ?: if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
-                           else mapOf("item" to item)
+                        else mapOf("item" to item)
                     call.respondTemplate(
                         mapping.template,
                         mapOf("route" to route, "keys" to keys) + itemMap
