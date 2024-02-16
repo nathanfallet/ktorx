@@ -33,9 +33,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("io.swagger.codegen.v3:swagger-codegen:3.0.51")
-                api("io.swagger.codegen.v3:swagger-codegen-generators:1.0.45")
-                api("io.swagger.core.v3:swagger-core:2.2.19")
+                implementation("io.swagger.codegen.v3:swagger-codegen:3.0.53")
+                api("io.swagger.codegen.v3:swagger-codegen-generators:1.0.47")
+                api("io.swagger.core.v3:swagger-core:2.2.20")
 
                 api(libs.coroutines)
                 api(libs.bundles.ktor.server.api)
