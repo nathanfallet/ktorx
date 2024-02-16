@@ -55,7 +55,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
     ) {
         when (exception) {
             is ControllerRedirect -> call.respondRedirect(exception.url, exception.permanent)
-            
+
             is ControllerException -> {
                 redirectUnauthorizedToUrl?.takeIf {
                     exception.code == HttpStatusCode.Unauthorized && !isUnauthorizedRedirectPath(call)
@@ -98,6 +98,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         val mapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? TemplateMapping } ?: return
 
         // Calculate route (path, keys, ...)
+        val method = controllerRoute.method ?: HttpMethod.Get
         val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
             RouteType.getModel -> "{$id}"
             RouteType.createModel -> "create"
@@ -118,14 +119,11 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
             parameter.annotations.any { it is Payload }
         }
 
-        root.route(
-            fullRoute + path,
-            controllerRoute.method ?: HttpMethod.Get
-        ) {
+        root.route(fullRoute + path, method) {
             handle {
                 try {
                     val item = if (isForm && path.contains("{$id}")) get(call)
-                    else if (!hasPayload) invokeControllerRoute(call, controllerRoute)
+                    else if (!hasPayload || method != HttpMethod.Get) invokeControllerRoute(call, controllerRoute)
                     else null
                     val itemMap = item as? Map<String, *>
                         ?: if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)

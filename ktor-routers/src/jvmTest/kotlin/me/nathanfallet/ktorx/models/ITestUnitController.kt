@@ -20,4 +20,9 @@ interface ITestUnitController : IUnitController {
     @Path("GET", "/hello/path/{name}")
     suspend fun helloPath(@PathParameter name: String): String
 
+    @APIMapping
+    @TemplateMapping("hello.ftl")
+    @Path("POST", "/hello")
+    suspend fun postHello(@Payload payload: TestCreatePayload): String
+
 }

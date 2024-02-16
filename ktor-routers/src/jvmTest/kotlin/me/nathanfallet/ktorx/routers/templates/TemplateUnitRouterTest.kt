@@ -13,6 +13,7 @@ import io.mockk.mockk
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.controllers.IUnitController
 import me.nathanfallet.ktorx.models.ITestUnitController
+import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUser
 import me.nathanfallet.ktorx.models.exceptions.ControllerRedirect
@@ -132,6 +133,36 @@ class TemplateUnitRouterTest {
                 "hello.ftl",
                 TemplateResponseData<TestModel, ModelKey>(
                     "test",
+                    keys = listOf(),
+                    itemString = "Hello world",
+                )
+            ), response.body()
+        )
+    }
+
+    @Test
+    fun testTemplatePostBasicRoute() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = createRouter<ModelKey>(controller)
+        coEvery { controller.postHello(TestCreatePayload("string")) } returns "Hello world"
+        routing {
+            router.createRoutes(this)
+        }
+        val response = client.post("/hello") {
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf(
+                    "string" to "string"
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            TemplateResponse(
+                "hello.ftl",
+                TemplateResponseData<TestModel, ModelKey>(
+                    "",
                     keys = listOf(),
                     itemString = "Hello world",
                 )
