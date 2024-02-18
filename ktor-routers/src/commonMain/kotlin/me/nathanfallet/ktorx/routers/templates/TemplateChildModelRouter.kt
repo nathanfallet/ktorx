@@ -12,7 +12,8 @@ import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.models.annotations.Payload
 import me.nathanfallet.ktorx.models.annotations.TemplateMapping
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
-import me.nathanfallet.ktorx.models.exceptions.ControllerRedirect
+import me.nathanfallet.ktorx.models.responses.ControllerResponse
+import me.nathanfallet.ktorx.models.responses.RedirectResponse
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
@@ -54,7 +55,7 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         fromTemplate: String,
     ) {
         when (exception) {
-            is ControllerRedirect -> call.respondRedirect(exception.url, exception.permanent)
+            is RedirectResponse -> exception.respond(call)
 
             is ControllerException -> {
                 redirectUnauthorizedToUrl?.takeIf {
@@ -122,12 +123,18 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
         root.route(fullRoute + path, method) {
             handle {
                 try {
-                    val item = if (isForm && path.contains("{$id}")) get(call)
-                    else if (!hasPayload || method != HttpMethod.Get) invokeControllerRoute(call, controllerRoute)
-                    else null
+                    val item = when {
+                        isForm && path.contains("{$id}") -> get(call)
+                        !hasPayload || method != HttpMethod.Get -> invokeControllerRoute(call, controllerRoute)
+                        else -> null
+                    }
+
+                    if (item is ControllerResponse) return@handle item.respond(call)
+
                     val itemMap = item as? Map<String, *>
                         ?: if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
                         else mapOf("item" to item)
+
                     call.respondTemplate(
                         mapping.template,
                         mapOf("route" to route, "keys" to keys) + itemMap

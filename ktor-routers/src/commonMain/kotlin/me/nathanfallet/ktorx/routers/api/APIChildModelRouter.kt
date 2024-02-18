@@ -11,6 +11,9 @@ import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.*
 import me.nathanfallet.ktorx.models.exceptions.ControllerException
+import me.nathanfallet.ktorx.models.responses.ControllerResponse
+import me.nathanfallet.ktorx.models.responses.RedirectResponse
+import me.nathanfallet.ktorx.models.responses.StatusResponse
 import me.nathanfallet.ktorx.models.routes.ControllerRoute
 import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
@@ -45,6 +48,8 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
 
     open suspend fun handleExceptionAPI(exception: Exception, call: ApplicationCall) {
         when (exception) {
+            is RedirectResponse -> exception.respond(call)
+
             is ControllerException -> {
                 call.response.status(exception.code)
                 call.respond(mapOf("error" to exception.key))
@@ -85,17 +90,19 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         root.route(fullRoute + path, method) {
             handle {
                 try {
-                    invokeControllerRoute(call, controllerRoute)
-                        ?.takeIf { it != Unit }
-                        ?.let {
-                            if (controllerRoute.type == RouteType.createModel) {
-                                call.response.status(HttpStatusCode.Created)
-                            }
-                            call.respond(it)
-                        }
-                        ?: run {
-                            call.respond(HttpStatusCode.NoContent)
-                        }
+                    val response = invokeControllerRoute(call, controllerRoute)
+                    val item = when (response) {
+                        is ControllerResponse -> return@handle response.respond(call)
+                        is StatusResponse<*> -> response.content
+                        else -> response
+                    }
+                    val status = when {
+                        response is StatusResponse<*> -> response.status
+                        controllerRoute.type == RouteType.createModel -> HttpStatusCode.Created
+                        item == Unit || item == UnitModel || item == null -> HttpStatusCode.NoContent
+                        else -> HttpStatusCode.OK
+                    }
+                    item?.let { call.respond(status, item) } ?: call.respond(status)
                 } catch (exception: Exception) {
                     handleExceptionAPI(exception, call)
                 }

@@ -7,7 +7,7 @@ A Sentry plugin for Ktor
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-sentry:2.0.4")
+api("me.nathanfallet.ktorx:ktor-sentry:2.1.0")
 ```
 
 ```xml
@@ -16,7 +16,7 @@ api("me.nathanfallet.ktorx:ktor-sentry:2.0.4")
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-sentry-jvm</artifactId>
-        <version>2.0.4</version>
+        <version>2.1.0</version>
     </dependency>
 </dependencies>
 ```

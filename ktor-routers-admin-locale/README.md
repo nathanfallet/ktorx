@@ -7,7 +7,7 @@ Locale extensions for ktor-routers-admin.
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-routers-admin-locale:2.0.4")
+api("me.nathanfallet.ktorx:ktor-routers-admin-locale:2.1.0")
 ```
 
 ```xml
@@ -15,7 +15,7 @@ api("me.nathanfallet.ktorx:ktor-routers-admin-locale:2.0.4")
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-admin-locale-jvm</artifactId>
-    <version>2.0.4</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
