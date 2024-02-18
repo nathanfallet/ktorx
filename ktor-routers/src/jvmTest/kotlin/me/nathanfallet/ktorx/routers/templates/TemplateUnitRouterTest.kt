@@ -16,7 +16,7 @@ import me.nathanfallet.ktorx.models.ITestUnitController
 import me.nathanfallet.ktorx.models.TestCreatePayload
 import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUser
-import me.nathanfallet.ktorx.models.exceptions.ControllerRedirect
+import me.nathanfallet.ktorx.models.responses.RedirectResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponse
 import me.nathanfallet.ktorx.models.templates.TemplateResponseData
 import me.nathanfallet.usecases.models.annotations.ModelKey
@@ -96,7 +96,7 @@ class TemplateUnitRouterTest {
         val client = installApp(this)
         val controller = mockk<ITestUnitController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.hello() } throws ControllerRedirect("/redirect")
+        coEvery { controller.hello() } throws RedirectResponse("/redirect")
         routing {
             router.createRoutes(this)
         }
@@ -109,7 +109,7 @@ class TemplateUnitRouterTest {
         val client = installApp(this)
         val controller = mockk<ITestUnitController>()
         val router = createRouter<ModelKey>(controller)
-        coEvery { controller.hello() } throws ControllerRedirect("/redirect", true)
+        coEvery { controller.hello() } throws RedirectResponse("/redirect", true)
         routing {
             router.createRoutes(this)
         }
