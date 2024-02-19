@@ -66,7 +66,10 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                 root.get("$fullRoute/register/{code}") {
                     try {
                         val code = call.parameters["code"]!!
-                        val codePayload = invokeControllerRoute(call, controllerRoute, mapOf("code" to code))
+                        val codePayload = invokeControllerRoute(call, controllerRoute) { parameter ->
+                            if (parameter.name == "code") return@invokeControllerRoute code
+                            null
+                        }
                         call.respondTemplate(
                             mapping.template,
                             mapOf("codePayload" to codePayload)
@@ -82,7 +85,10 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
                     try {
                         val code = call.parameters["code"]!!
                         register(call, code)
-                        invokeControllerRoute(call, controllerRoute, mapOf("code" to code))
+                        invokeControllerRoute(call, controllerRoute) { parameter ->
+                            if (parameter.name == "code") return@invokeControllerRoute code
+                            null
+                        }
                         call.respondRedirect(call.request.queryParameters["redirect"] ?: "/")
                     } catch (exception: Exception) {
                         handleExceptionTemplate(exception, call, mapping.template)
@@ -96,7 +102,10 @@ open class AuthWithCodeTemplateRouter<LoginPayload : Any, RegisterPayload : Any,
 
     private suspend fun register(call: ApplicationCall, code: String): Any? {
         return controllerRoutes.singleOrNull { it.type == RouteType.registerCode }?.let {
-            invokeControllerRoute(call, it, mapOf("code" to code))
+            invokeControllerRoute(call, it) { parameter ->
+                if (parameter.name == "code") return@invokeControllerRoute code
+                null
+            }
         }
     }
 

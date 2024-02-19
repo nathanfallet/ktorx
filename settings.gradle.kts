@@ -23,6 +23,7 @@ dependencyResolutionManagement {
             library("ktor-server-content-negotiation", "io.ktor", "ktor-server-content-negotiation").versionRef("ktor")
             library("ktor-server-sessions", "io.ktor", "ktor-server-sessions").versionRef("ktor")
             library("ktor-server-freemarker", "io.ktor", "ktor-server-freemarker").versionRef("ktor")
+            library("ktor-server-websockets", "io.ktor", "ktor-server-websockets").versionRef("ktor")
             library("ktor-client-core", "io.ktor", "ktor-client-core").versionRef("ktor")
             library("ktor-client-content-negotiation", "io.ktor", "ktor-client-content-negotiation").versionRef("ktor")
             library("ktor-client-auth", "io.ktor", "ktor-client-auth").versionRef("ktor")
@@ -44,6 +45,13 @@ dependencyResolutionManagement {
                 )
             )
             bundle(
+                "ktor-server-websockets",
+                listOf(
+                    "ktor-server-core",
+                    "ktor-server-websockets"
+                )
+            )
+            bundle(
                 "ktor-client-api",
                 listOf(
                     "ktor-client-core",
@@ -62,6 +70,7 @@ include(":ktor-database-sessions")
 include(":ktor-i18n")
 include(":ktor-i18n-freemarker")
 include(":ktor-routers")
+include(":ktor-routers-websockets")
 include(":ktor-routers-admin")
 include(":ktor-routers-auth")
 include(":ktor-routers-client")

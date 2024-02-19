@@ -96,7 +96,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
     open suspend fun invokeControllerRoute(
         call: ApplicationCall,
         controllerRoute: ControllerRoute,
-        parameters: Map<String, Any?> = mapOf(),
+        mapParameter: (KParameter) -> Any? = { null },
     ): Any? {
         try {
             return controllerRoute.handler(controllerRoute.parameters.associateWith { parameter ->
@@ -138,7 +138,7 @@ abstract class AbstractChildModelRouter<Model : IChildModel<Id, CreatePayload, U
                     } while (target.modelTypeInfo.kotlinType != parameter.type)
                     return@associateWith target.get(call)
                 }
-                parameters[parameter.name] ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
+                mapParameter(parameter) ?: throw IllegalArgumentException("Unknown parameter: ${parameter.name}")
             })
         } catch (e: InvocationTargetException) {
             throw e.targetException
