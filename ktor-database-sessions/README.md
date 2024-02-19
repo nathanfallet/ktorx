@@ -7,7 +7,7 @@ Sessions database extensions for Ktor.
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-database-sessions:2.1.0")
+api("me.nathanfallet.ktorx:ktor-database-sessions:2.2.0")
 ```
 
 ```xml
@@ -16,7 +16,7 @@ api("me.nathanfallet.ktorx:ktor-database-sessions:2.1.0")
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-database-sessions-jvm</artifactId>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
     </dependency>
 </dependencies>
 ```

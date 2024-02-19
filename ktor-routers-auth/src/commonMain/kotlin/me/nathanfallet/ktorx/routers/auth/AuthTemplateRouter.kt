@@ -78,9 +78,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
             RouteType.authorize -> {
                 root.get("$fullRoute/authorize") {
                     try {
-                        val client = invokeControllerRoute(
-                            call, controllerRoute, mapOf("clientId" to call.parameters["client_id"])
-                        ) as ClientForUser
+                        val client = invokeControllerRoute(call, controllerRoute) { parameter ->
+                            if (parameter.name == "clientId") return@invokeControllerRoute call.parameters["client_id"]
+                            else null
+                        } as ClientForUser
                         call.respondTemplate(
                             mapping.template,
                             mapOf(
@@ -99,9 +100,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
                     try {
                         val clientId = call.parameters["client_id"]
                         val client = authorize(call, clientId)
-                        val redirect = invokeControllerRoute(
-                            call, controllerRoute, mapOf("client" to client)
-                        ) as String
+                        val redirect = invokeControllerRoute(call, controllerRoute) { parameter ->
+                            if (parameter.name == "client") return@invokeControllerRoute client
+                            else null
+                        } as String
                         redirectTemplate?.let {
                             call.respondTemplate(it, mapOf("redirect" to redirect))
                         } ?: call.respondRedirect(redirect)
@@ -117,7 +119,10 @@ open class AuthTemplateRouter<LoginPayload : Any, RegisterPayload : Any>(
 
     private suspend fun authorize(call: ApplicationCall, clientId: String?): ClientForUser {
         return controllerRoutes.singleOrNull { it.type == RouteType.authorize }?.let {
-            invokeControllerRoute(call, it, mapOf("clientId" to clientId))
+            invokeControllerRoute(call, it) { parameter ->
+                if (parameter.name == "clientId") return@invokeControllerRoute clientId
+                else null
+            }
         } as ClientForUser
     }
 

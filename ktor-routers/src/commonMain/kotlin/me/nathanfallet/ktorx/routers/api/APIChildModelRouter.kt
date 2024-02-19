@@ -71,20 +71,24 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
         return call.receive(type)
     }
 
-    override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
-        val apiMapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
-
-        // Calculate route (path and method)
-        val path = ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
+    open fun getControllerRoutePath(controllerRoute: ControllerRoute) =
+        ("/" + (controllerRoute.path ?: when (controllerRoute.type) {
             RouteType.getModel, RouteType.updateModel, RouteType.deleteModel -> "{$id}"
             else -> ""
         }).removePrefix("/")).removeSuffix("/")
-        val method = controllerRoute.method ?: when (controllerRoute.type) {
+
+    open fun getControllerRouteMethod(controllerRoute: ControllerRoute) =
+        controllerRoute.method ?: when (controllerRoute.type) {
             RouteType.createModel -> HttpMethod.Post
             RouteType.updateModel -> HttpMethod.Put
             RouteType.deleteModel -> HttpMethod.Delete
             else -> HttpMethod.Get
         }
+
+    override fun createControllerRoute(root: Route, controllerRoute: ControllerRoute, openAPI: OpenAPI?) {
+        val apiMapping = controllerRoute.annotations.firstNotNullOfOrNull { it as? APIMapping } ?: return
+        val path = getControllerRoutePath(controllerRoute)
+        val method = getControllerRouteMethod(controllerRoute)
 
         // Route handling
         root.route(fullRoute + path, method) {

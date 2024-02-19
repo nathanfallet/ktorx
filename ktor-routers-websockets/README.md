@@ -1,20 +1,24 @@
-# ktor-routers-client
+# ktor-routers-websockets
 
-Client for APIs using ktor-routers.
+Sockets support for Ktor routers.
 
 ## Installation
 
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-routers-client:2.2.0")
+api("me.nathanfallet.ktorx:ktor-routers-websockets:2.2.0")
 ```
 
 ```xml
 
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
-    <artifactId>ktor-routers-client-jvm</artifactId>
+    <artifactId>ktor-routers-websockets-jvm</artifactId>
     <version>2.2.0</version>
 </dependency>
 ```
+
+## Usage
+
+
