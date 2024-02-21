@@ -44,10 +44,12 @@ class KtorSentry private constructor() {
                     val transaction = Sentry.startTransaction(
                         /* name = */ "${call.request.httpMethod.value} ${call.request.path()}",
                         /* operation = */ "call",
-                        /* customSamplingContext = */ CustomSamplingContext().apply {
-                            this["path"] = call.request.path().lowercase()
-                        },
-                        /* bindToScope = */ true
+                        /* transactionOptions = */TransactionOptions().apply {
+                            customSamplingContext = CustomSamplingContext().apply {
+                                this["path"] = call.request.path().lowercase()
+                            }
+                            isBindToScope = true
+                        }
                     )
                     Sentry.configureScope { scope ->
                         scope.addBreadcrumb(Breadcrumb.http(call.request.uri, call.request.httpMethod.value))

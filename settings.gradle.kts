@@ -17,7 +17,7 @@ dependencyResolutionManagement {
             library("i18n", "me.nathanfallet.i18n:i18n:1.0.10")
             library("surexposed", "me.nathanfallet.surexposed:surexposed:1.0.1")
 
-            version("ktor", "2.3.7")
+            version("ktor", "2.3.8")
             library("ktor-serialization-kotlinx-json", "io.ktor", "ktor-serialization-kotlinx-json").versionRef("ktor")
             library("ktor-server-core", "io.ktor", "ktor-server-core").versionRef("ktor")
             library("ktor-server-content-negotiation", "io.ktor", "ktor-server-content-negotiation").versionRef("ktor")

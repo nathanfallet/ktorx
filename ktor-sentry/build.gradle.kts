@@ -27,7 +27,7 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    val sentryVersion = "6.32.0"
+    val sentryVersion = "7.4.0"
 
     sourceSets {
         val commonMain by getting {

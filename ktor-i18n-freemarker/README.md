@@ -8,7 +8,7 @@ Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
 api("me.nathanfallet.ktorx:ktor-i18n-freemarker:2.2.1")
-api("io.ktor:ktor-server-freemarker:2.3.7")
+api("io.ktor:ktor-server-freemarker:2.3.8")
 ```
 
 ```xml
@@ -22,7 +22,7 @@ api("io.ktor:ktor-server-freemarker:2.3.7")
     <dependency>
         <groupId>io.ktor</groupId>
         <artifactId>ktor-server-freemarker-jvm</artifactId>
-        <version>2.3.7</version>
+        <version>2.3.8</version>
     </dependency>
 </dependencies>
 ```
