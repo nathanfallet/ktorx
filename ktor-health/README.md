@@ -21,4 +21,15 @@ api("me.nathanfallet.ktorx:ktor-health:2.2.1")
 
 ## Usage
 
+Install the plugin, and optionally add some checks:
 
+```kotlin
+install(KtorHealth) {
+    // Add a check on `/healthz` endpoint
+    healthCheck("database") {
+        // Check your database connection and return a boolean
+    }
+    // You can also create checks on `/readyz` with `readyCheck(...)`
+    // Or a custom endpoint with `customCheck("/custom", "database") { ... }`
+}
+```

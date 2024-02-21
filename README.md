@@ -11,13 +11,15 @@ Ktor extensions.
 ## Components
 
 - [ktor-database-sessions](ktor-database-sessions/README.md)
+- [ktor-health](ktor-health/README.md)
 - [ktor-i18n](ktor-i18n/README.md)
 - [ktor-i18n-freemarker](ktor-i18n-freemarker/README.md)
 - [ktor-routers](ktor-routers/README.md)
 - [ktor-routers-admin](ktor-routers-admin/README.md)
+- [ktor-routers-admin-locale](ktor-routers-admin-locale/README.md)
 - [ktor-routers-auth](ktor-routers-auth/README.md)
+- [ktor-routers-auth-locale](ktor-routers-auth-locale/README.md)
 - [ktor-routers-client](ktor-routers-client/README.md)
 - [ktor-routers-locale](ktor-routers-locale/README.md)
-- [ktor-routers-admin-locale](ktor-routers-admin-locale/README.md)
-- [ktor-routers-auth-locale](ktor-routers-auth-locale/README.md)
+- [ktor-routers-websockets](ktor-routers-websockets/README.md)
 - [ktor-sentry](ktor-sentry/README.md)
