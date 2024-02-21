@@ -67,6 +67,7 @@ dependencyResolutionManagement {
 rootProject.name = "ktorx"
 includeBuild("convention-plugins")
 include(":ktor-database-sessions")
+include(":ktor-health")
 include(":ktor-i18n")
 include(":ktor-i18n-freemarker")
 include(":ktor-routers")

@@ -12,73 +12,107 @@ import me.nathanfallet.ktorx.hooks.SentryContextHook
 
 val sentryTransactionKey = AttributeKey<ITransaction>("SentryTransaction")
 
-val KtorSentry = createApplicationPlugin("KtorSentry") {
-    on(MonitoringEvent(Routing.RoutingCallStarted)) { call ->
-        val transaction = Sentry.startTransaction(
-            /* name = */ "${call.request.httpMethod.value} ${call.request.path()}",
-            /* operation = */ "call",
-            /* customSamplingContext = */ CustomSamplingContext().apply {
-                this["path"] = call.request.path().lowercase()
-            },
-            /* bindToScope = */ true
-        )
-        Sentry.configureScope { scope ->
-            scope.addBreadcrumb(Breadcrumb.http(call.request.uri, call.request.httpMethod.value))
-            scope.request = Request().apply {
-                method = call.request.httpMethod.value
-                url = call.request.path()
-                queryString = call.request.queryString()
-                headers = call.request.headers.toMap()
-                    .mapValues { (_, v) -> v.firstOrNull() }
+class KtorSentry private constructor() {
+
+    companion object Feature : BaseApplicationPlugin<ApplicationCallPipeline, SentryOptions, KtorSentry> {
+
+        override val key = AttributeKey<KtorSentry>("KtorSentry")
+        override fun install(pipeline: ApplicationCallPipeline, configure: SentryOptions.() -> Unit) =
+            KtorSentry().apply {
+                // Init Sentry
+                Sentry.init {
+                    it.apply(configure)
+
+                    // Disable traces for health checks
+                    if (pipeline.pluginRegistry.contains(KtorHealth.key)) {
+                        val healthChecks = pipeline.plugin(KtorHealth).config.checks
+                        val oldTracesSampler = it.tracesSampler
+                        it.setTracesSampler { context ->
+                            context.customSamplingContext?.let { samplingContext ->
+                                if (context.transactionContext.parentSampled == true) return@setTracesSampler 1.0
+                                if (healthChecks.containsKey(samplingContext["path"])) return@setTracesSampler 0.0
+                                oldTracesSampler?.sample(context) // Fallback to old sampler
+                            }
+                        }
+                    }
+                }
+
+                // Add hooks
+                MonitoringEvent(Routing.RoutingCallStarted).install(pipeline) { call ->
+                    val transaction = Sentry.startTransaction(
+                        /* name = */ "${call.request.httpMethod.value} ${call.request.path()}",
+                        /* operation = */ "call",
+                        /* customSamplingContext = */ CustomSamplingContext().apply {
+                            this["path"] = call.request.path().lowercase()
+                        },
+                        /* bindToScope = */ true
+                    )
+                    Sentry.configureScope { scope ->
+                        scope.addBreadcrumb(Breadcrumb.http(call.request.uri, call.request.httpMethod.value))
+                        scope.request = Request().apply {
+                            method = call.request.httpMethod.value
+                            url = call.request.path()
+                            queryString = call.request.queryString()
+                            headers = call.request.headers.toMap()
+                                .mapValues { (_, v) -> v.firstOrNull() }
+                        }
+                        scope.setTag("url", call.request.uri)
+                        scope.setTag("host", call.request.host())
+                    }
+                    call.attributes.put(sentryTransactionKey, transaction)
+                    transaction.startChild("setup", "Call setup")
+                }
+
+                MonitoringEvent(Routing.RoutingCallStarted).install(pipeline) { call ->
+                    call.sentryTransactionOrNull()?.let { t ->
+                        t.latestActiveSpan?.finish(SpanStatus.OK)
+                        t.setTag("route", call.route.parent.toString())
+                        t.startChild("processing", "Request processing")
+                    }
+                }
+
+                ResponseBodyReadyForSend.install(pipeline) { call, _ ->
+                    call.sentryTransactionOrNull()?.let { t ->
+                        t.latestActiveSpan?.finish(SpanStatus.OK)
+                        t.startChild("sending", "Sending response")
+                    }
+                }
+
+                CallFailed.install(pipeline) { call, cause ->
+                    Sentry.captureException(cause)
+                    call.sentryTransactionOrNull()?.apply {
+                        throwable = cause
+                    }
+                }
+
+                ResponseSent.install(pipeline) { call ->
+                    call.sentryTransactionOrNull()?.let { t ->
+                        t.latestActiveSpan?.finish(SpanStatus.OK)
+                        Sentry.addBreadcrumb(
+                            Breadcrumb.http(
+                                call.request.uri,
+                                call.request.httpMethod.value,
+                                call.response.status()?.value
+                            )
+                        )
+                        t.contexts.setResponse(
+                            Response().apply {
+                                headers =
+                                    call.response.headers.allValues().toMap().mapValues { (_, v) -> v.firstOrNull() }
+                                statusCode = call.response.status()?.value
+                            },
+                        )
+                        t.finish(SpanStatus.fromHttpStatusCode(call.response.status()?.value, SpanStatus.OK))
+                    }
+                }
+
+                SentryContextHook.install(pipeline) { block ->
+                    block()
+                }
             }
-            scope.setTag("url", call.request.uri)
-            scope.setTag("host", call.request.host())
-        }
-        call.attributes.put(sentryTransactionKey, transaction)
-        transaction.startChild("setup", "Call setup")
+
     }
 
-    on(MonitoringEvent(Routing.RoutingCallStarted)) { call ->
-        call.sentryTransactionOrNull()?.let { t ->
-            t.latestActiveSpan?.finish(SpanStatus.OK)
-            t.setTag("route", call.route.parent.toString())
-            t.startChild("processing", "Request processing")
-        }
-    }
-
-    on(ResponseBodyReadyForSend) { call, _ ->
-        call.sentryTransactionOrNull()?.let { t ->
-            t.latestActiveSpan?.finish(SpanStatus.OK)
-            t.startChild("sending", "Sending response")
-        }
-    }
-
-    on(CallFailed) { call, cause ->
-        Sentry.captureException(cause)
-        call.sentryTransactionOrNull()?.apply {
-            throwable = cause
-        }
-    }
-
-    on(ResponseSent) { call ->
-        call.sentryTransactionOrNull()?.let { t ->
-            t.latestActiveSpan?.finish(SpanStatus.OK)
-            Sentry.addBreadcrumb(
-                Breadcrumb.http(call.request.uri, call.request.httpMethod.value, call.response.status()?.value)
-            )
-            t.contexts.setResponse(
-                Response().apply {
-                    headers = call.response.headers.allValues().toMap().mapValues { (_, v) -> v.firstOrNull() }
-                    statusCode = call.response.status()?.value
-                },
-            )
-            t.finish(SpanStatus.fromHttpStatusCode(call.response.status()?.value, SpanStatus.OK))
-        }
-    }
-
-    on(SentryContextHook()) { block ->
-        block()
-    }
 }
 
 fun ApplicationCall.sentryTransactionOrNull() =

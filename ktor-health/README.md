@@ -1,20 +1,20 @@
-# ktor-routers-websockets
+# ktor-health
 
-Sockets support for Ktor routers.
+Health check for Ktor projects.
 
 ## Installation
 
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-routers-websockets:2.2.1")
+api("me.nathanfallet.ktorx:ktor-health:2.2.1")
 ```
 
 ```xml
 
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
-    <artifactId>ktor-routers-websockets-jvm</artifactId>
+    <artifactId>ktor-health-jvm</artifactId>
     <version>2.2.1</version>
 </dependency>
 ```

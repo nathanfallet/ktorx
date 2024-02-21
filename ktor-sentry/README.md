@@ -7,7 +7,7 @@ A Sentry plugin for Ktor
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-sentry:2.2.0")
+api("me.nathanfallet.ktorx:ktor-sentry:2.2.1")
 ```
 
 ```xml
@@ -16,7 +16,7 @@ api("me.nathanfallet.ktorx:ktor-sentry:2.2.0")
     <dependency>
         <groupId>me.nathanfallet.ktorx</groupId>
         <artifactId>ktor-sentry-jvm</artifactId>
-        <version>2.2.0</version>
+        <version>2.2.1</version>
     </dependency>
 </dependencies>
 ```
@@ -25,13 +25,14 @@ api("me.nathanfallet.ktorx:ktor-sentry:2.2.0")
 
 ```kotlin
 fun Application.configureSentry() {
-    Sentry.init {
-        it.dsn = "..."
-        it.tracesSampleRate = 1.0 // 100% of traces, default is 0.0 (disabled)
+    install(KtorSentry) {
+        dsn = "..."
+        tracesSampleRate = 1.0 // 100% of traces, default is 0.0 (disabled)
     }
-    install(KtorSentry)
 }
 ```
+
+This plugin should be applied after `StatusPages` and `KtorHealth` (if used).
 
 In case you are using Koin, you can register and use `ICaptureExceptionUseCase`:
 
