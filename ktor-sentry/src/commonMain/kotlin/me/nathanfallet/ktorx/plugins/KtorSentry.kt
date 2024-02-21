@@ -29,8 +29,10 @@ class KtorSentry private constructor() {
                         val oldTracesSampler = it.tracesSampler
                         it.setTracesSampler { context ->
                             context.customSamplingContext?.let { samplingContext ->
-                                if (context.transactionContext.parentSampled == true) return@setTracesSampler 1.0
-                                if (healthChecks.containsKey(samplingContext["path"])) return@setTracesSampler 0.0
+                                if (context.transactionContext.parentSampled == true)
+                                    return@setTracesSampler 1.0
+                                if (healthChecks.containsKey((samplingContext["path"] as? String)?.trim('/')))
+                                    return@setTracesSampler 0.0
                                 oldTracesSampler?.sample(context) // Fallback to old sampler
                             }
                         }
