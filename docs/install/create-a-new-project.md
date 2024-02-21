@@ -4,7 +4,7 @@ Create a new Ktor project (using IntelliJ IDEA or the Ktor website), and add the
 the `build.gradle.kts` file.
 
 ```kotlin
-val ktorxVersion = "2.2.1"
+val ktorxVersion = "2.2.2"
 
 implementation("me.nathanfallet.ktorx:ktor-routers:$ktorxVersion")
 ```

@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
+import me.nathanfallet.ktorx.plugins.I18n
 import me.nathanfallet.ktorx.plugins.LocalizedRouteInterceptor
 import me.nathanfallet.ktorx.plugins.LocalizedRouteSelector
 import me.nathanfallet.ktorx.usecases.localization.IGetLocaleForCallUseCase
@@ -28,8 +29,10 @@ interface ILocalizedTemplateRouter {
         localizedRoutes.install(LocalizedRouteInterceptor)
 
         createLocalizedRoutes(localizedRoutes, openAPI)
-        localizedRoutes.route("/{locale}") {
-            createLocalizedRoutes(this)
+        localizedRoutes.plugin(I18n).supportedLocales.forEach {
+            localizedRoutes.route("/$it") {
+                createLocalizedRoutes(this)
+            }
         }
     }
 
