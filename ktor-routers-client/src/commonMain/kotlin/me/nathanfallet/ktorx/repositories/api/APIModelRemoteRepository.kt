@@ -6,6 +6,7 @@ import me.nathanfallet.usecases.context.IContext
 import me.nathanfallet.usecases.models.IModel
 import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.id.RecursiveId
+import me.nathanfallet.usecases.pagination.Pagination
 
 open class APIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayload>, Id, CreatePayload : Any, UpdatePayload : Any>(
     modelTypeInfo: TypeInfo,
@@ -37,16 +38,15 @@ open class APIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayl
     }
 
     override suspend fun list(
-        limit: Long,
-        offset: Long,
+        pagination: Pagination,
         parentId: RecursiveId<*, Unit, *>,
         context: IContext?,
     ): List<Model> {
-        return super<APIChildModelRemoteRepository>.list(limit, offset, parentId, context)
+        return super<APIChildModelRemoteRepository>.list(pagination, parentId, context)
     }
 
-    override suspend fun list(limit: Long, offset: Long, context: IContext?): List<Model> {
-        return list(limit, offset, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
+    override suspend fun list(pagination: Pagination, context: IContext?): List<Model> {
+        return list(pagination, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
     }
 
     override suspend fun get(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? {

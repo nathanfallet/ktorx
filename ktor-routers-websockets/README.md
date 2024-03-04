@@ -7,7 +7,7 @@ Sockets support for Ktor routers.
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-routers-websockets:2.2.2")
+api("me.nathanfallet.ktorx:ktor-routers-websockets:2.2.3")
 ```
 
 ```xml
@@ -15,7 +15,7 @@ api("me.nathanfallet.ktorx:ktor-routers-websockets:2.2.2")
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-routers-websockets-jvm</artifactId>
-    <version>2.2.2</version>
+    <version>2.2.3</version>
 </dependency>
 ```
 

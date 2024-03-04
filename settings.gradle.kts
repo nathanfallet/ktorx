@@ -12,12 +12,12 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            library("coroutines", "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-            library("usecases", "me.nathanfallet.usecases:usecases:1.5.6")
-            library("i18n", "me.nathanfallet.i18n:i18n:1.0.10")
-            library("surexposed", "me.nathanfallet.surexposed:surexposed:1.0.1")
+            library("coroutines", "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            library("usecases", "me.nathanfallet.usecases:usecases:1.6.0")
+            library("i18n", "me.nathanfallet.i18n:i18n:1.0.11")
+            library("surexposed", "me.nathanfallet.surexposed:surexposed:1.0.2")
 
-            version("ktor", "2.3.8")
+            version("ktor", "2.3.9")
             library("ktor-serialization-kotlinx-json", "io.ktor", "ktor-serialization-kotlinx-json").versionRef("ktor")
             library("ktor-server-core", "io.ktor", "ktor-server-core").versionRef("ktor")
             library("ktor-server-content-negotiation", "io.ktor", "ktor-server-content-negotiation").versionRef("ktor")

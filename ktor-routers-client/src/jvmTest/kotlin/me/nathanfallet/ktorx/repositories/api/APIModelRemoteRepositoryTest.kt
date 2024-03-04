@@ -11,6 +11,7 @@ import me.nathanfallet.ktorx.models.TestModel
 import me.nathanfallet.ktorx.models.TestUpdatePayload
 import me.nathanfallet.ktorx.models.api.AbstractAPIClient
 import me.nathanfallet.ktorx.models.exceptions.APIException
+import me.nathanfallet.usecases.pagination.Pagination
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -58,7 +59,7 @@ class APIModelRemoteRepositoryTest {
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
         })
-        val models = repository.list(10, 5)
+        val models = repository.list(Pagination(10, 5))
         assertEquals(1, models.size)
         assertEquals(1, models.first().id)
         assertEquals("string", models.first().string)

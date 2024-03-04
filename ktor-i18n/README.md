@@ -7,7 +7,7 @@ i18n extension for ktor.
 Add dependency to your `build.gradle(.kts)` or `pom.xml`:
 
 ```kotlin
-api("me.nathanfallet.ktorx:ktor-i18n:2.2.2")
+api("me.nathanfallet.ktorx:ktor-i18n:2.2.3")
 ```
 
 ```xml
@@ -15,7 +15,7 @@ api("me.nathanfallet.ktorx:ktor-i18n:2.2.2")
 <dependency>
     <groupId>me.nathanfallet.ktorx</groupId>
     <artifactId>ktor-i18n-jvm</artifactId>
-    <version>2.2.2</version>
+    <version>2.2.3</version>
 </dependency>
 ```
 

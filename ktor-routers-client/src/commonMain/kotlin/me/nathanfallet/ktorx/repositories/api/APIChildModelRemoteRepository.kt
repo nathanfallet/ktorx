@@ -8,6 +8,7 @@ import me.nathanfallet.ktorx.models.api.IAPIClient
 import me.nathanfallet.usecases.context.IContext
 import me.nathanfallet.usecases.models.IChildModel
 import me.nathanfallet.usecases.models.id.RecursiveId
+import me.nathanfallet.usecases.pagination.Pagination
 
 open class APIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, UpdatePayload, ParentId>, Id, CreatePayload : Any, UpdatePayload : Any, ParentId>(
     final override val modelTypeInfo: TypeInfo,
@@ -47,14 +48,13 @@ open class APIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, 
     }
 
     override suspend fun list(
-        limit: Long,
-        offset: Long,
+        pagination: Pagination,
         parentId: RecursiveId<*, ParentId, *>,
         context: IContext?,
     ): List<Model> {
         return client.request(HttpMethod.Get, constructFullRoute(parentId)) {
-            parameter("limit", limit)
-            parameter("offset", offset)
+            parameter("limit", pagination.limit)
+            parameter("offset", pagination.offset)
         }.body(listTypeInfo)
     }
 
