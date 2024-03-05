@@ -29,61 +29,47 @@ open class APIModelRemoteRepository<Model : IModel<Id, CreatePayload, UpdatePayl
     prefix,
 ), IAPIModelRemoteRepository<Model, Id, CreatePayload, UpdatePayload> {
 
-    override suspend fun list(parentId: RecursiveId<*, Unit, *>, context: IContext?): List<Model> {
-        return super<APIChildModelRemoteRepository>.list(parentId, context)
-    }
+    override suspend fun list(parentId: RecursiveId<*, Unit, *>, context: IContext?): List<Model> =
+        super<APIChildModelRemoteRepository>.list(parentId, context)
 
-    override suspend fun list(context: IContext?): List<Model> {
-        return list(RecursiveId<UnitModel, Unit, Unit>(Unit), context)
-    }
+    override suspend fun list(context: IContext?): List<Model> =
+        list(RecursiveId<UnitModel, Unit, Unit>(Unit), context)
 
     override suspend fun list(
         pagination: Pagination,
         parentId: RecursiveId<*, Unit, *>,
         context: IContext?,
-    ): List<Model> {
-        return super<APIChildModelRemoteRepository>.list(pagination, parentId, context)
-    }
+    ): List<Model> = super<APIChildModelRemoteRepository>.list(pagination, parentId, context)
 
-    override suspend fun list(pagination: Pagination, context: IContext?): List<Model> {
-        return list(pagination, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
-    }
+    override suspend fun list(pagination: Pagination, context: IContext?): List<Model> =
+        list(pagination, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
 
-    override suspend fun get(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? {
-        return super<APIChildModelRemoteRepository>.get(id, parentId, context)
-    }
+    override suspend fun get(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? =
+        super<APIChildModelRemoteRepository>.get(id, parentId, context)
 
-    override suspend fun get(id: Id, context: IContext?): Model? {
-        return get(id, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
-    }
+    override suspend fun get(id: Id, context: IContext?): Model? =
+        get(id, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
 
-    override suspend fun create(payload: CreatePayload, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? {
-        return super<APIChildModelRemoteRepository>.create(payload, parentId, context)
-    }
+    override suspend fun create(payload: CreatePayload, parentId: RecursiveId<*, Unit, *>, context: IContext?): Model? =
+        super<APIChildModelRemoteRepository>.create(payload, parentId, context)
 
-    override suspend fun create(payload: CreatePayload, context: IContext?): Model? {
-        return create(payload, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
-    }
+    override suspend fun create(payload: CreatePayload, context: IContext?): Model? =
+        create(payload, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
 
-    override suspend fun delete(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Boolean {
-        return super<APIChildModelRemoteRepository>.delete(id, parentId, context)
-    }
+    override suspend fun delete(id: Id, parentId: RecursiveId<*, Unit, *>, context: IContext?): Boolean =
+        super<APIChildModelRemoteRepository>.delete(id, parentId, context)
 
-    override suspend fun delete(id: Id, context: IContext?): Boolean {
-        return delete(id, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
-    }
+    override suspend fun delete(id: Id, context: IContext?): Boolean =
+        delete(id, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
 
     override suspend fun update(
         id: Id,
         payload: UpdatePayload,
         parentId: RecursiveId<*, Unit, *>,
         context: IContext?,
-    ): Model? {
-        return super<APIChildModelRemoteRepository>.update(id, payload, parentId, context)
-    }
+    ): Model? = super<APIChildModelRemoteRepository>.update(id, payload, parentId, context)
 
-    override suspend fun update(id: Id, payload: UpdatePayload, context: IContext?): Model? {
-        return update(id, payload, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
-    }
+    override suspend fun update(id: Id, payload: UpdatePayload, context: IContext?): Model? =
+        update(id, payload, RecursiveId<UnitModel, Unit, Unit>(Unit), context)
 
 }

@@ -22,14 +22,12 @@ open class AuthAPIRemoteRepository(
 
     override suspend fun token(
         payload: AuthRequest,
-    ): AuthToken? {
-        return client.request(
-            HttpMethod.Post,
-            "${constructFullRoute(RecursiveId<UnitModel, Unit, Unit>(Unit))}/token"
-        ) {
-            contentType(ContentType.Application.Json)
-            setBody(payload)
-        }.body()
-    }
+    ): AuthToken? = client.request(
+        HttpMethod.Post,
+        "${constructFullRoute(RecursiveId<UnitModel, Unit, Unit>(Unit))}/token"
+    ) {
+        contentType(ContentType.Application.Json)
+        setBody(payload)
+    }.body()
 
 }

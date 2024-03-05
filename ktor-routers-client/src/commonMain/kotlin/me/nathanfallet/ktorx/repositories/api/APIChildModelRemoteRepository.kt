@@ -26,8 +26,8 @@ open class APIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, 
     override val id = id ?: (modelTypeInfo.type.simpleName!!.lowercase() + "Id")
     override val prefix = prefix ?: "/api"
 
-    override fun constructRouteIncludingParent(parentId: Any?): String {
-        return (parentRepository?.let {
+    override fun constructRouteIncludingParent(parentId: Any?): String =
+        (parentRepository?.let {
             if (parentId !is RecursiveId<*, *, *>) return@let null
             val parentRoute = it
                 .constructRouteIncludingParent(parentId.parentId)
@@ -37,57 +37,45 @@ open class APIChildModelRemoteRepository<Model : IChildModel<Id, CreatePayload, 
             val parentIdString = it.id.takeIf(String::isNotEmpty)?.let { "/${parentId.id}" } ?: ""
             parentRoute + parentIdString
         } ?: "") + "/" + this.route
-    }
 
-    open fun constructFullRoute(parentId: RecursiveId<*, ParentId, *>): String {
-        return this.prefix + constructRouteIncludingParent(parentId)
-    }
+    open fun constructFullRoute(parentId: RecursiveId<*, ParentId, *>): String =
+        this.prefix + constructRouteIncludingParent(parentId)
 
-    override suspend fun list(parentId: RecursiveId<*, ParentId, *>, context: IContext?): List<Model> {
-        return client.request(HttpMethod.Get, constructFullRoute(parentId)).body(listTypeInfo)
-    }
+    override suspend fun list(parentId: RecursiveId<*, ParentId, *>, context: IContext?): List<Model> =
+        client.request(HttpMethod.Get, constructFullRoute(parentId)).body(listTypeInfo)
 
     override suspend fun list(
         pagination: Pagination,
         parentId: RecursiveId<*, ParentId, *>,
         context: IContext?,
-    ): List<Model> {
-        return client.request(HttpMethod.Get, constructFullRoute(parentId)) {
-            parameter("limit", pagination.limit)
-            parameter("offset", pagination.offset)
-        }.body(listTypeInfo)
-    }
+    ): List<Model> = client.request(HttpMethod.Get, constructFullRoute(parentId)) {
+        parameter("limit", pagination.limit)
+        parameter("offset", pagination.offset)
+    }.body(listTypeInfo)
 
-    override suspend fun get(id: Id, parentId: RecursiveId<*, ParentId, *>, context: IContext?): Model? {
-        return client.request(HttpMethod.Get, "${constructFullRoute(parentId)}/$id").body(modelTypeInfo)
-    }
+    override suspend fun get(id: Id, parentId: RecursiveId<*, ParentId, *>, context: IContext?): Model? =
+        client.request(HttpMethod.Get, "${constructFullRoute(parentId)}/$id").body(modelTypeInfo)
 
     override suspend fun create(
         payload: CreatePayload,
         parentId: RecursiveId<*, ParentId, *>,
         context: IContext?,
-    ): Model? {
-        return client.request(HttpMethod.Post, constructFullRoute(parentId)) {
-            contentType(ContentType.Application.Json)
-            setBody(payload, createPayloadTypeInfo)
-        }.body(modelTypeInfo)
-    }
+    ): Model? = client.request(HttpMethod.Post, constructFullRoute(parentId)) {
+        contentType(ContentType.Application.Json)
+        setBody(payload, createPayloadTypeInfo)
+    }.body(modelTypeInfo)
 
     override suspend fun update(
         id: Id,
         payload: UpdatePayload,
         parentId: RecursiveId<*, ParentId, *>,
         context: IContext?,
-    ): Model? {
-        return client.request(HttpMethod.Put, "${constructFullRoute(parentId)}/$id") {
-            contentType(ContentType.Application.Json)
-            setBody(payload, updatePayloadTypeInfo)
-        }.body(modelTypeInfo)
-    }
+    ): Model? = client.request(HttpMethod.Put, "${constructFullRoute(parentId)}/$id") {
+        contentType(ContentType.Application.Json)
+        setBody(payload, updatePayloadTypeInfo)
+    }.body(modelTypeInfo)
 
-    override suspend fun delete(id: Id, parentId: RecursiveId<*, ParentId, *>, context: IContext?): Boolean {
-        client.request(HttpMethod.Delete, "${constructFullRoute(parentId)}/$id")
-        return true
-    }
+    override suspend fun delete(id: Id, parentId: RecursiveId<*, ParentId, *>, context: IContext?): Boolean =
+        client.request(HttpMethod.Delete, "${constructFullRoute(parentId)}/$id").let { true }
 
 }
