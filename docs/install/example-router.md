@@ -47,8 +47,8 @@ In the `resources`, we will create a `templates` folder and add a `hello.ftl` fi
 </p>
 ```
 
-And the final step is the router itself. We will create a `HelloRouter.kt` file in the same package, and provide both
-API and templating capabilities:
+And the final step is the router itself. We will create a `HelloRouter.kt` file in the same `controllers` package, and
+provide both API and templating capabilities:
 
 ```kotlin
 class HelloRouter(
@@ -140,9 +140,11 @@ add the following code:
 fun Application.configureRouting() {
     install(IgnoreTrailingSlash)
     routing {
-        val helloRouter by inject<HelloRouter>()
-
-        helloRouter.createRoutes(this)
+        listOf(
+            get<HelloRouter>()
+        ).forEach {
+            it.createRoutes(this)
+        }
     }
 }
 ```
