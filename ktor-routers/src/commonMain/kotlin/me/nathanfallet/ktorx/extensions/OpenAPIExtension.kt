@@ -12,6 +12,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
@@ -48,7 +49,7 @@ fun OpenAPI.schema(type: KType): Schema<Any> {
     // Process type
     val typeKey = type.toString().removeSuffix("?")
     val klass = type.classifier as KClass<*>
-    if (klass.isData && components?.schemas?.containsKey(typeKey) != true) {
+    if (klass.isData && klass.annotations.any { it is Serializable } && components?.schemas?.containsKey(typeKey) != true) {
         val properties = serializer(type).descriptor.elementNames.mapNotNull { name ->
             klass.memberProperties.firstOrNull { it.name == name }?.let { property ->
                 name to property

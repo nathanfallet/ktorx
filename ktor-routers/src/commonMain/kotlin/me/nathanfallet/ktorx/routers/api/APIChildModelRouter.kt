@@ -7,6 +7,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.parameters.Parameter
 import me.nathanfallet.ktorx.controllers.IChildModelController
 import me.nathanfallet.ktorx.extensions.*
 import me.nathanfallet.ktorx.models.annotations.*
@@ -99,11 +101,11 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         is ControllerResponse -> return@handle response.respond(call)
                         is StatusResponse<*> -> response.content
                         else -> response
-                    }
+                    }.takeIf { it != Unit && it != UnitModel }
                     val status = when {
                         response is StatusResponse<*> -> response.status
                         controllerRoute.type == RouteType.createModel -> HttpStatusCode.Created
-                        item == Unit || item == UnitModel || item == null -> HttpStatusCode.NoContent
+                        item == null -> HttpStatusCode.NoContent
                         else -> HttpStatusCode.OK
                     }
                     item?.let { call.respond(status, item) } ?: call.respond(status)
@@ -142,7 +144,19 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                 RouteType.deleteModel -> "Delete a $documentedTypeName by id"
                 else -> null
             })?.let { description(it) }
-            parameters(getOpenAPIParameters(path.contains("{$id}")))
+            parameters(
+                getOpenAPIParameters(path.contains("{$id}")) + controllerRoute.parameters.mapNotNull {
+                    Parameter()
+                        .`in`(
+                            if (it.annotations.any { annotation -> annotation is PathParameter }) "path"
+                            else if (it.annotations.any { annotation -> annotation is QueryParameter }) "query"
+                            else return@mapNotNull null
+                        )
+                        .name(it.name)
+                        .schema(Schema<Any>().type(it.type.toString()))
+                        .required(!it.isOptional)
+                }
+            )
 
             // Body and response linked to payload
             controllerRoute.parameters.singleOrNull {
