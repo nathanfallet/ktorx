@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.testing.*
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.swagger.v3.oas.models.OpenAPI
 import kotlinx.serialization.json.Json
 import me.nathanfallet.ktorx.models.ITestUnitController
 import me.nathanfallet.ktorx.models.responses.BytesResponse
@@ -67,6 +68,27 @@ class APIUnitRouterTest {
     }
 
     @Test
+    fun testAPIQueryParameterRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = APIUnitRouter(
+            controller,
+            ITestUnitController::class
+        )
+        val openAPI = OpenAPI()
+        coEvery { controller.helloQuery("world") } returns "Hello world"
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.get("/api/hello/query?name=world")
+        val get = openAPI.paths["/api/hello/query"]?.get
+        assertEquals(1, get?.parameters?.size)
+        assertEquals("name", get?.parameters?.firstOrNull()?.name)
+        assertEquals("query", get?.parameters?.firstOrNull()?.`in`)
+        assertEquals("kotlin.String", get?.parameters?.firstOrNull()?.schema?.type)
+    }
+
+    @Test
     fun testAPIPathParameterRoute() = testApplication {
         val client = installApp(this)
         val controller = mockk<ITestUnitController>()
@@ -81,6 +103,27 @@ class APIUnitRouterTest {
         val response = client.get("/api/hello/path/world")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Hello world", response.body())
+    }
+
+    @Test
+    fun testAPIPathParameterRouteOpenAPI() = testApplication {
+        val client = installApp(this)
+        val controller = mockk<ITestUnitController>()
+        val router = APIUnitRouter(
+            controller,
+            ITestUnitController::class
+        )
+        val openAPI = OpenAPI()
+        coEvery { controller.helloPath("world") } returns "Hello world"
+        routing {
+            router.createRoutes(this, openAPI)
+        }
+        client.get("/api/hello/path/world")
+        val get = openAPI.paths["/api/hello/path/{name}"]?.get
+        assertEquals(1, get?.parameters?.size)
+        assertEquals("name", get?.parameters?.firstOrNull()?.name)
+        assertEquals("path", get?.parameters?.firstOrNull()?.`in`)
+        assertEquals("kotlin.String", get?.parameters?.firstOrNull()?.schema?.type)
     }
 
     @Test
