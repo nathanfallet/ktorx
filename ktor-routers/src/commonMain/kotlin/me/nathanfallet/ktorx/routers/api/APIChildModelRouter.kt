@@ -99,11 +99,11 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         is ControllerResponse -> return@handle response.respond(call)
                         is StatusResponse<*> -> response.content
                         else -> response
-                    }
+                    }.takeIf { it != Unit && it != UnitModel }
                     val status = when {
                         response is StatusResponse<*> -> response.status
                         controllerRoute.type == RouteType.createModel -> HttpStatusCode.Created
-                        item == Unit || item == UnitModel || item == null -> HttpStatusCode.NoContent
+                        item == null -> HttpStatusCode.NoContent
                         else -> HttpStatusCode.OK
                     }
                     item?.let { call.respond(status, item) } ?: call.respond(status)

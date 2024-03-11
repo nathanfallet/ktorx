@@ -19,6 +19,7 @@ import me.nathanfallet.ktorx.models.routes.RouteType
 import me.nathanfallet.ktorx.routers.IChildModelRouter
 import me.nathanfallet.ktorx.routers.base.AbstractChildModelRouter
 import me.nathanfallet.usecases.models.IChildModel
+import me.nathanfallet.usecases.models.UnitModel
 import me.nathanfallet.usecases.models.annotations.ModelAnnotations
 import me.nathanfallet.usecases.models.annotations.validators.PropertyValidatorException
 import kotlin.reflect.KClass
@@ -127,12 +128,13 @@ open class TemplateChildModelRouter<Model : IChildModel<Id, CreatePayload, Updat
                         isForm && path.contains("{$id}") -> get(call)
                         !hasPayload || method != HttpMethod.Get -> invokeControllerRoute(call, controllerRoute)
                         else -> null
-                    }
+                    }.takeIf { it != Unit && it != UnitModel }
 
                     if (item is ControllerResponse) return@handle item.respond(call)
 
                     val itemMap = item as? Map<String, *>
-                        ?: if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
+                        ?: if (item == null) mapOf()
+                        else if (controllerRoute.type == RouteType.listModel) mapOf("items" to item)
                         else mapOf("item" to item)
 
                     call.respondTemplate(
