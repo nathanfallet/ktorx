@@ -154,7 +154,7 @@ open class APIChildModelRouter<Model : IChildModel<Id, CreatePayload, UpdatePayl
                         )
                         .name(it.name)
                         .schema(Schema<Any>().type(it.type.toString()))
-                        .required(!it.isOptional)
+                        .required(!it.type.isMarkedNullable)
                 }
             )
 
